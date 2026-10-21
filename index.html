@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hopla – gry ruchowe</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--sky1:#1b1f5e;--sky2:#3a2a86;--sun:#ffd23f;--grass:#3ccf7a;--pink:#ff5fa2}
+html,body{margin:0;height:100%;background:var(--sky1);color:#fff;font-family:"Baloo 2",system-ui,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:radial-gradient(circle at 50% 30%,var(--sky2),var(--sky1));z-index:5;text-align:center;padding:16px}
+h1{font-size:clamp(44px,8vw,110px);margin:0;line-height:1;color:var(--sun);text-shadow:0 6px 0 #c48a00}
+p{margin:0;font-size:clamp(18px,2.4vw,30px);opacity:.9}
+#qr{background:#fff;padding:18px;border-radius:24px}
+#code{font-size:clamp(40px,6vw,80px);font-weight:800;letter-spacing:.2em;color:var(--sun)}
+.games{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+button{font:800 clamp(22px,3vw,40px) "Baloo 2",sans-serif;border:0;border-radius:28px;padding:24px 40px;cursor:pointer;color:#1b1f5e;box-shadow:0 8px 0 rgba(0,0,0,.3)}
+button:focus-visible{outline:5px solid #fff}
+.y{background:var(--sun)}.g{background:var(--grass)}.w{background:#fff}
+#hud{position:fixed;top:20px;left:0;right:0;display:flex;justify-content:space-between;padding:0 32px;font-size:clamp(28px,4vw,56px);font-weight:800;z-index:3;pointer-events:none}
+#msg{position:fixed;left:0;right:0;top:38%;text-align:center;font-size:clamp(36px,6vw,90px);font-weight:800;z-index:4;pointer-events:none;color:var(--sun);text-shadow:0 6px 0 rgba(0,0,0,.4)}
+#cam{position:relative;width:min(92vw,60vh);aspect-ratio:1;border-radius:24px;overflow:hidden;border:5px solid var(--sun);background:#000}
+#cam video,#cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mir{transform:scaleX(-1)}
+</style></head><body>
+<script>
+const room=new URLSearchParams(location.search).get('room');
+</script>
+<div id="tv" hidden>
+  <canvas id="c"></canvas>
+  <div id="hud" hidden><span id="score">⭐ 0</span><span id="time">60</span></div>
+  <div id="msg"></div>
+  <div class="screen" id="pair">
+    <h1>Hopla!</h1>
+    <p>Zeskanuj kod aparatem w telefonie</p>
+    <div id="qr"></div>
+    <p>albo wpisz kod w telefonie: <span id="code"></span></p>
+  </div>
+  <div class="screen" id="menu" hidden>
+    <h1>Hopla!</h1>
+    <p>Postaw telefon przed sobą, 2–3 metry dalej</p>
+    <div class="games"><button class="y" data-g="1">⭐ Łap gwiazdki</button><button class="g" data-g="2">🪵 Skacz przez kłody</button></div>
+  </div>
+</div>
+<div id="phone" class="screen" hidden>
+  <p id="pst">Łączę z telewizorem…</p>
+  <div id="cam"><video id="v" playsinline muted class="mir"></video><canvas id="sk" class="mir"></canvas></div>
+  <div class="games">
+    <button class="y" data-g="1">⭐ Gwiazdki</button><button class="g" data-g="2">🪵 Kłody</button>
+  </div>
+  <button class="w" id="flip" style="font-size:20px;padding:12px 24px">↻ Zmień kamerę</button>
+</div>
+<script type="module">
+const $=id=>document.getElementById(id);
+const BONES=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28],[15,17],[16,18],[27,31],[28,32]];
+if(room){
+  $('phone').hidden=false;
+  const {PoseLandmarker,FilesetResolver}=await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+  const v=$('v'),sk=$('sk'),sx=sk.getContext('2d');
+  let conn=null, facing='user', stream=null;
+  const peer=new Peer();
+  peer.on('open',()=>{conn=peer.connect('hopla-'+room,{reliable:false});
+    conn.on('open',()=>{$('pst').textContent='✅ Połączono z telewizorem';navigator.vibrate?.(80)});
+    conn.on('close',()=>$('pst').textContent='Rozłączono — zeskanuj kod ponownie')});
+  peer.on('error',e=>$('pst').textContent='Błąd: '+e.type);
+  document.querySelectorAll('#phone [data-g]').forEach(b=>b.onclick=()=>conn?.send({t:'start',g:+b.dataset.g}));
+  async function cam(){stream?.getTracks().forEach(t=>t.stop());
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:640,height:640}});
+    v.srcObject=stream;await v.play();
+    v.classList.toggle('mir',facing==='user');sk.classList.toggle('mir',facing==='user')}
+  $('flip').onclick=()=>{facing=facing==='user'?'environment':'user';cam()};
+  await cam();
+  const fs=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  const pose=await PoseLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",delegate:"GPU"},runningMode:"VIDEO",numPoses:1});
+  (function tick(t){requestAnimationFrame(tick);if(v.readyState<2)return;
+    const lm=pose.detectForVideo(v,performance.now()).landmarks?.[0];
+    const S=sk.width=sk.clientWidth*devicePixelRatio; sk.height=S;
+    const vw=v.videoWidth,vh=v.videoHeight,k=Math.max(S/vw,S/vh),ox=(S-vw*k)/2,oy=(S-vh*k)/2;
+    const pt=p=>[ox+p.x*vw*k,oy+p.y*vh*k];
+    sx.clearRect(0,0,S,S); if(!lm)return;
+    sx.lineCap='round';sx.lineWidth=S/60;sx.strokeStyle='#ff5fa2';
+    for(const[a,b]of BONES){if(lm[a].visibility<.4||lm[b].visibility<.4)continue;const[A,B]=[pt(lm[a]),pt(lm[b])];sx.beginPath();sx.moveTo(...A);sx.lineTo(...B);sx.stroke()}
+    lm.forEach((p,i)=>{if(p.visibility<.4)return;const[X,Y]=pt(p);sx.fillStyle=[15,16].includes(i)?'#ffd23f':'#fff';sx.beginPath();sx.arc(X,Y,[15,16].includes(i)?S/45:S/90,0,7);sx.fill()});
+    const m=facing==='user';
+    conn?.open&&conn.send({t:'lm',p:lm.map(p=>[+(m?1-p.x:p.x).toFixed(3),+p.y.toFixed(3),+p.visibility.toFixed(2)])});
+  })();
+}
+else {
+  $('tv').hidden=false;
+  const code=String(Math.floor(1000+Math.random()*9000));
+  $('code').textContent=code;
+  const url=location.href.split('?')[0]+'?room='+code;
+  new QRCode($('qr'),{text:url,width:260,height:260});
+  const peer=new Peer('hopla-'+code);
+  peer.on('connection',cn=>{cn.on('open',()=>{$('pair').hidden=true;$('menu').hidden=false;document.querySelector('#menu button').focus()});
+    cn.on('data',d=>{if(d.t==='lm')lm=d.p;if(d.t==='start')start(d.g)});
+    cn.on('close',()=>{lm=null;back();$('pair').hidden=false;$('menu').hidden=true})});
+  document.querySelectorAll('#menu [data-g]').forEach(b=>b.onclick=()=>start(+b.dataset.g));
+  const c=$('c'),x=c.getContext('2d');let W,H;const fit=()=>{W=c.width=innerWidth;H=c.height=innerHeight};fit();addEventListener('resize',fit);
+  let lm=null,game=null,score=0,tEnd=0,items=[],parts=[],base=null,lastT=0,AC=null;
+  function beep(f,d=.12,t='sine'){try{AC??=new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(.25,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch{}}
+  const P=i=>lm&&lm[i]&&lm[i][2]>.4?{x:lm[i][0]*W,y:lm[i][1]*H}:null;
+  let msgT;function say(t,ms=900){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>$('msg').textContent='',ms)}
+  function start(g){game=g;score=0;items=[];parts=[];base=null;tEnd=performance.now()+60000;$('menu').hidden=true;$('hud').hidden=false;say(g===1?'Łap gwiazdki rękami!':'Skacz, gdy kłoda podjedzie!',2000)}
+  function back(){game=null;$('hud').hidden=true;if($('pair').hidden)$('menu').hidden=false}
+  function burst(px,py,col){for(let i=0;i<14;i++)parts.push({x:px,y:py,vx:(Math.random()-.5)*12,vy:(Math.random()-.8)*12,l:1,col})}
+  function star(cx,cy,r,rot){x.beginPath();for(let i=0;i<10;i++){const a=rot+i*Math.PI/5,rr=i%2?r*.45:r;x.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}x.closePath();x.fillStyle='#ffd23f';x.fill()}
+  function drawBody(){if(!lm)return;x.lineCap='round';x.strokeStyle='#ff5fa2';x.lineWidth=Math.max(14,W/90);
+    for(const[a,b]of BONES){const A=P(a),B=P(b);if(A&&B){x.beginPath();x.moveTo(A.x,A.y);x.lineTo(B.x,B.y);x.stroke()}}
+    const n=P(0);if(n){x.fillStyle='#ffb3d4';x.beginPath();x.arc(n.x,n.y,W/30,0,7);x.fill()}
+    for(const i of[15,16]){const h=P(i);if(h){x.fillStyle='#fff';x.beginPath();x.arc(h.x,h.y,W/45,0,7);x.fill()}}}
+  (function loop(t){requestAnimationFrame(loop);const dt=Math.min(50,t-(lastT||t));lastT=t;
+    const gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#1b1f5e');gr.addColorStop(1,game===2?'#5b3fb0':'#3a2a86');x.fillStyle=gr;x.fillRect(0,0,W,H);
+    if(!game)return;
+    const left=Math.max(0,Math.ceil((tEnd-t)/1000));$('time').textContent=left;$('score').textContent=(game===1?'⭐ ':'🪵 ')+score;
+    if(left===0){say('Brawo! Wynik: '+score,4000);beep(660,.3);setTimeout(()=>beep(880,.4),200);back();return}
+    if(game===1){
+      if(Math.random()<dt/600)items.push({x:W*(.1+Math.random()*.8),y:-40,vy:2+Math.random()*2,r:W/28,rot:0});
+      const hands=[P(15),P(16)].filter(Boolean);
+      items=items.filter(s=>{s.y+=s.vy*dt/16;s.rot+=.03;
+        if(hands.some(h=>Math.hypot(h.x-s.x,h.y-s.y)<s.r+W/40)){score++;burst(s.x,s.y,'#ffd23f');beep(700+score*20);if(score%5===0)say('Super!');return false}
+        star(s.x,s.y,s.r,s.rot);return s.y<H+60});
+    }else{
+      const gy=H*.86;x.fillStyle='#3ccf7a';x.fillRect(0,gy,W,H-gy);
+      const hl=P(23),hr=P(24);let jumping=false;
+      if(hl&&hr){const hy=(hl.y+hr.y)/2;base=base==null?hy:(hy>base-H*.02?base*.97+hy*.03:base);jumping=hy<base-H*.06}
+      const px=W*.5;
+      if(Math.random()<dt/1800&&!items.some(o=>o.x>W*.7))items.push({x:W+80,ok:false});
+      items=items.filter(o=>{o.x-=W*.004*dt/16;x.fillStyle='#8a5a2b';x.beginPath();x.roundRect(o.x-60,gy-46,120,46,23);x.fill();
+        if(!o.ok&&Math.abs(o.x-px)<50){o.ok=true;if(jumping){score++;burst(px,gy-60,'#3ccf7a');beep(520+score*25,.15,'triangle');say('Hop!')}else{beep(160,.25,'square');say('Ups!')}}
+        return o.x>-100});
+      x.fillStyle=jumping?'#ffd23f':'#ffffff88';x.font='800 28px "Baloo 2"';x.textAlign='center';x.fillText(jumping?'W GÓRZE!':'skacz ↑',px,gy+50);
+    }
+    drawBody();
+    parts=parts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.4;p.l-=.025;x.globalAlpha=Math.max(0,p.l);x.fillStyle=p.col;x.fillRect(p.x,p.y,8,8);x.globalAlpha=1;return p.l>0});
+    if(!lm){x.fillStyle='#fff';x.font='800 32px "Baloo 2"';x.textAlign='center';x.fillText('Nie widzę cię — odsuń się od telefonu',W/2,H*.2)}
+  })();
+}
+</script></body></html>
