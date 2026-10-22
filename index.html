@@ -5,6 +5,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
+try{if(new URLSearchParams(location.search).has('solo')&&!sessionStorage.getItem('hoplaSolo'))location.replace(location.pathname)}catch(e){}
 /* tryb solo: "sieć" w pamięci strony — ta sama logika co telefon+TV, ale bez internetu */
 if(new URLSearchParams(location.search).has('solo')){const reg={};
   class Ch{constructor(l,o){this.label=l;this.open=false;this.h={};this.o=o}on(e,f){(this.h[e]=this.h[e]||[]).push(f)}emit(e,a){(this.h[e]||[]).forEach(f=>f(a))}send(m){const o=this.o;if(o&&o.open)queueMicrotask(()=>o.emit('data',m))}}
@@ -82,18 +83,23 @@ body.solo #pad:not([hidden])~#phone{display:none}
 <video id="v" playsinline muted style="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none"></video>
 <div id="tv" hidden>
   <canvas id="c"></canvas>
+  <div class="screen" id="choose" hidden style="z-index:9">
+    <h1>Hopla!</h1><p>Jak chcesz grać?</p>
+    <div class="row" style="gap:24px;align-items:stretch"><button id="chPhone" class="card" style="padding:26px 30px;background:#7ad3ff"><b style="font-size:clamp(40px,5vw,72px)">📺 + 📱</b><span style="font-size:clamp(18px,2vw,30px)">Telefon jako kamera i pad<br>(kod QR)</span></button>
+    <button id="chSolo" class="card" style="padding:26px 30px;background:#ffd23f"><b style="font-size:clamp(40px,5vw,72px)">💻</b><span style="font-size:clamp(18px,2vw,30px)">Tylko to urządzenie<br>(kamera, mikrofon, klawiatura)</span></button></div>
+  </div>
   <div class="screen" id="pair">
     <h1>Hopla!</h1>
     <p>📺 + 📱 Dwa urządzenia: zeskanuj kod telefonem (telefon = kamera, mikrofon, pad)</p>
     <div id="qr"></div>
     <p>Kod pokoju: <span id="code"></span></p>
-    <p>albo</p><button class="sm" id="solo" onclick="location.href=location.pathname+'?solo'" style="font-size:clamp(18px,2.4vw,30px);padding:10px 26px">💻 Jedno urządzenie: kamera, mikrofon i ekran stąd</button>
+    <p>albo</p><button class="sm" id="solo" onclick="try{sessionStorage.setItem('hoplaSolo','1')}catch(e){}location.href=location.pathname+'?solo'" style="font-size:clamp(18px,2.4vw,30px);padding:10px 26px">💻 Jedno urządzenie: kamera, mikrofon i ekran stąd</button>
   </div>
   <div class="screen" id="menu" hidden>
     <h1>Hopla!</h1>
     <p>Wybierz grę na telefonie albo pilotem</p>
     <div class="grid" id="grid"></div>
-    <button class="sm" id="styl" style="font-size:20px"></button><p class="hint" id="caps"></p><p class="hint" id="coll"></p>
+    <p class="hint" id="caps"></p><p class="hint" id="coll"></p>
     <p class="hint" id="snd">🔇 Naciśnij OK na pilocie, żeby włączyć dźwięk</p>
   </div>
 </div>
@@ -256,8 +262,8 @@ if(!room||SOLO){
   $('tv').hidden=false;
   const demo=Q.has('demo');
   const c=$('c'),x=c.getContext('2d');let W,H,FULL;
-  const STY=[{n:'Bajkowy',res:960,f:'none',px:0},{n:'Retro arcade',res:400,f:'contrast(1.12) saturate(1.25)',px:1},{n:'Game Boy',res:260,f:'grayscale(1) contrast(1.5) sepia(1) hue-rotate(38deg) saturate(2.4) brightness(.95)',px:1},{n:'8-bit konsola',res:256,f:'saturate(1.5) contrast(1.2)',px:1},{n:'Futurystyczny neon',res:640,f:'contrast(1.3) saturate(1.9) brightness(.9) hue-rotate(-15deg)',px:0},{n:'Średniowieczny',res:640,f:'sepia(.6) saturate(1.1) contrast(1.1) brightness(.95)',px:0},{n:'Japoński',res:640,f:'saturate(.85) contrast(1.05) sepia(.18) hue-rotate(-8deg)',px:0}];
-  let STYLE=1;try{const v=localStorage.getItem('hoplaStyle');STYLE=v===null?1:Math.min(STY.length-1,Math.max(0,+v||0))}catch(e){}
+  const STY=[{n:'Bajkowy',res:960,f:'none',px:0}];
+  let STYLE=0;
   let AR=false;
   const PAL=['#000000','#fcfcfc','#7c7c7c','#bcbcbc','#a81000','#f83800','#fc7460','#e45c10','#fca044','#f8b800','#f8d878','#fcfc4c','#007800','#00a800','#58d854','#b8f818','#00a844','#00e8d8','#3cbcfc','#a4e4fc','#0058f8','#0000bc','#6888fc','#6844fc','#d800cc','#f878f8','#f85898','#f8a4c0','#503000','#ac7c00','#fcd8a8','#881400','#244c24'].map(h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16),h]);
   const QC=new Map();const QP=v=>{let r=QC.get(v);if(r)return r;let R,G,B;
@@ -271,9 +277,9 @@ if(!room||SOLO){
   /* ---------- połączenie ---------- */
   let tvCn=null;const tvSend=m=>{try{tvCn&&tvCn.open&&tvCn.send(m)}catch(e){}};
   let code=SOLO?'solo':String(Math.floor(1000+Math.random()*9000));
-  const stylTxt=()=>$('styl').textContent='🎨 Styl grafiki: '+STY[STYLE].n+' (kliknij, żeby zmienić)';$('styl').onclick=()=>{STYLE=(STYLE+1)%STY.length;try{localStorage.setItem('hoplaStyle',STYLE)}catch(e){}stylTxt()};stylTxt();
   function collUpd(){let n=0;try{n=JSON.parse(localStorage.getItem('hoplaStk')||'[]').length}catch(e){}$('coll').textContent='🏅 Kolekcja naklejek: '+n+' / '+META.length*3+' — zdobywaj gwiazdki w grach'}
   function showMenu(){collUpd();$('pair').hidden=true;$('menu').hidden=false;const b=document.querySelector('#grid button');b&&b.focus()}
+  if(!demo&&!SOLO){$('choose').hidden=false;$('chPhone').onclick=()=>{$('choose').hidden=true};$('chSolo').onclick=()=>{try{sessionStorage.setItem('hoplaSolo','1')}catch(e){}location.href=location.pathname+'?solo'};setTimeout(()=>$('chPhone').focus(),50)}
   if(!demo){
     $('code').textContent=code;
     new QRCode($('qr'),{text:location.href.split('?')[0]+'?room='+code,width:250,height:250});
