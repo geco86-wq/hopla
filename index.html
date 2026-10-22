@@ -4,10 +4,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* tryb solo: "sieć" w pamięci strony — ta sama logika co telefon+TV, ale bez internetu */
+if(new URLSearchParams(location.search).has('solo')){const reg={};
+  class Ch{constructor(l,o){this.label=l;this.open=false;this.h={};this.o=o}on(e,f){(this.h[e]=this.h[e]||[]).push(f)}emit(e,a){(this.h[e]||[]).forEach(f=>f(a))}send(m){const o=this.o;if(o&&o.open)queueMicrotask(()=>o.emit('data',m))}}
+  window.Peer=class{constructor(id){this.id=id||('c'+Math.random().toString(36).slice(2));this.h={};reg[this.id]=this;setTimeout(()=>this.emit('open'),0)}
+    on(e,f){(this.h[e]=this.h[e]||[]).push(f)}emit(e,a){(this.h[e]||[]).forEach(f=>f(a))}destroy(){delete reg[this.id]}
+    connect(id,op){const A=new Ch(op&&op.label),B=new Ch(op&&op.label);A.o=B;B.o=A;let n=0;const go=()=>{const t=reg[id];if(!t){if(n++<60)return setTimeout(go,50);return this.emit('error',{type:'peer-unavailable'})}
+      t.emit('connection',B);setTimeout(()=>{A.open=B.open=true;B.emit('open');A.emit('open')},0)};setTimeout(go,0);return A}}}
+document.addEventListener('gesturestart',e=>e.preventDefault());document.addEventListener('gesturechange',e=>e.preventDefault());
+document.addEventListener('touchstart',e=>{if(e.touches.length>1&&e.target.closest&&e.target.closest('#pad'))e.preventDefault()},{passive:false});
+document.addEventListener('dblclick',e=>{if(e.target.closest&&e.target.closest('#pad'))e.preventDefault()});
+</script>
 <style>
 :root{--sky1:#1b1f5e;--sky2:#3a2a86;--sun:#ffd23f;--grass:#3ccf7a;--pink:#ff5fa2}
 [hidden]{display:none!important}
-html,body{margin:0;height:100%;background:var(--sky1);color:#fff;font-family:"Baloo 2",system-ui,sans-serif;overflow:hidden}
+html,body{touch-action:manipulation;overscroll-behavior:none;margin:0;height:100%;background:var(--sky1);color:#fff;font-family:"Baloo 2",system-ui,sans-serif;overflow:hidden}
 #c{position:fixed;inset:0;width:100%;height:100%;cursor:none}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(circle at 50% 30%,var(--sky2),var(--sky1));z-index:5;text-align:center;padding:16px}
 h1{font-size:clamp(40px,7vw,100px);margin:0;line-height:1;color:var(--sun);text-shadow:0 6px 0 #c48a00}
@@ -52,6 +64,11 @@ button:focus-visible{outline:6px solid #fff;transform:scale(1.06)}
 #pedit label{display:flex;justify-content:space-between;gap:10px;align-items:center}#pedit input{flex:1}
 #pad.edit #dp,#pad.edit #ab{outline:3px dashed #ffd23f;outline-offset:6px}
 #pad.gy [data-b="32"]{display:none}
+body.solo #phone{inset:auto 10px 10px auto;width:min(28vw,230px);height:auto;padding:8px;gap:6px;background:#0009;border-radius:18px;z-index:30;overflow:visible;justify-content:flex-start}
+body.solo #phone #cam{width:100%}body.solo #phone .hint,body.solo #phone #pgrid,body.solo #phone .tabs,body.solo #phone #pst,body.solo #solo{display:none}
+body.solo #phone .row{gap:6px;font-size:16px}body.solo #phone .sm{font-size:18px;padding:2px 10px}
+body.solo #pad{background:none;pointer-events:none}body.solo #pad button,body.solo #pad #stk,body.solo #pad #pedit{pointer-events:auto}
+body.solo #pad:not([hidden])~#phone{display:none}
 </style></head><body>
 <video id="v" playsinline muted style="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none"></video>
 <div id="tv" hidden>
@@ -61,6 +78,7 @@ button:focus-visible{outline:6px solid #fff;transform:scale(1.06)}
     <p>Zeskanuj kod aparatem w telefonie</p>
     <div id="qr"></div>
     <p>Kod pokoju: <span id="code"></span></p>
+    <button class="sm" id="solo" onclick="location.href=location.pathname+'?solo'">💻 Gram tylko na tym urządzeniu (kamera + ekran)</button>
   </div>
   <div class="screen" id="menu" hidden>
     <h1>Hopla!</h1>
@@ -84,7 +102,7 @@ button:focus-visible{outline:6px solid #fff;transform:scale(1.06)}
   <div id="ab"><button data-b="32">B</button><button data-b="16">A</button></div>
 </div>
 <script>
-const Q=new URLSearchParams(location.search),room=Q.get('room');
+const Q=new URLSearchParams(location.search),room=Q.get('room'),SOLO=Q.has('solo');if(SOLO)document.body.classList.add('solo');
 const META=[['⭐','Gwiazdki','łap rękami','#ffd23f'],['🪵','Skoki','skacz i kucaj','#3ccf7a'],['🚗','Rajd','trzymaj kierownicę','#7ad3ff'],['🌲','Las','maszeruj w miejscu','#9be36b'],['🛷','Sanie','wychylaj się i skacz','#e3f2ff'],['🏊','Pływanie','machaj rękami','#5fd0ff'],['🧜','Syrenka','płyń między rafami','#ff9ed8'],['🚂','Pociąg','kręć rękami','#ffb15c'],['✈️','Samolot','ręce jak skrzydła','#b9a7ff'],['🐶','Spacer','maszeruj z pieskiem','#ffd08a'],['🏁','Rajd Pro','kierownica i drift','#ff9f6b'],['🦊','Skoczek','biegaj i skacz','#ff9f6b','pad'],['🎯','Kulka','przechylaj telefon','#7ad3ff','gyro'],['🦆','Kaczki','celuj telefonem','#7ad3ff','gyro'],['🚀','Kosmos','strzelaj do kosmitów','#b9a7ff','pad'],['🧱','Klocki','układaj linie','#5fd0ff','pad'],['🛩️','Rzeczny Lot','lataj nad rzeką','#7ad3ff','pad'],['👾','Inwazja','obroń Ziemię','#6be28a','pad'],['⛏️','Kopalnia','kop i zbieraj diamenty','#c98b4a','pad'],['🔫','Komandos','biegnij i strzelaj','#6be28a','pad'],['🏰','Zamek','bicz na potwory','#b58cff','pad'],['🎰','Pinball','łapki i bumpery','#ff9ed8','pad'],['🟡','Kropki','zjedz wszystkie kropki','#ffd23f','pad'],['🎯','Rzutki','celuj telefonem','#ffb15c','gyro'],['🎱','Bilard','celuj i uderz','#6be28a','pad']];
 const typ=i=>META[i][4]||'cam';
 let GRP='cam';const GN={cam:['📷','Kamera'],pad:['🎮','Pad w telefonie'],gyro:['📱','Żyroskop']};
@@ -100,7 +118,7 @@ const K=[0,11,12,13,14,15,16,23,24,25,26,27,28,31,32];
 const BONES=[[1,2],[1,3],[3,5],[2,4],[4,6],[1,7],[2,8],[7,8],[7,9],[9,11],[8,10],[10,12],[11,13],[12,14]];
 
 /* ======================= TELEFON ======================= */
-if(room){
+if(room||SOLO){(async()=>{
   $('phone').hidden=false;
   const v=$('v'),sk=$('sk'),sx=sk.getContext('2d');
   const det=document.createElement('canvas');det.width=det.height=256;const dx=det.getContext('2d',{willReadFrequently:false});
@@ -119,18 +137,19 @@ if(room){
   buildGrid($('pgrid'),i=>send({t:'start',g:i}));$('stop').onclick=()=>send({t:'menu'});
   function connect(){const peer=new Peer();
     peer.on('open',()=>{
-      ctl=peer.connect('hopla-'+room,{label:'ctl',reliable:true});
-      pc=peer.connect('hopla-'+room,{label:'pose',reliable:false,serialization:'raw'});
+      ctl=peer.connect('hopla-'+(room||'solo'),{label:'ctl',reliable:true});
+      pc=peer.connect('hopla-'+(room||'solo'),{label:'pose',reliable:false,serialization:'raw'});
       ctl.on('open',()=>{$('pst').textContent='✅ Połączono z telewizorem';navigator.vibrate&&navigator.vibrate(80);try{const f=localStorage.getItem('hoplaFace');if(f)send({t:'face',d:f})}catch(e){}});
       ctl.on('data',d=>{if(d.t==='mode')setMode(d.m);if(d.t==='buzz'&&navigator.vibrate)navigator.vibrate(d.ms||30);if(d.t==='ping')send({t:'pong',id:d.id});if(d.t==='lat')$('fps').textContent=$('fps').textContent.split(' ·')[0]+' · opóźnienie '+d.ms+' ms (kompensowane)'});
       ctl.on('close',()=>{setMode('cam');$('pst').textContent='Rozłączono, łączę ponownie…';setTimeout(()=>{peer.destroy();connect()},1500)})});
     peer.on('error',e=>{$('pst').textContent=e.type==='peer-unavailable'?'Nie znalazłem telewizora — zeskanuj nowy kod':'Błąd połączenia: '+e.type})}
-  function setMode(m){mode=m;if(bits||sb){bits=0;sb=0;stX=stY=0;sendIn()}bits=0;if(m!=='cam')wl();$('pad').hidden=m==='cam';$('dp').hidden=m!=='pad';$('ab').hidden=m==='cam';$('pad').classList.toggle('gy',m==='gyro');$('gyon').hidden=m!=='gyro'||gyDone;$('gyt').textContent=m==='gyro'?(gyDone?'Trzymaj telefon pionowo i przechylaj':'Dotknij, żeby włączyć'):''}
+  function setMode(m){mode=m;if(SOLO)$('phone').hidden=m!=='cam';if(bits||sb){bits=0;sb=0;stX=stY=0;sendIn()}bits=0;if(m!=='cam')wl();$('pad').hidden=m==='cam';$('dp').hidden=!(m==='pad'||(SOLO&&m==='gyro'));$('ab').hidden=m==='cam';$('pad').classList.toggle('gy',m==='gyro');$('gyon').hidden=m!=='gyro'||gyDone||SOLO;$('gyt').textContent=m==='gyro'&&!SOLO?(gyDone?'Trzymaj telefon pionowo i przechylaj':'Dotknij, żeby włączyć'):''}
+  const goFS=()=>{try{if(!SOLO&&!document.fullscreenElement&&document.documentElement.requestFullscreen){document.documentElement.requestFullscreen({navigationUI:'hide'}).then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{})}}catch(e){}};
   let wlk=null;async function wl(){try{if(navigator.wakeLock&&!wlk){wlk=await navigator.wakeLock.request('screen');wlk.addEventListener('release',()=>wlk=null)}}catch(e){}}
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&mode!=='cam')wl()});
   $('pmenu').onclick=()=>send({t:'menu'});
   document.querySelectorAll('#pad [data-b]').forEach(b=>{const k=+b.dataset.b,up=()=>{bits&=~k;sendIn()};
-    b.addEventListener('pointerdown',e=>{if(editing)return;e.preventDefault();bits|=k;sendIn();navigator.vibrate&&navigator.vibrate(8)});
+    b.addEventListener('pointerdown',e=>{if(editing)return;e.preventDefault();goFS();bits|=k;sendIn();navigator.vibrate&&navigator.vibrate(8)});
     b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);b.addEventListener('contextmenu',e=>e.preventDefault())});
   const PC=Object.assign({st:1,ds:1,as:1,dx:0,dy:0,ax:0,ay:0,op:1},(()=>{try{return JSON.parse(localStorage.getItem('hoplaPad'))||{}}catch(e){return{}}})());let editing=false;
   const applyPad=()=>{$('dp').style.transform='translate('+PC.dx+'px,'+PC.dy+'px) scale('+PC.ds+')';$('ab').style.transform='translate('+PC.ax+'px,'+PC.ay+'px) scale('+PC.as+')';$('dp').style.opacity=$('ab').style.opacity=PC.op;$('dp').classList.toggle('st',!!PC.st);$('stt').textContent=PC.st?'🕹 Gałka':'✚ Krzyżak';$('sd').value=PC.ds*100;$('sa').value=PC.as*100;$('so').value=PC.op*100;try{localStorage.setItem('hoplaPad',JSON.stringify(PC))}catch(e){}};applyPad();
@@ -139,7 +158,7 @@ if(room){
       kn.style.transform='translate('+dx*R*.8+'px,'+dy*R*.8+'px)';const f=v=>{const a=Math.abs(v);return a<.1?0:Math.sign(v)*Math.pow((a-.1)/.9,1.7)};stX=f(dx);stY=f(dy);
       const hy=(v,on,th)=>on?v>th*.6:v>th;let b=0;if(dx<-.45||(sb&1&&dx<-.3))b|=1;if(dx>.45||(sb&2&&dx>.3))b|=2;if(dy<-.45||(sb&4&&dy<-.3))b|=4;if(dy>.45||(sb&8&&dy>.3))b|=8;sb=b;
       if(!pend){pend=true;requestAnimationFrame(()=>{pend=false;sendIn()})}};
-    st.addEventListener('pointerdown',e=>{if(editing||pid!==null)return;e.preventDefault();pid=e.pointerId;st.setPointerCapture(pid);upd(e);navigator.vibrate&&navigator.vibrate(6)});
+    st.addEventListener('pointerdown',e=>{if(editing||pid!==null)return;e.preventDefault();goFS();pid=e.pointerId;st.setPointerCapture(pid);upd(e);navigator.vibrate&&navigator.vibrate(6)});
     st.addEventListener('pointermove',e=>{if(e.pointerId===pid)upd(e)});
     const end=e=>{if(e.pointerId!==pid)return;pid=null;stX=stY=0;sb=0;kn.style.transform='';sendIn()};st.addEventListener('pointerup',end);st.addEventListener('pointercancel',end);st.addEventListener('contextmenu',e=>e.preventDefault())}
   const edOff=()=>{editing=false;$('pedit').hidden=true;$('pad').classList.remove('edit');setMode(mode)};
@@ -202,10 +221,10 @@ if(room){
   }
   if('requestVideoFrameCallback' in HTMLVideoElement.prototype){const f=(n,m)=>{const c=m&&m.captureTime;tCap=c&&n-c<300&&n-c>0?c:n;frame();v.requestVideoFrameCallback(f)};v.requestVideoFrameCallback(f)}
   else (function f(){requestAnimationFrame(f);frame()})();
-}
+})()}
 
 /* ======================= TELEWIZOR ======================= */
-else {
+if(!room||SOLO){
   $('tv').hidden=false;
   const demo=Q.has('demo');
   const c=$('c'),x=c.getContext('2d');let W,H,FULL;
@@ -213,7 +232,7 @@ else {
   if(!x.roundRect)CanvasRenderingContext2D.prototype.roundRect=function(a,b,w,h){this.rect(a,b,w,h)};
   /* ---------- połączenie ---------- */
   let tvCn=null;const tvSend=m=>{try{tvCn&&tvCn.open&&tvCn.send(m)}catch(e){}};
-  let code=String(Math.floor(1000+Math.random()*9000));
+  let code=SOLO?'solo':String(Math.floor(1000+Math.random()*9000));
   function showMenu(){$('pair').hidden=true;$('menu').hidden=false;const b=document.querySelector('#grid button');b&&b.focus()}
   if(!demo){
     $('code').textContent=code;
@@ -815,7 +834,7 @@ else {
   GAMES.push({dur:60,goals:[12,24,36],
     init(s){Object.assign(s,{bx:W/2,by:H/2,vx:0,vy:0,st:[],ho:[]});for(let i=0;i<3;i++)s.ho.push({x:W*(.15+hsh(i*3+1)*.7),y:H*(.22+hsh(i*3+2)*.56),r:H*.07});for(let i=0;i<4;i++)s.st.push(null)},
     step(s,dt,t,on){
-      const d=Math.min(.05,dt/1000),k=padBits(),R=H*.045;let tx=(k&2?1:0)-(k&1?1:0),ty=(k&8?1:0)-(k&4?1:0);
+      const d=Math.min(.05,dt/1000),k=padBits(),R=H*.045;let tx=axX(k),ty=axY(k);
       if(GY.has){if(!GY.cal)GY.cal={x:GY.x,y:GY.y};tx+=cl((GY.x-GY.cal.x)/22,-1.6,1.6);ty+=cl((GY.y-GY.cal.y)/22,-1.6,1.6)}
       for(let i=0;i<4;i++)if(!s.st[i]){let p;for(let n=0;n<20;n++){p={x:W*(.1+Math.random()*.8),y:H*(.18+Math.random()*.7)};if(s.ho.every(h=>Math.hypot(h.x-p.x,h.y-p.y)>h.r+R*2))break}s.st[i]=p}
       if(on){for(let u=0;u<3;u++){const e=d/3;s.vx+=tx*H*3.4*e;s.vy+=ty*H*3.4*e;const f=Math.pow(.3,e),sp=Math.hypot(s.vx,s.vy),mx=H*3.5;if(sp>mx){s.vx*=mx/sp;s.vy*=mx/sp}s.vx*=f;s.vy*=f;s.bx+=s.vx*e;s.by+=s.vy*e;
@@ -840,7 +859,7 @@ else {
     step(s,dt,t,on){
       const d=Math.min(.05,dt/1000),k=padBits(),A=k&16,B=k&32;
       if(GY.has){if(!GY.cal)GY.cal={x:GY.x,y:GY.y};const nx=cl((GY.x-GY.cal.x)/26,-1,1),ny=cl((GY.y-GY.cal.y)/20,-1,1),f=Math.min(1,d*30);s.gx+=(W/2+nx*W*.5-s.gx)*f;s.gy+=(H/2+ny*H*.5-s.gy)*f}
-      else{s.gx=cl(s.gx+((k&2?1:0)-(k&1?1:0))*W*.6*d,0,W);s.gy=cl(s.gy+((k&8?1:0)-(k&4?1:0))*H*.6*d,0,H)}
+      else{s.gx=cl(s.gx+axX(k)*W*.6*d,0,W);s.gy=cl(s.gy+axY(k)*H*.6*d,0,H)}
       if(on){
         s.nx-=dt;if(s.nx<=0){s.nx=650+Math.random()*850;const n=Math.random()<.3?2:1;for(let i=0;i<n;i++){const L=Math.random()<.5;s.d.push({x:L?-H*.1:W+H*.1,y:H*(.12+Math.random()*.42),y0:0,vx:(L?1:-1)*W*(.16+Math.random()*.12),ph:Math.random()*6,gold:Math.random()<.12,st:'fly',rot:0,vy:0,sz:H*.075});s.d[s.d.length-1].y0=s.d[s.d.length-1].y}}
         for(const u of s.d){if(u.st==='fly'){u.x+=u.vx*d;u.y=u.y0+Math.sin(t/420+u.ph)*H*.05}else{u.vy+=H*1.8*d;u.y+=u.vy*d;u.rot+=d*7*Math.sign(u.vx)}}
