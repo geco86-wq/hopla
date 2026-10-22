@@ -1,0 +1,1 @@
+{"name": "Hopla", "short_name": "Hopla", "start_url": "./", "display": "fullscreen", "orientation": "landscape", "background_color": "#1b1f5e", "theme_color": "#1b1f5e", "icons": [{"src": "icon.png", "sizes": "512x512", "type": "image/png"}]}

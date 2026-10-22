@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Hopla – gry ruchowe</title>
+<title>Hopla – gry ruchowe</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1b1f5e"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,7 +12,7 @@ if(new URLSearchParams(location.search).has('solo')){const reg={};
     on(e,f){(this.h[e]=this.h[e]||[]).push(f)}emit(e,a){(this.h[e]||[]).forEach(f=>f(a))}destroy(){delete reg[this.id]}
     connect(id,op){const A=new Ch(op&&op.label),B=new Ch(op&&op.label);A.o=B;B.o=A;let n=0;const go=()=>{const t=reg[id];if(!t){if(n++<60)return setTimeout(go,50);return this.emit('error',{type:'peer-unavailable'})}
       t.emit('connection',B);setTimeout(()=>{A.open=B.open=true;B.emit('open');A.emit('open')},0)};setTimeout(go,0);return A}}}
-document.addEventListener('gesturestart',e=>e.preventDefault());document.addEventListener('gesturechange',e=>e.preventDefault());
+document.addEventListener('gesturestart',e=>e.preventDefault());document.addEventListener('gesturechange',e=>e.preventDefault());document.addEventListener('touchmove',e=>{if((e.touches.length>1||(e.scale&&e.scale!==1))&&e.target.closest&&e.target.closest('#pad'))e.preventDefault()},{passive:false});
 document.addEventListener('touchstart',e=>{if(e.touches.length>1&&e.target.closest&&e.target.closest('#pad'))e.preventDefault()},{passive:false});
 document.addEventListener('dblclick',e=>{if(e.target.closest&&e.target.closest('#pad'))e.preventDefault()});
 </script>
@@ -59,7 +59,7 @@ button:focus-visible{outline:6px solid #fff;transform:scale(1.06)}
 #gyon{margin:auto;font-size:6vmin;padding:4vmin 6vmin;background:#ffd23f}
 #gyt{position:absolute;top:14vmin;left:0;right:0;text-align:center;font-size:5vmin}
 #dp{transform-origin:bottom left}#ab{transform-origin:bottom right}
-#pgear{position:absolute;top:3vmin;left:3vmin}
+#pgear{position:absolute;top:3vmin;left:3vmin}#pfs{position:absolute;top:3vmin;right:3vmin}
 #pedit{position:absolute;left:50%;top:14vmin;transform:translateX(-50%);background:#000b;padding:10px 16px;border-radius:16px;z-index:5;display:flex;flex-direction:column;gap:6px;font-size:16px;align-items:stretch;min-width:min(70vw,320px)}
 #pedit label{display:flex;justify-content:space-between;gap:10px;align-items:center}#pedit input{flex:1}
 #pad.edit #dp,#pad.edit #ab{outline:3px dashed #ffd23f;outline-offset:6px}
@@ -76,16 +76,16 @@ body.solo #pad:not([hidden])~#phone{display:none}
   <canvas id="c"></canvas>
   <div class="screen" id="pair">
     <h1>Hopla!</h1>
-    <p>Zeskanuj kod aparatem w telefonie</p>
+    <p>📺 + 📱 Dwa urządzenia: zeskanuj kod telefonem (telefon = kamera, mikrofon, pad)</p>
     <div id="qr"></div>
     <p>Kod pokoju: <span id="code"></span></p>
-    <button class="sm" id="solo" onclick="location.href=location.pathname+'?solo'">💻 Gram tylko na tym urządzeniu (kamera + ekran)</button>
+    <p>albo</p><button class="sm" id="solo" onclick="location.href=location.pathname+'?solo'" style="font-size:clamp(18px,2.4vw,30px);padding:10px 26px">💻 Jedno urządzenie: kamera, mikrofon i ekran stąd</button>
   </div>
   <div class="screen" id="menu" hidden>
     <h1>Hopla!</h1>
     <p>Wybierz grę na telefonie albo pilotem</p>
     <div class="grid" id="grid"></div>
-    <p class="hint" id="coll"></p>
+    <p class="hint" id="caps"></p><p class="hint" id="coll"></p>
     <p class="hint" id="snd">🔇 Naciśnij OK na pilocie, żeby włączyć dźwięk</p>
   </div>
 </div>
@@ -97,7 +97,7 @@ body.solo #pad:not([hidden])~#phone{display:none}
   <div class="grid" id="pgrid"></div>
 </div>
 <div id="pad" hidden>
-  <button class="sm" id="pmenu">⏹ Menu</button><button class="sm" id="pgear" aria-label="Ustawienia pada">⚙</button>
+  <button class="sm" id="pmenu">⏹ Menu</button><button class="sm" id="pgear" aria-label="Ustawienia pada">⚙</button><button class="sm" id="pfs" aria-label="Pełny ekran">⛶</button>
   <div id="pedit" hidden><span>Przeciągnij przyciski palcem</span><label>Krzyżak <input type="range" id="sd" min="60" max="160" value="100"></label><label>A / B <input type="range" id="sa" min="60" max="160" value="100"></label><label>Przezroczystość <input type="range" id="so" min="30" max="100" value="100"></label><div class="row"><button class="sm" id="stt">🕹 Gałka</button><button class="sm" id="sr">↺ Reset</button><button class="sm" id="sok">✔ Gotowe</button></div></div>
   <p id="gyt"></p><div id="vbar" hidden><i id="vfill"></i></div><button id="gyon" hidden>📱 Włącz żyroskop</button>
   <div id="dp"><button data-b="4">▲</button><button data-b="1">◀</button><button data-b="2">▶</button><button data-b="8">▼</button><div id="stk"><div id="knob"></div></div></div>
@@ -146,12 +146,13 @@ if(room||SOLO){(async()=>{
       ctl.on('close',()=>{setMode('cam');$('pst').textContent='Rozłączono, łączę ponownie…';setTimeout(()=>{peer.destroy();connect()},1500)})});
     peer.on('error',e=>{$('pst').textContent=e.type==='peer-unavailable'?'Nie znalazłem telewizora — zeskanuj nowy kod':'Błąd połączenia: '+e.type})}
   function setMode(m){mode=m;if(SOLO)$('phone').hidden=m!=='cam';if(bits||sb){bits=0;sb=0;stX=stY=0;sendIn()}bits=0;if(m!=='cam')wl();$('pad').hidden=m==='cam';$('dp').hidden=!(m==='pad'||m==='voice'||(SOLO&&m==='gyro'));$('ab').hidden=m==='cam';$('pad').classList.toggle('gy',m==='gyro'||m==='voice');$('vbar').hidden=m!=='voice';if(m==='voice')startMic();$('gyon').hidden=m!=='gyro'||gyDone||SOLO;$('gyt').textContent=m==='gyro'&&!SOLO?(gyDone?'Trzymaj telefon pionowo i przechylaj':'Dotknij, żeby włączyć'):''}
-  const goFS=()=>{try{if(!SOLO&&!document.fullscreenElement&&document.documentElement.requestFullscreen){document.documentElement.requestFullscreen({navigationUI:'hide'}).then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{})}}catch(e){}};
+  const goFS=()=>{try{if(document.fullscreenElement){document.exitFullscreen();return}if(document.documentElement.requestFullscreen){document.documentElement.requestFullscreen({navigationUI:'hide'}).then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{})}}catch(e){}};
+  $('pfs').onclick=()=>{goFS();if(!document.documentElement.requestFullscreen)$('gyt').textContent='Na iPhonie: Udostępnij → Dodaj do ekranu początkowego = pełny ekran'};
   let wlk=null;async function wl(){try{if(navigator.wakeLock&&!wlk){wlk=await navigator.wakeLock.request('screen');wlk.addEventListener('release',()=>wlk=null)}}catch(e){}}
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&mode!=='cam')wl()});
   $('pmenu').onclick=()=>send({t:'menu'});
   document.querySelectorAll('#pad [data-b]').forEach(b=>{const k=+b.dataset.b,up=()=>{bits&=~k;sendIn()};
-    b.addEventListener('pointerdown',e=>{if(editing)return;e.preventDefault();goFS();bits|=k;sendIn();navigator.vibrate&&navigator.vibrate(8)});
+    b.addEventListener('pointerdown',e=>{if(editing)return;e.preventDefault();bits|=k;sendIn();navigator.vibrate&&navigator.vibrate(8)});
     b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);b.addEventListener('contextmenu',e=>e.preventDefault())});
   const PC=Object.assign({st:1,ds:1,as:1,dx:0,dy:0,ax:0,ay:0,op:1},(()=>{try{return JSON.parse(localStorage.getItem('hoplaPad'))||{}}catch(e){return{}}})());let editing=false;
   const applyPad=()=>{$('dp').style.transform='translate('+PC.dx+'px,'+PC.dy+'px) scale('+PC.ds+')';$('ab').style.transform='translate('+PC.ax+'px,'+PC.ay+'px) scale('+PC.as+')';$('dp').style.opacity=$('ab').style.opacity=PC.op;$('dp').classList.toggle('st',!!PC.st);$('stt').textContent=PC.st?'🕹 Gałka':'✚ Krzyżak';$('sd').value=PC.ds*100;$('sa').value=PC.as*100;$('so').value=PC.op*100;try{localStorage.setItem('hoplaPad',JSON.stringify(PC))}catch(e){}};applyPad();
@@ -160,7 +161,7 @@ if(room||SOLO){(async()=>{
       kn.style.transform='translate('+dx*R*.8+'px,'+dy*R*.8+'px)';const f=v=>{const a=Math.abs(v);return a<.1?0:Math.sign(v)*Math.pow((a-.1)/.9,1.7)};stX=f(dx);stY=f(dy);
       const hy=(v,on,th)=>on?v>th*.6:v>th;let b=0;if(dx<-.45||(sb&1&&dx<-.3))b|=1;if(dx>.45||(sb&2&&dx>.3))b|=2;if(dy<-.45||(sb&4&&dy<-.3))b|=4;if(dy>.45||(sb&8&&dy>.3))b|=8;sb=b;
       if(!pend){pend=true;requestAnimationFrame(()=>{pend=false;sendIn()})}};
-    st.addEventListener('pointerdown',e=>{if(editing||pid!==null)return;e.preventDefault();goFS();pid=e.pointerId;st.setPointerCapture(pid);upd(e);navigator.vibrate&&navigator.vibrate(6)});
+    st.addEventListener('pointerdown',e=>{if(editing||pid!==null)return;e.preventDefault();pid=e.pointerId;st.setPointerCapture(pid);upd(e);navigator.vibrate&&navigator.vibrate(6)});
     st.addEventListener('pointermove',e=>{if(e.pointerId===pid)upd(e)});
     const end=e=>{if(e.pointerId!==pid)return;pid=null;stX=stY=0;sb=0;kn.style.transform='';sendIn()};st.addEventListener('pointerup',end);st.addEventListener('pointercancel',end);st.addEventListener('contextmenu',e=>e.preventDefault())}
   const edOff=()=>{editing=false;$('pedit').hidden=true;$('pad').classList.remove('edit');setMode(mode)};
@@ -183,11 +184,11 @@ if(room||SOLO){(async()=>{
   $('gyon').onclick=async()=>{try{if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted'){$('gyt').textContent='Brak zgody na żyroskop';return}}
     if(!gyDone){gyDone=true;let lt=0,lx=99,ly=99;addEventListener('deviceorientation',e=>{const n=performance.now();if(n-lt<16||mode!=='gyro')return;const gx=Math.round(e.gamma||0),gy=Math.round(e.beta||0);if(gx===lx&&gy===ly&&n-lt<200)return;lt=n;lx=gx;ly=gy;send({t:'gy',x:gx,y:gy})})}
     $('gyon').hidden=true;$('gyt').textContent='Przechylaj telefon'}catch(err){$('gyt').textContent='Żyroskop niedostępny: '+err.message}};
-  let micOn=false,ac=null;async function startMic(){if(micOn){try{ac&&ac.state==='suspended'&&ac.resume()}catch(e){}return}micOn=true;
-    try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});ac=new(window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});const src=ac.createMediaStreamSource(st),an=ac.createAnalyser();an.fftSize=2048;src.connect(an);
+  let micOn=false,ac=null;async function startMic(){if(micOn){try{ac&&ac.state!=='running'&&ac.resume()}catch(e){}return}micOn=true;
+    try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});ac=new(window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive',sampleRate:48000});const src=ac.createMediaStreamSource(st),an=ac.createAnalyser();an.fftSize=2048;src.connect(an);ac.resume&&ac.resume();
       const buf=new Float32Array(2048),sr=ac.sampleRate,minL=Math.floor(sr/1100),maxL=Math.floor(sr/70),N=1024,dd=new Float32Array(maxL+2);let lo=Math.log2(130),hi=Math.log2(520),hist=[],lastV=-2,lastT=0,lastVoiced=0;
-      setInterval(()=>{if(mode!=='voice')return;if(ac.state==='suspended')ac.resume();an.getFloatTimeDomainData(buf);let e=0;for(let i=0;i<N;i++)e+=buf[i]*buf[i];const rms=Math.sqrt(e/N),now=performance.now();let f=0;
-        if(rms>.012){let sum=0,best=-1;for(let tau=1;tau<=maxL;tau++){let a=0;for(let i=0;i<N;i+=2){const df=buf[i]-buf[i+tau];a+=df*df}dd[tau]=a;sum+=a;dd[tau]=tau<minL?1:a*tau/(sum||1)}
+      setInterval(()=>{if(mode!=='voice')return;if(ac.state!=='running'){ac.resume();$('gyt').textContent='Dotknij ekranu, żeby włączyć mikrofon';return}else if(mode==='voice'&&$('gyt').textContent.startsWith('Dotknij'))$('gyt').textContent='🎤 Słucham…';an.getFloatTimeDomainData(buf);let e=0;for(let i=0;i<N;i++)e+=buf[i]*buf[i];const rms=Math.sqrt(e/N),now=performance.now();let f=0;
+        if(rms>.006){let sum=0,best=-1;for(let tau=1;tau<=maxL;tau++){let a=0;for(let i=0;i<N;i+=2){const df=buf[i]-buf[i+tau];a+=df*df}dd[tau]=a;sum+=a;dd[tau]=tau<minL?1:a*tau/(sum||1)}
           for(let tau=minL;tau<maxL;tau++){if(dd[tau]<.15){while(tau+1<maxL&&dd[tau+1]<dd[tau])tau++;best=tau;break}}
           if(best>0){const a=dd[best-1],b=dd[best],c=dd[best+1],den=a-2*b+c;const tt=den?best+(a-c)/(2*den):best;f=sr/tt}}
         let v=-1;if(f>60&&f<1200){lastVoiced=now;hist.push(f);if(hist.length>3)hist.shift();const fm=[...hist].sort((p,q)=>p-q)[hist.length>>1],L=Math.log2(fm);
@@ -195,37 +196,41 @@ if(room||SOLO){(async()=>{
         else if(now-lastVoiced<140&&lastV>=0)v=lastV;else hist=[];
         $('vfill').style.height=(v<0?0:v)+'%';if(v!==lastV||now-lastT>250){lastV=v;lastT=now;send({t:'vox',v,l:Math.round(rms*1000)/1000})}},20)}
     catch(e){micOn=false;$('gyt').textContent='Brak dostępu do mikrofonu'}}
-  document.addEventListener('pointerdown',()=>{if(mode==='voice')startMic()},true);
+  document.addEventListener('pointerdown',()=>{if(mode==='voice')startMic()},true);document.addEventListener('touchend',()=>{if(mode==='voice'&&ac&&ac.state!=='running')ac.resume()},true);
   connect();
   async function cam(){stream&&stream.getTracks().forEach(t=>t.stop());
     stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:facing,width:{ideal:480},height:{ideal:360},frameRate:{ideal:30}}});
+    try{await stream.getVideoTracks()[0].applyConstraints({advanced:[{exposureMode:'continuous'},{whiteBalanceMode:'continuous'},{focusMode:'continuous'}]})}catch(e){}
     v.srcObject=stream;await v.play()}
   $('flip').onclick=()=>{facing=facing==='user'?'environment':'user';cam()};
   try{await cam()}catch(e){$('pst').textContent='Brak dostępu do kamery: '+e.message}
   $('pst').textContent+=' · ładuję wykrywanie ruchu…';
   const {PoseLandmarker,FilesetResolver}=await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
   const fs=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-  const pose=await PoseLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",delegate:"GPU"},runningMode:"VIDEO",numPoses:1,minPoseDetectionConfidence:.4,minTrackingConfidence:.4});
+  const pose=await PoseLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",delegate:"GPU"},runningMode:"VIDEO",numPoses:1,minPoseDetectionConfidence:.3,minPosePresenceConfidence:.3,minTrackingConfidence:.3});
   $('pst').textContent=$('pst').textContent.replace(' · ładuję wykrywanie ruchu…','');
   const buf=new ArrayBuffer(4+K.length*5),dv=new DataView(buf);let tCap=0;
   let fr=0,fT=performance.now(),lastTs=0;
   function cropDraw(c,D,vw,vh,X0,Y0,s){const a=Math.max(0,X0),b=Math.max(0,Y0),e=Math.min(vw,X0+s),f=Math.min(vh,Y0+s);if(s<=Math.min(vw,vh)+.5||(a===X0&&b===Y0&&e===X0+s&&f===Y0+s)){c.drawImage(v,X0,Y0,s,s,0,0,D,D);return}
     c.fillStyle='#000';c.fillRect(0,0,D,D);if(e>a&&f>b)c.drawImage(v,a,b,e-a,f-b,(a-X0)/s*D,(b-Y0)/s*D,(e-a)/s*D,(f-b)/s*D)}
+  let lumC=null,gain=1;
   const OE=K.map(()=>({x:null,y:null,dx:0,dy:0,t:0,v:0}));
   const oe1=(F,x,y,t)=>{if(F.x===null||t-F.t>400){F.x=x;F.y=y;F.dx=F.dy=0;F.t=t;return}const dt=Math.max(.004,(t-F.t)/1000);F.t=t;
     const al=(fc)=>{const r=6.2832*fc*dt;return r/(r+1)};
-    const ddx=(x-F.x)/dt,ddy=(y-F.y)/dt,ad=al(1);F.dx+=(ddx-F.dx)*ad;F.dy+=(ddy-F.dy)*ad;const sp=Math.hypot(F.dx,F.dy),fc=1.1+sp*7,a=al(fc);F.x+=(x-F.x)*a;F.y+=(y-F.y)*a};
+    const ddx=(x-F.x)/dt,ddy=(y-F.y)/dt,ad=al(1);F.dx+=(ddx-F.dx)*ad;F.dy+=(ddy-F.dy)*ad;const sp=Math.hypot(F.dx,F.dy),fc=.7+sp*6,a=al(fc);F.x+=(x-F.x)*a;F.y+=(y-F.y)*a};
   function frame(){
     if(mode!=='cam'||v.readyState<2||!v.videoWidth)return;
     const vw=v.videoWidth,vh=v.videoHeight,s=Math.min(vw,vh)/z;
     const X0=s>=vw?(vw-s)/2:Math.min(vw-s,Math.max(0,cx*vw-s/2)),Y0=s>=vh?(vh-s)/2:Math.min(vh-s,Math.max(0,cy*vh-s/2));cx=(X0+s/2)/vw;cy=(Y0+s/2)/vh;
-    cropDraw(dx,256,vw,vh,X0,Y0,s);
+    if((fr&15)===0){try{const lc=lumC||(lumC=document.createElement('canvas'));lc.width=lc.height=16;const lx=lc.getContext('2d');lx.drawImage(v,0,0,vw,vh,0,0,16,16);const dd=lx.getImageData(0,0,16,16).data;let sm=0;for(let i=0;i<dd.length;i+=4)sm+=dd[i]*.3+dd[i+1]*.59+dd[i+2]*.11;const lum=sm/256/255;const g=Math.max(1,Math.min(2.6,.42/Math.max(.05,lum)));gain+=(g-gain)*.5;$('fps').dataset.l=lum.toFixed(2)}catch(e){}}
+    dx.filter=gain>1.08?'brightness('+gain.toFixed(2)+') contrast(1.15)':'none';
+    cropDraw(dx,256,vw,vh,X0,Y0,s);dx.filter='none';
     let ts=performance.now();if(ts<=lastTs)ts=lastTs+1;lastTs=ts;
     const lm=pose.detectForVideo(det,ts).landmarks?.[0];if(lm)LN={n:lm[0],a:lm[11],b:lm[12],t:performance.now()};
     const S=sk.clientWidth|0;if(sk.width!==S){sk.width=S;sk.height=S}
     cropDraw(sx,S,vw,vh,X0,Y0,s);
     dv.setUint16(0,seq++&65535);dv.setUint16(2+K.length*5,Math.min(999,Math.round(performance.now()-tCap+17)));
-    if(lm){const nowT=performance.now();const P=K.map((k,i)=>{const q=lm[k],F=OE[i];oe1(F,q.x,q.y,nowT);return{x:F.x,y:F.y,visibility:q.visibility}});
+    if(lm){const nowT=performance.now();const P=K.map((k,i)=>{const q=lm[k],F=OE[i];if((q.visibility||0)<.3&&F.x!==null&&nowT-F.t<350)return{x:F.x,y:F.y,visibility:Math.max(.45,F.v*.97)};oe1(F,q.x,q.y,nowT);F.v=q.visibility||0;return{x:F.x,y:F.y,visibility:q.visibility}});
       K.forEach((k,i)=>{const p=P[i],o=2+i*5;dv.setUint16(o,Math.max(0,Math.min(65535,(1-p.x+.5)/2*65535)));dv.setUint16(o+2,Math.max(0,Math.min(65535,(p.y+.5)/2*65535)));dv.setUint8(o+4,Math.max(0,Math.min(255,(p.visibility||0)*255)))});
       sx.lineCap='round';sx.lineJoin='round';
       BONES.forEach(([a,b],bi)=>{const A=P[a],B=P[b];if(A.visibility<.4||B.visibility<.4)return;const arm=a>=1&&a<=4&&b>=3&&b<=6&&bi<5;sx.beginPath();sx.moveTo(A.x*S,A.y*S);sx.lineTo(B.x*S,B.y*S);if(arm){sx.strokeStyle='rgba(20,18,58,.6)';sx.lineWidth=S/34;sx.stroke();sx.strokeStyle='#ff5fa2';sx.lineWidth=S/50}else{sx.strokeStyle='#ff5fa2';sx.lineWidth=S/80}sx.stroke()});
@@ -261,7 +266,9 @@ if(!room||SOLO){
         cn.on('data',d=>{if(d.t==='face')setFace(d.d);if(d.t==='in'){INP.k=d.k|0;INP.x=+d.x||0;INP.y=+d.y||0}if(d.t==='gy'){GY.x=d.x;GY.y=d.y;GY.has=1}if(d.t==='vox'){VOX.v=d.v;VOX.l=d.l||0;VOX.t=performance.now()}if(d.t==='start')startGame(d.g);if(d.t==='menu')toMenu();if(d.t==='pong'&&pingS[d.id]){const r=performance.now()-pingS[d.id];LAT.rtt=LAT.rtt?LAT.rtt*.7+r*.3:r;delete pingS[d.id]}});
         cn.on('close',()=>{if(tvCn!==cn)return;clearInterval(pingT);INP.k=0;toMenu();$('pair').hidden=false;$('menu').hidden=true})}});
   }else showMenu();
-  buildGrid($('grid'),i=>startGame(i));
+  let CAPS=null;if(SOLO&&navigator.mediaDevices&&navigator.mediaDevices.enumerateDevices){navigator.mediaDevices.enumerateDevices().then(ds=>{CAPS={cam:ds.some(d=>d.kind==='videoinput'),mic:ds.some(d=>d.kind==='audioinput')};$('caps').textContent='💻 Jedno urządzenie · 📷 kamera '+(CAPS.cam?'✔':'✖ (gry kamerowe wyłączone)')+' · 🎤 mikrofon '+(CAPS.mic?'✔':'✖ (gry głosowe wyłączone)')}).catch(()=>{})}
+  else if(!SOLO)$('caps').textContent='📺 + 📱 Dwa urządzenia (telefon jako kamera, mikrofon i pad)';
+  buildGrid($('grid'),i=>{const t=typ(i),need=t==='cam'?'cam':t==='voice'?'mic':null;if(SOLO&&CAPS&&need&&!CAPS[need]){$('caps').textContent='🚫 To urządzenie nie ma '+(need==='cam'?'kamery':'mikrofonu')+' — wybierz inną grę albo użyj trybu z telefonem';return}startGame(i)});
   addEventListener('keydown',e=>{audioOn();const bs=[...document.querySelectorAll('#grid button')],i=bs.indexOf(document.activeElement);
     if(cur&&(e.key==='Escape'||e.key==='Backspace'||e.key==='GoBack')){toMenu();e.preventDefault();return}
     if(i<0)return;const C=Math.max(1,getComputedStyle($('grid')).gridTemplateColumns.split(' ').length),m={ArrowRight:1,ArrowLeft:-1,ArrowDown:C,ArrowUp:-C}[e.key];if(m){const n=bs[i+m];if(n)n.focus();else if(m===-C)cycleTab(-1);else if(m===C)cycleTab(1);e.preventDefault()}});
@@ -404,6 +411,9 @@ if(!room||SOLO){
       if(p.puff)circle(p.x,p.y,(1.4-p.l)*p.puff);else if(p.heart){const r=H*.015;circle(p.x-r*.5,p.y,r*.6);circle(p.x+r*.5,p.y,r*.6);x.beginPath();x.moveTo(p.x-r*1.05,p.y+r*.2);x.lineTo(p.x,p.y+r*1.3);x.lineTo(p.x+r*1.05,p.y+r*.2);x.fill()}
       else{x.save();x.translate(p.x,p.y);x.rotate(p.l*6);x.fillRect(-6,-6,12,12);x.restore()}x.globalAlpha=1;return p.l>0});
     floats=floats.filter(f=>{f.y-=1.2;f.l-=.018;x.globalAlpha=Math.max(0,Math.min(1,f.l*2));txt(f.t,f.x,f.y,H*.05,f.col||'#ffd23f');x.globalAlpha=1;return f.l>0})}
+  const HINTS={cam:null};let spokeAt=0;
+  function speak(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pl-PL';u.rate=.9;u.pitch=1.15;speechSynthesis.speak(u)}catch(e){}}
+  function instr(i){const m=META[i],o=cur&&cur.o?cur.o.mode:0;if(m[4]==='voice')return ['Śpiewaj ooo. Wyższy głos, ptak wyżej.','Śpiewaj, żeby lecieć. Cisza, ptak spada.','Ptak biegnie sam. Wyższy głos, wyższy skok.'][o];return m[1]+'. '+m[2]}
   let msg='',msgT=0;function say(t,ms){msg=t;msgT=performance.now()+(ms||1000)}
   /* ---------- gesty ---------- */
   const G={ok:false,hands:[],walk:0,pump:0,steps:0,air:false,crouch:false,tilt:0,armsUp:0,handUp:false,bothUp:false,thr:null,cx:0,squat:0,sh:.15};
@@ -1333,6 +1343,8 @@ if(!room||SOLO){
     if(on)cur.el+=dt;
     cur.g.step(cur.s,dt,t,on);drawParts();x.restore();
     vignette();if(cur.phase!=='count')hud(t);if(isCam&&pose&&lastPk)txt('⚡ '+Math.round(LAT.tot)+' ms',W/2,H*.965,H*.028,LAT.tot<120?'#9be36b':'#ffd23f');
+    if(cur.phase==='count'&&!cur.spoke){cur.spoke=1;speak(instr(cur.i));cur.lastSp=t;cur.lastSc=0}
+    if(cur.phase==='play'&&t-cur.lastSp>14000&&cur.score===cur.lastSc&&cur.spN<3){cur.spN=(cur.spN||0)+1;cur.lastSp=t;speak(instr(cur.i))}else if(cur.score!==cur.lastSc){cur.lastSc=cur.score;cur.lastSp=t}
     if(cur.phase==='count'&&cd>5000){const rows=(cur.g.noSens?[]:[{n:'Czułość skrętu',v:SENSN,k:'sens'}]).concat(cur.g.opts||[]),k=padBits(),ed=m=>(k&m)&&!(OPT_ROW.pk&m);setTimeout(()=>{OPT_ROW.pk=k},0);
       if(t>cur.ot){if(ed(4))OPT_ROW.r=(OPT_ROW.r+rows.length-1)%rows.length;if(ed(8))OPT_ROW.r=(OPT_ROW.r+1)%rows.length;const rw=rows[OPT_ROW.r%rows.length],dv=ed(2)?1:ed(1)?-1:0;if(dv){cur.o[rw.k]=(cur.o[rw.k]+dv+rw.v.length)%rw.v.length;SENS=SENSV[cur.o.sens];try{localStorage.setItem('hoplaO'+cur.i,JSON.stringify(cur.o))}catch(e){}beep(500,.05,'square',.08)}
         if(ed(16)||ed(32)){cur.tStart=t+2200;beep(660,.1)}}
