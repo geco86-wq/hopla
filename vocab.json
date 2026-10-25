@@ -1,0 +1,2963 @@
+{
+ "langs": [
+  "pl",
+  "en",
+  "de",
+  "es",
+  "fr",
+  "it",
+  "pt",
+  "nl",
+  "tr",
+  "ja"
+ ],
+ "cats": [
+  {
+   "id": "animals",
+   "icon": "🐶",
+   "names": {
+    "pl": "Zwierzęta",
+    "en": "Animals",
+    "de": "Tiere",
+    "es": "Animales",
+    "fr": "Animaux",
+    "it": "Animali",
+    "pt": "Animais",
+    "nl": "Dieren",
+    "tr": "Hayvanlar",
+    "ja": "どうぶつ"
+   },
+   "level": 1,
+   "words": [
+    {
+     "e": "🐶",
+     "w": {
+      "pl": "pies",
+      "en": "dog",
+      "de": "Hund",
+      "es": "perro",
+      "fr": "chien",
+      "it": "cane",
+      "pt": "cachorro",
+      "nl": "hond",
+      "tr": "köpek",
+      "ja": "いぬ"
+     }
+    },
+    {
+     "e": "🐱",
+     "w": {
+      "pl": "kot",
+      "en": "cat",
+      "de": "Katze",
+      "es": "gato",
+      "fr": "chat",
+      "it": "gatto",
+      "pt": "gato",
+      "nl": "kat",
+      "tr": "kedi",
+      "ja": "ねこ"
+     }
+    },
+    {
+     "e": "🐭",
+     "w": {
+      "pl": "mysz",
+      "en": "mouse",
+      "de": "Maus",
+      "es": "ratón",
+      "fr": "souris",
+      "it": "topo",
+      "pt": "rato",
+      "nl": "muis",
+      "tr": "fare",
+      "ja": "ねずみ"
+     }
+    },
+    {
+     "e": "🐰",
+     "w": {
+      "pl": "królik",
+      "en": "rabbit",
+      "de": "Kaninchen",
+      "es": "conejo",
+      "fr": "lapin",
+      "it": "coniglio",
+      "pt": "coelho",
+      "nl": "konijn",
+      "tr": "tavşan",
+      "ja": "うさぎ"
+     }
+    },
+    {
+     "e": "🐻",
+     "w": {
+      "pl": "niedźwiedź",
+      "en": "bear",
+      "de": "Bär",
+      "es": "oso",
+      "fr": "ours",
+      "it": "orso",
+      "pt": "urso",
+      "nl": "beer",
+      "tr": "ayı",
+      "ja": "くま"
+     }
+    },
+    {
+     "e": "🐸",
+     "w": {
+      "pl": "żaba",
+      "en": "frog",
+      "de": "Frosch",
+      "es": "rana",
+      "fr": "grenouille",
+      "it": "rana",
+      "pt": "sapo",
+      "nl": "kikker",
+      "tr": "kurbağa",
+      "ja": "かえる"
+     }
+    },
+    {
+     "e": "🐵",
+     "w": {
+      "pl": "małpa",
+      "en": "monkey",
+      "de": "Affe",
+      "es": "mono",
+      "fr": "singe",
+      "it": "scimmia",
+      "pt": "macaco",
+      "nl": "aap",
+      "tr": "maymun",
+      "ja": "さる"
+     }
+    },
+    {
+     "e": "🐮",
+     "w": {
+      "pl": "krowa",
+      "en": "cow",
+      "de": "Kuh",
+      "es": "vaca",
+      "fr": "vache",
+      "it": "mucca",
+      "pt": "vaca",
+      "nl": "koe",
+      "tr": "inek",
+      "ja": "うし"
+     }
+    },
+    {
+     "e": "🐷",
+     "w": {
+      "pl": "świnia",
+      "en": "pig",
+      "de": "Schwein",
+      "es": "cerdo",
+      "fr": "cochon",
+      "it": "maiale",
+      "pt": "porco",
+      "nl": "varken",
+      "tr": "domuz",
+      "ja": "ぶた"
+     }
+    },
+    {
+     "e": "🐔",
+     "w": {
+      "pl": "kura",
+      "en": "chicken",
+      "de": "Huhn",
+      "es": "gallina",
+      "fr": "poule",
+      "it": "gallina",
+      "pt": "galinha",
+      "nl": "kip",
+      "tr": "tavuk",
+      "ja": "にわとり"
+     }
+    },
+    {
+     "e": "🐴",
+     "w": {
+      "pl": "koń",
+      "en": "horse",
+      "de": "Pferd",
+      "es": "caballo",
+      "fr": "cheval",
+      "it": "cavallo",
+      "pt": "cavalo",
+      "nl": "paard",
+      "tr": "at",
+      "ja": "うま"
+     }
+    },
+    {
+     "e": "🦁",
+     "w": {
+      "pl": "lew",
+      "en": "lion",
+      "de": "Löwe",
+      "es": "león",
+      "fr": "lion",
+      "it": "leone",
+      "pt": "leão",
+      "nl": "leeuw",
+      "tr": "aslan",
+      "ja": "ライオン"
+     }
+    },
+    {
+     "e": "🐘",
+     "w": {
+      "pl": "słoń",
+      "en": "elephant",
+      "de": "Elefant",
+      "es": "elefante",
+      "fr": "éléphant",
+      "it": "elefante",
+      "pt": "elefante",
+      "nl": "olifant",
+      "tr": "fil",
+      "ja": "ぞう"
+     }
+    },
+    {
+     "e": "🐢",
+     "w": {
+      "pl": "żółw",
+      "en": "turtle",
+      "de": "Schildkröte",
+      "es": "tortuga",
+      "fr": "tortue",
+      "it": "tartaruga",
+      "pt": "tartaruga",
+      "nl": "schildpad",
+      "tr": "kaplumbağa",
+      "ja": "かめ"
+     }
+    },
+    {
+     "e": "🐟",
+     "w": {
+      "pl": "ryba",
+      "en": "fish",
+      "de": "Fisch",
+      "es": "pez",
+      "fr": "poisson",
+      "it": "pesce",
+      "pt": "peixe",
+      "nl": "vis",
+      "tr": "balık",
+      "ja": "さかな"
+     }
+    },
+    {
+     "e": "🦆",
+     "w": {
+      "pl": "kaczka",
+      "en": "duck",
+      "de": "Ente",
+      "es": "pato",
+      "fr": "canard",
+      "it": "anatra",
+      "pt": "pato",
+      "nl": "eend",
+      "tr": "ördek",
+      "ja": "あひる"
+     }
+    }
+   ]
+  },
+  {
+   "id": "food",
+   "icon": "🍎",
+   "names": {
+    "pl": "Jedzenie",
+    "en": "Food",
+    "de": "Essen",
+    "es": "Comida",
+    "fr": "Nourriture",
+    "it": "Cibo",
+    "pt": "Comida",
+    "nl": "Eten",
+    "tr": "Yiyecek",
+    "ja": "たべもの"
+   },
+   "level": 1,
+   "words": [
+    {
+     "e": "🍎",
+     "w": {
+      "pl": "jabłko",
+      "en": "apple",
+      "de": "Apfel",
+      "es": "manzana",
+      "fr": "pomme",
+      "it": "mela",
+      "pt": "maçã",
+      "nl": "appel",
+      "tr": "elma",
+      "ja": "りんご"
+     }
+    },
+    {
+     "e": "🍌",
+     "w": {
+      "pl": "banan",
+      "en": "banana",
+      "de": "Banane",
+      "es": "plátano",
+      "fr": "banane",
+      "it": "banana",
+      "pt": "banana",
+      "nl": "banaan",
+      "tr": "muz",
+      "ja": "バナナ"
+     }
+    },
+    {
+     "e": "🍇",
+     "w": {
+      "pl": "winogrono",
+      "en": "grape",
+      "de": "Traube",
+      "es": "uva",
+      "fr": "raisin",
+      "it": "uva",
+      "pt": "uva",
+      "nl": "druif",
+      "tr": "üzüm",
+      "ja": "ぶどう"
+     }
+    },
+    {
+     "e": "🍓",
+     "w": {
+      "pl": "truskawka",
+      "en": "strawberry",
+      "de": "Erdbeere",
+      "es": "fresa",
+      "fr": "fraise",
+      "it": "fragola",
+      "pt": "morango",
+      "nl": "aardbei",
+      "tr": "çilek",
+      "ja": "いちご"
+     }
+    },
+    {
+     "e": "🍊",
+     "w": {
+      "pl": "pomarańcza",
+      "en": "orange",
+      "de": "Orange",
+      "es": "naranja",
+      "fr": "orange",
+      "it": "arancia",
+      "pt": "laranja",
+      "nl": "sinaasappel",
+      "tr": "portakal",
+      "ja": "オレンジ"
+     }
+    },
+    {
+     "e": "🍋",
+     "w": {
+      "pl": "cytryna",
+      "en": "lemon",
+      "de": "Zitrone",
+      "es": "limón",
+      "fr": "citron",
+      "it": "limone",
+      "pt": "limão",
+      "nl": "citroen",
+      "tr": "limon",
+      "ja": "レモン"
+     }
+    },
+    {
+     "e": "🍉",
+     "w": {
+      "pl": "arbuz",
+      "en": "watermelon",
+      "de": "Wassermelone",
+      "es": "sandía",
+      "fr": "pastèque",
+      "it": "anguria",
+      "pt": "melancia",
+      "nl": "watermeloen",
+      "tr": "karpuz",
+      "ja": "すいか"
+     }
+    },
+    {
+     "e": "🍑",
+     "w": {
+      "pl": "brzoskwinia",
+      "en": "peach",
+      "de": "Pfirsich",
+      "es": "melocotón",
+      "fr": "pêche",
+      "it": "pesca",
+      "pt": "pêssego",
+      "nl": "perzik",
+      "tr": "şeftali",
+      "ja": "もも"
+     }
+    },
+    {
+     "e": "🥕",
+     "w": {
+      "pl": "marchewka",
+      "en": "carrot",
+      "de": "Karotte",
+      "es": "zanahoria",
+      "fr": "carotte",
+      "it": "carota",
+      "pt": "cenoura",
+      "nl": "wortel",
+      "tr": "havuç",
+      "ja": "にんじん"
+     }
+    },
+    {
+     "e": "🍅",
+     "w": {
+      "pl": "pomidor",
+      "en": "tomato",
+      "de": "Tomate",
+      "es": "tomate",
+      "fr": "tomate",
+      "it": "pomodoro",
+      "pt": "tomate",
+      "nl": "tomaat",
+      "tr": "domates",
+      "ja": "トマト"
+     }
+    },
+    {
+     "e": "🍞",
+     "w": {
+      "pl": "chleb",
+      "en": "bread",
+      "de": "Brot",
+      "es": "pan",
+      "fr": "pain",
+      "it": "pane",
+      "pt": "pão",
+      "nl": "brood",
+      "tr": "ekmek",
+      "ja": "パン"
+     }
+    },
+    {
+     "e": "🧀",
+     "w": {
+      "pl": "ser",
+      "en": "cheese",
+      "de": "Käse",
+      "es": "queso",
+      "fr": "fromage",
+      "it": "formaggio",
+      "pt": "queijo",
+      "nl": "kaas",
+      "tr": "peynir",
+      "ja": "チーズ"
+     }
+    },
+    {
+     "e": "🥚",
+     "w": {
+      "pl": "jajko",
+      "en": "egg",
+      "de": "Ei",
+      "es": "huevo",
+      "fr": "œuf",
+      "it": "uovo",
+      "pt": "ovo",
+      "nl": "ei",
+      "tr": "yumurta",
+      "ja": "たまご"
+     }
+    },
+    {
+     "e": "🍕",
+     "w": {
+      "pl": "pizza",
+      "en": "pizza",
+      "de": "Pizza",
+      "es": "pizza",
+      "fr": "pizza",
+      "it": "pizza",
+      "pt": "pizza",
+      "nl": "pizza",
+      "tr": "pizza",
+      "ja": "ピザ"
+     }
+    },
+    {
+     "e": "🍪",
+     "w": {
+      "pl": "ciastko",
+      "en": "cookie",
+      "de": "Keks",
+      "es": "galleta",
+      "fr": "biscuit",
+      "it": "biscotto",
+      "pt": "biscoito",
+      "nl": "koekje",
+      "tr": "kurabiye",
+      "ja": "クッキー"
+     }
+    },
+    {
+     "e": "🥛",
+     "w": {
+      "pl": "mleko",
+      "en": "milk",
+      "de": "Milch",
+      "es": "leche",
+      "fr": "lait",
+      "it": "latte",
+      "pt": "leite",
+      "nl": "melk",
+      "tr": "süt",
+      "ja": "ミルク"
+     }
+    }
+   ]
+  },
+  {
+   "id": "colors",
+   "icon": "🔴",
+   "names": {
+    "pl": "Kolory",
+    "en": "Colors",
+    "de": "Farben",
+    "es": "Colores",
+    "fr": "Couleurs",
+    "it": "Colori",
+    "pt": "Cores",
+    "nl": "Kleuren",
+    "tr": "Renkler",
+    "ja": "いろ"
+   },
+   "level": 1,
+   "words": [
+    {
+     "e": "🔴",
+     "w": {
+      "pl": "czerwony",
+      "en": "red",
+      "de": "rot",
+      "es": "rojo",
+      "fr": "rouge",
+      "it": "rosso",
+      "pt": "vermelho",
+      "nl": "rood",
+      "tr": "kırmızı",
+      "ja": "あか"
+     }
+    },
+    {
+     "e": "🟠",
+     "w": {
+      "pl": "pomarańczowy",
+      "en": "orange",
+      "de": "orange",
+      "es": "naranja",
+      "fr": "orange",
+      "it": "arancione",
+      "pt": "laranja",
+      "nl": "oranje",
+      "tr": "turuncu",
+      "ja": "オレンジ"
+     }
+    },
+    {
+     "e": "🟡",
+     "w": {
+      "pl": "żółty",
+      "en": "yellow",
+      "de": "gelb",
+      "es": "amarillo",
+      "fr": "jaune",
+      "it": "giallo",
+      "pt": "amarelo",
+      "nl": "geel",
+      "tr": "sarı",
+      "ja": "きいろ"
+     }
+    },
+    {
+     "e": "🟢",
+     "w": {
+      "pl": "zielony",
+      "en": "green",
+      "de": "grün",
+      "es": "verde",
+      "fr": "vert",
+      "it": "verde",
+      "pt": "verde",
+      "nl": "groen",
+      "tr": "yeşil",
+      "ja": "みどり"
+     }
+    },
+    {
+     "e": "🔵",
+     "w": {
+      "pl": "niebieski",
+      "en": "blue",
+      "de": "blau",
+      "es": "azul",
+      "fr": "bleu",
+      "it": "blu",
+      "pt": "azul",
+      "nl": "blauw",
+      "tr": "mavi",
+      "ja": "あお"
+     }
+    },
+    {
+     "e": "🟣",
+     "w": {
+      "pl": "fioletowy",
+      "en": "purple",
+      "de": "lila",
+      "es": "morado",
+      "fr": "violet",
+      "it": "viola",
+      "pt": "roxo",
+      "nl": "paars",
+      "tr": "mor",
+      "ja": "むらさき"
+     }
+    },
+    {
+     "e": "⚫",
+     "w": {
+      "pl": "czarny",
+      "en": "black",
+      "de": "schwarz",
+      "es": "negro",
+      "fr": "noir",
+      "it": "nero",
+      "pt": "preto",
+      "nl": "zwart",
+      "tr": "siyah",
+      "ja": "くろ"
+     }
+    },
+    {
+     "e": "⚪",
+     "w": {
+      "pl": "biały",
+      "en": "white",
+      "de": "weiß",
+      "es": "blanco",
+      "fr": "blanc",
+      "it": "bianco",
+      "pt": "branco",
+      "nl": "wit",
+      "tr": "beyaz",
+      "ja": "しろ"
+     }
+    },
+    {
+     "e": "🟤",
+     "w": {
+      "pl": "brązowy",
+      "en": "brown",
+      "de": "braun",
+      "es": "marrón",
+      "fr": "marron",
+      "it": "marrone",
+      "pt": "marrom",
+      "nl": "bruin",
+      "tr": "kahverengi",
+      "ja": "ちゃいろ"
+     }
+    },
+    {
+     "e": "🩷",
+     "w": {
+      "pl": "różowy",
+      "en": "pink",
+      "de": "rosa",
+      "es": "rosa",
+      "fr": "rose",
+      "it": "rosa",
+      "pt": "rosa",
+      "nl": "roze",
+      "tr": "pembe",
+      "ja": "ピンク"
+     }
+    },
+    {
+     "e": "🩶",
+     "w": {
+      "pl": "szary",
+      "en": "gray",
+      "de": "grau",
+      "es": "gris",
+      "fr": "gris",
+      "it": "grigio",
+      "pt": "cinza",
+      "nl": "grijs",
+      "tr": "gri",
+      "ja": "はいいろ"
+     }
+    },
+    {
+     "e": "🩵",
+     "w": {
+      "pl": "turkusowy",
+      "en": "turquoise",
+      "de": "türkis",
+      "es": "turquesa",
+      "fr": "turquoise",
+      "it": "turchese",
+      "pt": "turquesa",
+      "nl": "turkoois",
+      "tr": "turkuaz",
+      "ja": "ターコイズ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "numbers",
+   "icon": "1️⃣",
+   "names": {
+    "pl": "Liczby",
+    "en": "Numbers",
+    "de": "Zahlen",
+    "es": "Números",
+    "fr": "Nombres",
+    "it": "Numeri",
+    "pt": "Números",
+    "nl": "Getallen",
+    "tr": "Sayılar",
+    "ja": "かず"
+   },
+   "level": 1,
+   "words": [
+    {
+     "e": "0️⃣",
+     "w": {
+      "pl": "zero",
+      "en": "zero",
+      "de": "null",
+      "es": "cero",
+      "fr": "zéro",
+      "it": "zero",
+      "pt": "zero",
+      "nl": "nul",
+      "tr": "sıfır",
+      "ja": "ゼロ"
+     }
+    },
+    {
+     "e": "1️⃣",
+     "w": {
+      "pl": "jeden",
+      "en": "one",
+      "de": "eins",
+      "es": "uno",
+      "fr": "un",
+      "it": "uno",
+      "pt": "um",
+      "nl": "een",
+      "tr": "bir",
+      "ja": "いち"
+     }
+    },
+    {
+     "e": "2️⃣",
+     "w": {
+      "pl": "dwa",
+      "en": "two",
+      "de": "zwei",
+      "es": "dos",
+      "fr": "deux",
+      "it": "due",
+      "pt": "dois",
+      "nl": "twee",
+      "tr": "iki",
+      "ja": "に"
+     }
+    },
+    {
+     "e": "3️⃣",
+     "w": {
+      "pl": "trzy",
+      "en": "three",
+      "de": "drei",
+      "es": "tres",
+      "fr": "trois",
+      "it": "tre",
+      "pt": "três",
+      "nl": "drie",
+      "tr": "üç",
+      "ja": "さん"
+     }
+    },
+    {
+     "e": "4️⃣",
+     "w": {
+      "pl": "cztery",
+      "en": "four",
+      "de": "vier",
+      "es": "cuatro",
+      "fr": "quatre",
+      "it": "quattro",
+      "pt": "quatro",
+      "nl": "vier",
+      "tr": "dört",
+      "ja": "よん"
+     }
+    },
+    {
+     "e": "5️⃣",
+     "w": {
+      "pl": "pięć",
+      "en": "five",
+      "de": "fünf",
+      "es": "cinco",
+      "fr": "cinq",
+      "it": "cinque",
+      "pt": "cinco",
+      "nl": "vijf",
+      "tr": "beş",
+      "ja": "ご"
+     }
+    },
+    {
+     "e": "6️⃣",
+     "w": {
+      "pl": "sześć",
+      "en": "six",
+      "de": "sechs",
+      "es": "seis",
+      "fr": "six",
+      "it": "sei",
+      "pt": "seis",
+      "nl": "zes",
+      "tr": "altı",
+      "ja": "ろく"
+     }
+    },
+    {
+     "e": "7️⃣",
+     "w": {
+      "pl": "siedem",
+      "en": "seven",
+      "de": "sieben",
+      "es": "siete",
+      "fr": "sept",
+      "it": "sette",
+      "pt": "sete",
+      "nl": "zeven",
+      "tr": "yedi",
+      "ja": "なな"
+     }
+    },
+    {
+     "e": "8️⃣",
+     "w": {
+      "pl": "osiem",
+      "en": "eight",
+      "de": "acht",
+      "es": "ocho",
+      "fr": "huit",
+      "it": "otto",
+      "pt": "oito",
+      "nl": "acht",
+      "tr": "sekiz",
+      "ja": "はち"
+     }
+    },
+    {
+     "e": "9️⃣",
+     "w": {
+      "pl": "dziewięć",
+      "en": "nine",
+      "de": "neun",
+      "es": "nueve",
+      "fr": "neuf",
+      "it": "nove",
+      "pt": "nove",
+      "nl": "negen",
+      "tr": "dokuz",
+      "ja": "きゅう"
+     }
+    },
+    {
+     "e": "🔟",
+     "w": {
+      "pl": "dziesięć",
+      "en": "ten",
+      "de": "zehn",
+      "es": "diez",
+      "fr": "dix",
+      "it": "dieci",
+      "pt": "dez",
+      "nl": "tien",
+      "tr": "on",
+      "ja": "じゅう"
+     }
+    },
+    {
+     "e": "💯",
+     "w": {
+      "pl": "sto",
+      "en": "hundred",
+      "de": "hundert",
+      "es": "cien",
+      "fr": "cent",
+      "it": "cento",
+      "pt": "cem",
+      "nl": "honderd",
+      "tr": "yüz",
+      "ja": "ひゃく"
+     }
+    }
+   ]
+  },
+  {
+   "id": "body",
+   "icon": "👁️",
+   "names": {
+    "pl": "Ciało",
+    "en": "Body",
+    "de": "Körper",
+    "es": "Cuerpo",
+    "fr": "Corps",
+    "it": "Corpo",
+    "pt": "Corpo",
+    "nl": "Lichaam",
+    "tr": "Vücut",
+    "ja": "からだ"
+   },
+   "level": 1,
+   "words": [
+    {
+     "e": "👁️",
+     "w": {
+      "pl": "oko",
+      "en": "eye",
+      "de": "Auge",
+      "es": "ojo",
+      "fr": "œil",
+      "it": "occhio",
+      "pt": "olho",
+      "nl": "oog",
+      "tr": "göz",
+      "ja": "め"
+     }
+    },
+    {
+     "e": "👂",
+     "w": {
+      "pl": "ucho",
+      "en": "ear",
+      "de": "Ohr",
+      "es": "oreja",
+      "fr": "oreille",
+      "it": "orecchio",
+      "pt": "orelha",
+      "nl": "oor",
+      "tr": "kulak",
+      "ja": "みみ"
+     }
+    },
+    {
+     "e": "👃",
+     "w": {
+      "pl": "nos",
+      "en": "nose",
+      "de": "Nase",
+      "es": "nariz",
+      "fr": "nez",
+      "it": "naso",
+      "pt": "nariz",
+      "nl": "neus",
+      "tr": "burun",
+      "ja": "はな"
+     }
+    },
+    {
+     "e": "👄",
+     "w": {
+      "pl": "usta",
+      "en": "mouth",
+      "de": "Mund",
+      "es": "boca",
+      "fr": "bouche",
+      "it": "bocca",
+      "pt": "boca",
+      "nl": "mond",
+      "tr": "ağız",
+      "ja": "くち"
+     }
+    },
+    {
+     "e": "✋",
+     "w": {
+      "pl": "ręka",
+      "en": "hand",
+      "de": "Hand",
+      "es": "mano",
+      "fr": "main",
+      "it": "mano",
+      "pt": "mão",
+      "nl": "hand",
+      "tr": "el",
+      "ja": "て"
+     }
+    },
+    {
+     "e": "🦶",
+     "w": {
+      "pl": "stopa",
+      "en": "foot",
+      "de": "Fuß",
+      "es": "pie",
+      "fr": "pied",
+      "it": "piede",
+      "pt": "pé",
+      "nl": "voet",
+      "tr": "ayak",
+      "ja": "あし"
+     }
+    },
+    {
+     "e": "🦷",
+     "w": {
+      "pl": "ząb",
+      "en": "tooth",
+      "de": "Zahn",
+      "es": "diente",
+      "fr": "dent",
+      "it": "dente",
+      "pt": "dente",
+      "nl": "tand",
+      "tr": "diş",
+      "ja": "は"
+     }
+    },
+    {
+     "e": "👅",
+     "w": {
+      "pl": "język",
+      "en": "tongue",
+      "de": "Zunge",
+      "es": "lengua",
+      "fr": "langue",
+      "it": "lingua",
+      "pt": "língua",
+      "nl": "tong",
+      "tr": "dil",
+      "ja": "した"
+     }
+    },
+    {
+     "e": "🧠",
+     "w": {
+      "pl": "mózg",
+      "en": "brain",
+      "de": "Gehirn",
+      "es": "cerebro",
+      "fr": "cerveau",
+      "it": "cervello",
+      "pt": "cérebro",
+      "nl": "hersenen",
+      "tr": "beyin",
+      "ja": "のう"
+     }
+    },
+    {
+     "e": "💪",
+     "w": {
+      "pl": "ramię",
+      "en": "arm",
+      "de": "Arm",
+      "es": "brazo",
+      "fr": "bras",
+      "it": "braccio",
+      "pt": "braço",
+      "nl": "arm",
+      "tr": "kol",
+      "ja": "うで"
+     }
+    },
+    {
+     "e": "🦴",
+     "w": {
+      "pl": "kość",
+      "en": "bone",
+      "de": "Knochen",
+      "es": "hueso",
+      "fr": "os",
+      "it": "osso",
+      "pt": "osso",
+      "nl": "bot",
+      "tr": "kemik",
+      "ja": "ほね"
+     }
+    },
+    {
+     "e": "❤️",
+     "w": {
+      "pl": "serce",
+      "en": "heart",
+      "de": "Herz",
+      "es": "corazón",
+      "fr": "cœur",
+      "it": "cuore",
+      "pt": "coração",
+      "nl": "hart",
+      "tr": "kalp",
+      "ja": "ハート"
+     }
+    },
+    {
+     "e": "🧔",
+     "w": {
+      "pl": "broda",
+      "en": "beard",
+      "de": "Bart",
+      "es": "barba",
+      "fr": "barbe",
+      "it": "barba",
+      "pt": "barba",
+      "nl": "baard",
+      "tr": "sakal",
+      "ja": "ひげ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "home",
+   "icon": "🏠",
+   "names": {
+    "pl": "Dom",
+    "en": "Home",
+    "de": "Zuhause",
+    "es": "Hogar",
+    "fr": "Maison",
+    "it": "Casa",
+    "pt": "Casa",
+    "nl": "Thuis",
+    "tr": "Ev",
+    "ja": "おうち"
+   },
+   "level": 2,
+   "words": [
+    {
+     "e": "🏠",
+     "w": {
+      "pl": "dom",
+      "en": "house",
+      "de": "Haus",
+      "es": "casa",
+      "fr": "maison",
+      "it": "casa",
+      "pt": "casa",
+      "nl": "huis",
+      "tr": "ev",
+      "ja": "いえ"
+     }
+    },
+    {
+     "e": "🛏️",
+     "w": {
+      "pl": "łóżko",
+      "en": "bed",
+      "de": "Bett",
+      "es": "cama",
+      "fr": "lit",
+      "it": "letto",
+      "pt": "cama",
+      "nl": "bed",
+      "tr": "yatak",
+      "ja": "ベッド"
+     }
+    },
+    {
+     "e": "🛋️",
+     "w": {
+      "pl": "kanapa",
+      "en": "sofa",
+      "de": "Sofa",
+      "es": "sofá",
+      "fr": "canapé",
+      "it": "divano",
+      "pt": "sofá",
+      "nl": "bank",
+      "tr": "koltuk",
+      "ja": "ソファ"
+     }
+    },
+    {
+     "e": "🚪",
+     "w": {
+      "pl": "drzwi",
+      "en": "door",
+      "de": "Tür",
+      "es": "puerta",
+      "fr": "porte",
+      "it": "porta",
+      "pt": "porta",
+      "nl": "deur",
+      "tr": "kapı",
+      "ja": "ドア"
+     }
+    },
+    {
+     "e": "🪑",
+     "w": {
+      "pl": "krzesło",
+      "en": "chair",
+      "de": "Stuhl",
+      "es": "silla",
+      "fr": "chaise",
+      "it": "sedia",
+      "pt": "cadeira",
+      "nl": "stoel",
+      "tr": "sandalye",
+      "ja": "いす"
+     }
+    },
+    {
+     "e": "🛁",
+     "w": {
+      "pl": "wanna",
+      "en": "bathtub",
+      "de": "Badewanne",
+      "es": "bañera",
+      "fr": "baignoire",
+      "it": "vasca",
+      "pt": "banheira",
+      "nl": "bad",
+      "tr": "küvet",
+      "ja": "おふろ"
+     }
+    },
+    {
+     "e": "🚿",
+     "w": {
+      "pl": "prysznic",
+      "en": "shower",
+      "de": "Dusche",
+      "es": "ducha",
+      "fr": "douche",
+      "it": "doccia",
+      "pt": "chuveiro",
+      "nl": "douche",
+      "tr": "duş",
+      "ja": "シャワー"
+     }
+    },
+    {
+     "e": "🔑",
+     "w": {
+      "pl": "klucz",
+      "en": "key",
+      "de": "Schlüssel",
+      "es": "llave",
+      "fr": "clé",
+      "it": "chiave",
+      "pt": "chave",
+      "nl": "sleutel",
+      "tr": "anahtar",
+      "ja": "かぎ"
+     }
+    },
+    {
+     "e": "💡",
+     "w": {
+      "pl": "żarówka",
+      "en": "bulb",
+      "de": "Glühbirne",
+      "es": "bombilla",
+      "fr": "ampoule",
+      "it": "lampadina",
+      "pt": "lâmpada",
+      "nl": "gloeilamp",
+      "tr": "ampul",
+      "ja": "でんきゅう"
+     }
+    },
+    {
+     "e": "🕰️",
+     "w": {
+      "pl": "zegar",
+      "en": "clock",
+      "de": "Uhr",
+      "es": "reloj",
+      "fr": "horloge",
+      "it": "orologio",
+      "pt": "relógio",
+      "nl": "klok",
+      "tr": "saat",
+      "ja": "とけい"
+     }
+    },
+    {
+     "e": "🪟",
+     "w": {
+      "pl": "okno",
+      "en": "window",
+      "de": "Fenster",
+      "es": "ventana",
+      "fr": "fenêtre",
+      "it": "finestra",
+      "pt": "janela",
+      "nl": "raam",
+      "tr": "pencere",
+      "ja": "まど"
+     }
+    },
+    {
+     "e": "🧹",
+     "w": {
+      "pl": "miotła",
+      "en": "broom",
+      "de": "Besen",
+      "es": "escoba",
+      "fr": "balai",
+      "it": "scopa",
+      "pt": "vassoura",
+      "nl": "bezem",
+      "tr": "süpürge",
+      "ja": "ほうき"
+     }
+    },
+    {
+     "e": "📺",
+     "w": {
+      "pl": "telewizor",
+      "en": "television",
+      "de": "Fernseher",
+      "es": "televisión",
+      "fr": "télévision",
+      "it": "televisione",
+      "pt": "televisão",
+      "nl": "televisie",
+      "tr": "televizyon",
+      "ja": "テレビ"
+     }
+    },
+    {
+     "e": "🪞",
+     "w": {
+      "pl": "lustro",
+      "en": "mirror",
+      "de": "Spiegel",
+      "es": "espejo",
+      "fr": "miroir",
+      "it": "specchio",
+      "pt": "espelho",
+      "nl": "spiegel",
+      "tr": "ayna",
+      "ja": "かがみ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "clothes",
+   "icon": "👕",
+   "names": {
+    "pl": "Ubrania",
+    "en": "Clothes",
+    "de": "Kleidung",
+    "es": "Ropa",
+    "fr": "Vêtements",
+    "it": "Vestiti",
+    "pt": "Roupas",
+    "nl": "Kleren",
+    "tr": "Giysiler",
+    "ja": "ふく"
+   },
+   "level": 2,
+   "words": [
+    {
+     "e": "👕",
+     "w": {
+      "pl": "koszulka",
+      "en": "t-shirt",
+      "de": "T-Shirt",
+      "es": "camiseta",
+      "fr": "t-shirt",
+      "it": "maglietta",
+      "pt": "camiseta",
+      "nl": "t-shirt",
+      "tr": "tişört",
+      "ja": "Tシャツ"
+     }
+    },
+    {
+     "e": "👖",
+     "w": {
+      "pl": "spodnie",
+      "en": "pants",
+      "de": "Hose",
+      "es": "pantalones",
+      "fr": "pantalon",
+      "it": "pantaloni",
+      "pt": "calça",
+      "nl": "broek",
+      "tr": "pantolon",
+      "ja": "ズボン"
+     }
+    },
+    {
+     "e": "👗",
+     "w": {
+      "pl": "sukienka",
+      "en": "dress",
+      "de": "Kleid",
+      "es": "vestido",
+      "fr": "robe",
+      "it": "vestito",
+      "pt": "vestido",
+      "nl": "jurk",
+      "tr": "elbise",
+      "ja": "ドレス"
+     }
+    },
+    {
+     "e": "🧥",
+     "w": {
+      "pl": "kurtka",
+      "en": "jacket",
+      "de": "Jacke",
+      "es": "chaqueta",
+      "fr": "veste",
+      "it": "giacca",
+      "pt": "jaqueta",
+      "nl": "jas",
+      "tr": "ceket",
+      "ja": "ジャケット"
+     }
+    },
+    {
+     "e": "🧦",
+     "w": {
+      "pl": "skarpeta",
+      "en": "sock",
+      "de": "Socke",
+      "es": "calcetín",
+      "fr": "chaussette",
+      "it": "calzino",
+      "pt": "meia",
+      "nl": "sok",
+      "tr": "çorap",
+      "ja": "くつした"
+     }
+    },
+    {
+     "e": "👟",
+     "w": {
+      "pl": "but",
+      "en": "shoe",
+      "de": "Schuh",
+      "es": "zapato",
+      "fr": "chaussure",
+      "it": "scarpa",
+      "pt": "sapato",
+      "nl": "schoen",
+      "tr": "ayakkabı",
+      "ja": "くつ"
+     }
+    },
+    {
+     "e": "🧢",
+     "w": {
+      "pl": "czapka",
+      "en": "cap",
+      "de": "Kappe",
+      "es": "gorra",
+      "fr": "casquette",
+      "it": "cappellino",
+      "pt": "boné",
+      "nl": "pet",
+      "tr": "şapka",
+      "ja": "ぼうし"
+     }
+    },
+    {
+     "e": "🧤",
+     "w": {
+      "pl": "rękawiczka",
+      "en": "glove",
+      "de": "Handschuh",
+      "es": "guante",
+      "fr": "gant",
+      "it": "guanto",
+      "pt": "luva",
+      "nl": "handschoen",
+      "tr": "eldiven",
+      "ja": "てぶくろ"
+     }
+    },
+    {
+     "e": "🧣",
+     "w": {
+      "pl": "szalik",
+      "en": "scarf",
+      "de": "Schal",
+      "es": "bufanda",
+      "fr": "écharpe",
+      "it": "sciarpa",
+      "pt": "cachecol",
+      "nl": "sjaal",
+      "tr": "atkı",
+      "ja": "マフラー"
+     }
+    },
+    {
+     "e": "👓",
+     "w": {
+      "pl": "okulary",
+      "en": "glasses",
+      "de": "Brille",
+      "es": "gafas",
+      "fr": "lunettes",
+      "it": "occhiali",
+      "pt": "óculos",
+      "nl": "bril",
+      "tr": "gözlük",
+      "ja": "めがね"
+     }
+    },
+    {
+     "e": "👔",
+     "w": {
+      "pl": "krawat",
+      "en": "tie",
+      "de": "Krawatte",
+      "es": "corbata",
+      "fr": "cravate",
+      "it": "cravatta",
+      "pt": "gravata",
+      "nl": "stropdas",
+      "tr": "kravat",
+      "ja": "ネクタイ"
+     }
+    },
+    {
+     "e": "👢",
+     "w": {
+      "pl": "kozak",
+      "en": "boot",
+      "de": "Stiefel",
+      "es": "bota",
+      "fr": "botte",
+      "it": "stivale",
+      "pt": "bota",
+      "nl": "laars",
+      "tr": "bot",
+      "ja": "ブーツ"
+     }
+    },
+    {
+     "e": "👘",
+     "w": {
+      "pl": "kimono",
+      "en": "kimono",
+      "de": "Kimono",
+      "es": "kimono",
+      "fr": "kimono",
+      "it": "kimono",
+      "pt": "quimono",
+      "nl": "kimono",
+      "tr": "kimono",
+      "ja": "きもの"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transport",
+   "icon": "🚗",
+   "names": {
+    "pl": "Transport",
+    "en": "Transport",
+    "de": "Verkehr",
+    "es": "Transporte",
+    "fr": "Transports",
+    "it": "Trasporti",
+    "pt": "Transportes",
+    "nl": "Vervoer",
+    "tr": "Ulaşım",
+    "ja": "のりもの"
+   },
+   "level": 2,
+   "words": [
+    {
+     "e": "🚗",
+     "w": {
+      "pl": "samochód",
+      "en": "car",
+      "de": "Auto",
+      "es": "coche",
+      "fr": "voiture",
+      "it": "macchina",
+      "pt": "carro",
+      "nl": "auto",
+      "tr": "araba",
+      "ja": "くるま"
+     }
+    },
+    {
+     "e": "🚌",
+     "w": {
+      "pl": "autobus",
+      "en": "bus",
+      "de": "Bus",
+      "es": "autobús",
+      "fr": "autobus",
+      "it": "autobus",
+      "pt": "ônibus",
+      "nl": "bus",
+      "tr": "otobüs",
+      "ja": "バス"
+     }
+    },
+    {
+     "e": "🚕",
+     "w": {
+      "pl": "taksówka",
+      "en": "taxi",
+      "de": "Taxi",
+      "es": "taxi",
+      "fr": "taxi",
+      "it": "taxi",
+      "pt": "táxi",
+      "nl": "taxi",
+      "tr": "taksi",
+      "ja": "タクシー"
+     }
+    },
+    {
+     "e": "🚑",
+     "w": {
+      "pl": "karetka",
+      "en": "ambulance",
+      "de": "Krankenwagen",
+      "es": "ambulancia",
+      "fr": "ambulance",
+      "it": "ambulanza",
+      "pt": "ambulância",
+      "nl": "ambulance",
+      "tr": "ambulans",
+      "ja": "きゅうきゅうしゃ"
+     }
+    },
+    {
+     "e": "🚲",
+     "w": {
+      "pl": "rower",
+      "en": "bike",
+      "de": "Fahrrad",
+      "es": "bicicleta",
+      "fr": "vélo",
+      "it": "bicicletta",
+      "pt": "bicicleta",
+      "nl": "fiets",
+      "tr": "bisiklet",
+      "ja": "じてんしゃ"
+     }
+    },
+    {
+     "e": "🏍️",
+     "w": {
+      "pl": "motocykl",
+      "en": "motorcycle",
+      "de": "Motorrad",
+      "es": "moto",
+      "fr": "moto",
+      "it": "moto",
+      "pt": "moto",
+      "nl": "motor",
+      "tr": "motosiklet",
+      "ja": "オートバイ"
+     }
+    },
+    {
+     "e": "🚆",
+     "w": {
+      "pl": "pociąg",
+      "en": "train",
+      "de": "Zug",
+      "es": "tren",
+      "fr": "train",
+      "it": "treno",
+      "pt": "trem",
+      "nl": "trein",
+      "tr": "tren",
+      "ja": "でんしゃ"
+     }
+    },
+    {
+     "e": "🚁",
+     "w": {
+      "pl": "helikopter",
+      "en": "helicopter",
+      "de": "Hubschrauber",
+      "es": "helicóptero",
+      "fr": "hélicoptère",
+      "it": "elicottero",
+      "pt": "helicóptero",
+      "nl": "helikopter",
+      "tr": "helikopter",
+      "ja": "ヘリコプター"
+     }
+    },
+    {
+     "e": "✈️",
+     "w": {
+      "pl": "samolot",
+      "en": "airplane",
+      "de": "Flugzeug",
+      "es": "avión",
+      "fr": "avion",
+      "it": "aereo",
+      "pt": "avião",
+      "nl": "vliegtuig",
+      "tr": "uçak",
+      "ja": "ひこうき"
+     }
+    },
+    {
+     "e": "🚀",
+     "w": {
+      "pl": "rakieta",
+      "en": "rocket",
+      "de": "Rakete",
+      "es": "cohete",
+      "fr": "fusée",
+      "it": "razzo",
+      "pt": "foguete",
+      "nl": "raket",
+      "tr": "roket",
+      "ja": "ロケット"
+     }
+    },
+    {
+     "e": "🚢",
+     "w": {
+      "pl": "statek",
+      "en": "ship",
+      "de": "Schiff",
+      "es": "barco",
+      "fr": "bateau",
+      "it": "nave",
+      "pt": "navio",
+      "nl": "schip",
+      "tr": "gemi",
+      "ja": "ふね"
+     }
+    },
+    {
+     "e": "🚜",
+     "w": {
+      "pl": "traktor",
+      "en": "tractor",
+      "de": "Traktor",
+      "es": "tractor",
+      "fr": "tracteur",
+      "it": "trattore",
+      "pt": "trator",
+      "nl": "tractor",
+      "tr": "traktör",
+      "ja": "トラクター"
+     }
+    },
+    {
+     "e": "🚚",
+     "w": {
+      "pl": "ciężarówka",
+      "en": "truck",
+      "de": "Lastwagen",
+      "es": "camión",
+      "fr": "camion",
+      "it": "camion",
+      "pt": "caminhão",
+      "nl": "vrachtwagen",
+      "tr": "kamyon",
+      "ja": "トラック"
+     }
+    },
+    {
+     "e": "🛴",
+     "w": {
+      "pl": "hulajnoga",
+      "en": "scooter",
+      "de": "Tretroller",
+      "es": "patinete",
+      "fr": "trottinette",
+      "it": "monopattino",
+      "pt": "patinete",
+      "nl": "step",
+      "tr": "trotinet",
+      "ja": "キックボード"
+     }
+    }
+   ]
+  },
+  {
+   "id": "nature",
+   "icon": "🌳",
+   "names": {
+    "pl": "Przyroda",
+    "en": "Nature",
+    "de": "Natur",
+    "es": "Naturaleza",
+    "fr": "Nature",
+    "it": "Natura",
+    "pt": "Natureza",
+    "nl": "Natuur",
+    "tr": "Doğa",
+    "ja": "しぜん"
+   },
+   "level": 2,
+   "words": [
+    {
+     "e": "🌳",
+     "w": {
+      "pl": "drzewo",
+      "en": "tree",
+      "de": "Baum",
+      "es": "árbol",
+      "fr": "arbre",
+      "it": "albero",
+      "pt": "árvore",
+      "nl": "boom",
+      "tr": "ağaç",
+      "ja": "き"
+     }
+    },
+    {
+     "e": "🌸",
+     "w": {
+      "pl": "kwiat",
+      "en": "flower",
+      "de": "Blume",
+      "es": "flor",
+      "fr": "fleur",
+      "it": "fiore",
+      "pt": "flor",
+      "nl": "bloem",
+      "tr": "çiçek",
+      "ja": "はな"
+     }
+    },
+    {
+     "e": "☀️",
+     "w": {
+      "pl": "słońce",
+      "en": "sun",
+      "de": "Sonne",
+      "es": "sol",
+      "fr": "soleil",
+      "it": "sole",
+      "pt": "sol",
+      "nl": "zon",
+      "tr": "güneş",
+      "ja": "たいよう"
+     }
+    },
+    {
+     "e": "🌙",
+     "w": {
+      "pl": "księżyc",
+      "en": "moon",
+      "de": "Mond",
+      "es": "luna",
+      "fr": "lune",
+      "it": "luna",
+      "pt": "lua",
+      "nl": "maan",
+      "tr": "ay",
+      "ja": "つき"
+     }
+    },
+    {
+     "e": "⭐",
+     "w": {
+      "pl": "gwiazda",
+      "en": "star",
+      "de": "Stern",
+      "es": "estrella",
+      "fr": "étoile",
+      "it": "stella",
+      "pt": "estrela",
+      "nl": "ster",
+      "tr": "yıldız",
+      "ja": "ほし"
+     }
+    },
+    {
+     "e": "☁️",
+     "w": {
+      "pl": "chmura",
+      "en": "cloud",
+      "de": "Wolke",
+      "es": "nube",
+      "fr": "nuage",
+      "it": "nuvola",
+      "pt": "nuvem",
+      "nl": "wolk",
+      "tr": "bulut",
+      "ja": "くも"
+     }
+    },
+    {
+     "e": "🌧️",
+     "w": {
+      "pl": "deszcz",
+      "en": "rain",
+      "de": "Regen",
+      "es": "lluvia",
+      "fr": "pluie",
+      "it": "pioggia",
+      "pt": "chuva",
+      "nl": "regen",
+      "tr": "yağmur",
+      "ja": "あめ"
+     }
+    },
+    {
+     "e": "❄️",
+     "w": {
+      "pl": "śnieg",
+      "en": "snow",
+      "de": "Schnee",
+      "es": "nieve",
+      "fr": "neige",
+      "it": "neve",
+      "pt": "neve",
+      "nl": "sneeuw",
+      "tr": "kar",
+      "ja": "ゆき"
+     }
+    },
+    {
+     "e": "🌈",
+     "w": {
+      "pl": "tęcza",
+      "en": "rainbow",
+      "de": "Regenbogen",
+      "es": "arcoíris",
+      "fr": "arc-en-ciel",
+      "it": "arcobaleno",
+      "pt": "arco-íris",
+      "nl": "regenboog",
+      "tr": "gökkuşağı",
+      "ja": "にじ"
+     }
+    },
+    {
+     "e": "⛰️",
+     "w": {
+      "pl": "góra",
+      "en": "mountain",
+      "de": "Berg",
+      "es": "montaña",
+      "fr": "montagne",
+      "it": "montagna",
+      "pt": "montanha",
+      "nl": "berg",
+      "tr": "dağ",
+      "ja": "やま"
+     }
+    },
+    {
+     "e": "🌊",
+     "w": {
+      "pl": "fala",
+      "en": "wave",
+      "de": "Welle",
+      "es": "ola",
+      "fr": "vague",
+      "it": "onda",
+      "pt": "onda",
+      "nl": "golf",
+      "tr": "dalga",
+      "ja": "なみ"
+     }
+    },
+    {
+     "e": "🔥",
+     "w": {
+      "pl": "ogień",
+      "en": "fire",
+      "de": "Feuer",
+      "es": "fuego",
+      "fr": "feu",
+      "it": "fuoco",
+      "pt": "fogo",
+      "nl": "vuur",
+      "tr": "ateş",
+      "ja": "ひ"
+     }
+    },
+    {
+     "e": "🌋",
+     "w": {
+      "pl": "wulkan",
+      "en": "volcano",
+      "de": "Vulkan",
+      "es": "volcán",
+      "fr": "volcan",
+      "it": "vulcano",
+      "pt": "vulcão",
+      "nl": "vulkaan",
+      "tr": "yanardağ",
+      "ja": "かざん"
+     }
+    },
+    {
+     "e": "🌵",
+     "w": {
+      "pl": "kaktus",
+      "en": "cactus",
+      "de": "Kaktus",
+      "es": "cactus",
+      "fr": "cactus",
+      "it": "cactus",
+      "pt": "cacto",
+      "nl": "cactus",
+      "tr": "kaktüs",
+      "ja": "サボテン"
+     }
+    },
+    {
+     "e": "🍄",
+     "w": {
+      "pl": "grzyb",
+      "en": "mushroom",
+      "de": "Pilz",
+      "es": "seta",
+      "fr": "champignon",
+      "it": "fungo",
+      "pt": "cogumelo",
+      "nl": "paddenstoel",
+      "tr": "mantar",
+      "ja": "きのこ"
+     }
+    },
+    {
+     "e": "⚡",
+     "w": {
+      "pl": "błyskawica",
+      "en": "lightning",
+      "de": "Blitz",
+      "es": "rayo",
+      "fr": "éclair",
+      "it": "fulmine",
+      "pt": "raio",
+      "nl": "bliksem",
+      "tr": "şimşek",
+      "ja": "かみなり"
+     }
+    }
+   ]
+  },
+  {
+   "id": "school",
+   "icon": "📚",
+   "names": {
+    "pl": "Szkoła",
+    "en": "School",
+    "de": "Schule",
+    "es": "Escuela",
+    "fr": "École",
+    "it": "Scuola",
+    "pt": "Escola",
+    "nl": "School",
+    "tr": "Okul",
+    "ja": "がっこう"
+   },
+   "level": 2,
+   "words": [
+    {
+     "e": "📖",
+     "w": {
+      "pl": "książka",
+      "en": "book",
+      "de": "Buch",
+      "es": "libro",
+      "fr": "livre",
+      "it": "libro",
+      "pt": "livro",
+      "nl": "boek",
+      "tr": "kitap",
+      "ja": "ほん"
+     }
+    },
+    {
+     "e": "✏️",
+     "w": {
+      "pl": "ołówek",
+      "en": "pencil",
+      "de": "Bleistift",
+      "es": "lápiz",
+      "fr": "crayon",
+      "it": "matita",
+      "pt": "lápis",
+      "nl": "potlood",
+      "tr": "kalem",
+      "ja": "えんぴつ"
+     }
+    },
+    {
+     "e": "🎒",
+     "w": {
+      "pl": "plecak",
+      "en": "backpack",
+      "de": "Rucksack",
+      "es": "mochila",
+      "fr": "cartable",
+      "it": "zaino",
+      "pt": "mochila",
+      "nl": "rugzak",
+      "tr": "çanta",
+      "ja": "リュック"
+     }
+    },
+    {
+     "e": "📏",
+     "w": {
+      "pl": "linijka",
+      "en": "ruler",
+      "de": "Lineal",
+      "es": "regla",
+      "fr": "règle",
+      "it": "righello",
+      "pt": "régua",
+      "nl": "liniaal",
+      "tr": "cetvel",
+      "ja": "じょうぎ"
+     }
+    },
+    {
+     "e": "🖊️",
+     "w": {
+      "pl": "długopis",
+      "en": "pen",
+      "de": "Kugelschreiber",
+      "es": "bolígrafo",
+      "fr": "stylo",
+      "it": "penna",
+      "pt": "caneta",
+      "nl": "pen",
+      "tr": "tükenmez",
+      "ja": "ペン"
+     }
+    },
+    {
+     "e": "✂️",
+     "w": {
+      "pl": "nożyczki",
+      "en": "scissors",
+      "de": "Schere",
+      "es": "tijeras",
+      "fr": "ciseaux",
+      "it": "forbici",
+      "pt": "tesoura",
+      "nl": "schaar",
+      "tr": "makas",
+      "ja": "はさみ"
+     }
+    },
+    {
+     "e": "📎",
+     "w": {
+      "pl": "spinacz",
+      "en": "paperclip",
+      "de": "Büroklammer",
+      "es": "clip",
+      "fr": "trombone",
+      "it": "graffetta",
+      "pt": "clipe",
+      "nl": "paperclip",
+      "tr": "ataş",
+      "ja": "クリップ"
+     }
+    },
+    {
+     "e": "📓",
+     "w": {
+      "pl": "zeszyt",
+      "en": "notebook",
+      "de": "Heft",
+      "es": "cuaderno",
+      "fr": "cahier",
+      "it": "quaderno",
+      "pt": "caderno",
+      "nl": "schrift",
+      "tr": "defter",
+      "ja": "ノート"
+     }
+    },
+    {
+     "e": "🏫",
+     "w": {
+      "pl": "szkoła",
+      "en": "school",
+      "de": "Schule",
+      "es": "escuela",
+      "fr": "école",
+      "it": "scuola",
+      "pt": "escola",
+      "nl": "school",
+      "tr": "okul",
+      "ja": "がっこう"
+     }
+    },
+    {
+     "e": "🔬",
+     "w": {
+      "pl": "mikroskop",
+      "en": "microscope",
+      "de": "Mikroskop",
+      "es": "microscopio",
+      "fr": "microscope",
+      "it": "microscopio",
+      "pt": "microscópio",
+      "nl": "microscoop",
+      "tr": "mikroskop",
+      "ja": "けんびきょう"
+     }
+    },
+    {
+     "e": "💻",
+     "w": {
+      "pl": "komputer",
+      "en": "computer",
+      "de": "Computer",
+      "es": "ordenador",
+      "fr": "ordinateur",
+      "it": "computer",
+      "pt": "computador",
+      "nl": "computer",
+      "tr": "bilgisayar",
+      "ja": "コンピューター"
+     }
+    },
+    {
+     "e": "🔭",
+     "w": {
+      "pl": "teleskop",
+      "en": "telescope",
+      "de": "Teleskop",
+      "es": "telescopio",
+      "fr": "télescope",
+      "it": "telescopio",
+      "pt": "telescópio",
+      "nl": "telescoop",
+      "tr": "teleskop",
+      "ja": "ぼうえんきょう"
+     }
+    },
+    {
+     "e": "📅",
+     "w": {
+      "pl": "kalendarz",
+      "en": "calendar",
+      "de": "Kalender",
+      "es": "calendario",
+      "fr": "calendrier",
+      "it": "calendario",
+      "pt": "calendário",
+      "nl": "kalender",
+      "tr": "takvim",
+      "ja": "カレンダー"
+     }
+    }
+   ]
+  },
+  {
+   "id": "sports",
+   "icon": "⚽",
+   "names": {
+    "pl": "Sport",
+    "en": "Sports",
+    "de": "Sport",
+    "es": "Deportes",
+    "fr": "Sports",
+    "it": "Sport",
+    "pt": "Esportes",
+    "nl": "Sport",
+    "tr": "Spor",
+    "ja": "スポーツ"
+   },
+   "level": 3,
+   "words": [
+    {
+     "e": "⚽",
+     "w": {
+      "pl": "futbol",
+      "en": "soccer",
+      "de": "Fußball",
+      "es": "fútbol",
+      "fr": "football",
+      "it": "calcio",
+      "pt": "futebol",
+      "nl": "voetbal",
+      "tr": "futbol",
+      "ja": "サッカー"
+     }
+    },
+    {
+     "e": "🏀",
+     "w": {
+      "pl": "koszykówka",
+      "en": "basketball",
+      "de": "Basketball",
+      "es": "baloncesto",
+      "fr": "basketball",
+      "it": "pallacanestro",
+      "pt": "basquete",
+      "nl": "basketbal",
+      "tr": "basketbol",
+      "ja": "バスケットボール"
+     }
+    },
+    {
+     "e": "🎾",
+     "w": {
+      "pl": "tenis",
+      "en": "tennis",
+      "de": "Tennis",
+      "es": "tenis",
+      "fr": "tennis",
+      "it": "tennis",
+      "pt": "tênis",
+      "nl": "tennis",
+      "tr": "tenis",
+      "ja": "テニス"
+     }
+    },
+    {
+     "e": "🏐",
+     "w": {
+      "pl": "siatkówka",
+      "en": "volleyball",
+      "de": "Volleyball",
+      "es": "voleibol",
+      "fr": "volleyball",
+      "it": "pallavolo",
+      "pt": "vôlei",
+      "nl": "volleybal",
+      "tr": "voleybol",
+      "ja": "バレーボール"
+     }
+    },
+    {
+     "e": "⚾",
+     "w": {
+      "pl": "baseball",
+      "en": "baseball",
+      "de": "Baseball",
+      "es": "béisbol",
+      "fr": "baseball",
+      "it": "baseball",
+      "pt": "beisebol",
+      "nl": "honkbal",
+      "tr": "beyzbol",
+      "ja": "やきゅう"
+     }
+    },
+    {
+     "e": "🏓",
+     "w": {
+      "pl": "ping-pong",
+      "en": "ping-pong",
+      "de": "Tischtennis",
+      "es": "pingpong",
+      "fr": "ping-pong",
+      "it": "ping-pong",
+      "pt": "pingue-pongue",
+      "nl": "tafeltennis",
+      "tr": "masatenisi",
+      "ja": "たっきゅう"
+     }
+    },
+    {
+     "e": "🏊",
+     "w": {
+      "pl": "pływanie",
+      "en": "swimming",
+      "de": "Schwimmen",
+      "es": "natación",
+      "fr": "natation",
+      "it": "nuoto",
+      "pt": "natação",
+      "nl": "zwemmen",
+      "tr": "yüzme",
+      "ja": "すいえい"
+     }
+    },
+    {
+     "e": "⛸️",
+     "w": {
+      "pl": "łyżwiarstwo",
+      "en": "skating",
+      "de": "Eislaufen",
+      "es": "patinaje",
+      "fr": "patinage",
+      "it": "pattinaggio",
+      "pt": "patinação",
+      "nl": "schaatsen",
+      "tr": "patinaj",
+      "ja": "スケート"
+     }
+    },
+    {
+     "e": "⛷️",
+     "w": {
+      "pl": "narciarstwo",
+      "en": "skiing",
+      "de": "Skifahren",
+      "es": "esquí",
+      "fr": "ski",
+      "it": "sci",
+      "pt": "esqui",
+      "nl": "skiën",
+      "tr": "kayak",
+      "ja": "スキー"
+     }
+    },
+    {
+     "e": "🥊",
+     "w": {
+      "pl": "boks",
+      "en": "boxing",
+      "de": "Boxen",
+      "es": "boxeo",
+      "fr": "boxe",
+      "it": "boxe",
+      "pt": "boxe",
+      "nl": "boksen",
+      "tr": "boks",
+      "ja": "ボクシング"
+     }
+    },
+    {
+     "e": "🎳",
+     "w": {
+      "pl": "kręgle",
+      "en": "bowling",
+      "de": "Bowling",
+      "es": "bolos",
+      "fr": "bowling",
+      "it": "bowling",
+      "pt": "boliche",
+      "nl": "bowlen",
+      "tr": "bowling",
+      "ja": "ボウリング"
+     }
+    },
+    {
+     "e": "⛳",
+     "w": {
+      "pl": "golf",
+      "en": "golf",
+      "de": "Golf",
+      "es": "golf",
+      "fr": "golf",
+      "it": "golf",
+      "pt": "golfe",
+      "nl": "golf",
+      "tr": "golf",
+      "ja": "ゴルフ"
+     }
+    },
+    {
+     "e": "🏒",
+     "w": {
+      "pl": "hokej",
+      "en": "hockey",
+      "de": "Hockey",
+      "es": "hockey",
+      "fr": "hockey",
+      "it": "hockey",
+      "pt": "hóquei",
+      "nl": "hockey",
+      "tr": "hokey",
+      "ja": "ホッケー"
+     }
+    },
+    {
+     "e": "🏉",
+     "w": {
+      "pl": "rugby",
+      "en": "rugby",
+      "de": "Rugby",
+      "es": "rugby",
+      "fr": "rugby",
+      "it": "rugby",
+      "pt": "rugby",
+      "nl": "rugby",
+      "tr": "ragbi",
+      "ja": "ラグビー"
+     }
+    }
+   ]
+  },
+  {
+   "id": "jobs",
+   "icon": "🧑‍🚒",
+   "names": {
+    "pl": "Zawody",
+    "en": "Jobs",
+    "de": "Berufe",
+    "es": "Profesiones",
+    "fr": "Métiers",
+    "it": "Mestieri",
+    "pt": "Profissões",
+    "nl": "Beroepen",
+    "tr": "Meslekler",
+    "ja": "しごと"
+   },
+   "level": 3,
+   "words": [
+    {
+     "e": "🧑‍🚒",
+     "w": {
+      "pl": "strażak",
+      "en": "firefighter",
+      "de": "Feuerwehrmann",
+      "es": "bombero",
+      "fr": "pompier",
+      "it": "pompiere",
+      "pt": "bombeiro",
+      "nl": "brandweerman",
+      "tr": "itfaiyeci",
+      "ja": "しょうぼうし"
+     }
+    },
+    {
+     "e": "🧑‍🍳",
+     "w": {
+      "pl": "kucharz",
+      "en": "cook",
+      "de": "Koch",
+      "es": "cocinero",
+      "fr": "cuisinier",
+      "it": "cuoco",
+      "pt": "cozinheiro",
+      "nl": "kok",
+      "tr": "aşçı",
+      "ja": "りょうりにん"
+     }
+    },
+    {
+     "e": "🧑‍⚕️",
+     "w": {
+      "pl": "lekarz",
+      "en": "doctor",
+      "de": "Arzt",
+      "es": "médico",
+      "fr": "médecin",
+      "it": "medico",
+      "pt": "médico",
+      "nl": "dokter",
+      "tr": "doktor",
+      "ja": "いしゃ"
+     }
+    },
+    {
+     "e": "🧑‍🏫",
+     "w": {
+      "pl": "nauczyciel",
+      "en": "teacher",
+      "de": "Lehrer",
+      "es": "profesor",
+      "fr": "professeur",
+      "it": "insegnante",
+      "pt": "professor",
+      "nl": "leraar",
+      "tr": "öğretmen",
+      "ja": "せんせい"
+     }
+    },
+    {
+     "e": "🧑‍🚀",
+     "w": {
+      "pl": "astronauta",
+      "en": "astronaut",
+      "de": "Astronaut",
+      "es": "astronauta",
+      "fr": "astronaute",
+      "it": "astronauta",
+      "pt": "astronauta",
+      "nl": "astronaut",
+      "tr": "astronot",
+      "ja": "うちゅうひこうし"
+     }
+    },
+    {
+     "e": "👮",
+     "w": {
+      "pl": "policjant",
+      "en": "policeman",
+      "de": "Polizist",
+      "es": "policía",
+      "fr": "policier",
+      "it": "poliziotto",
+      "pt": "policial",
+      "nl": "agent",
+      "tr": "polis",
+      "ja": "けいさつかん"
+     }
+    },
+    {
+     "e": "🧑‍🌾",
+     "w": {
+      "pl": "rolnik",
+      "en": "farmer",
+      "de": "Bauer",
+      "es": "granjero",
+      "fr": "agriculteur",
+      "it": "contadino",
+      "pt": "agricultor",
+      "nl": "boer",
+      "tr": "çiftçi",
+      "ja": "のうふ"
+     }
+    },
+    {
+     "e": "🧑‍🎨",
+     "w": {
+      "pl": "malarz",
+      "en": "painter",
+      "de": "Maler",
+      "es": "pintor",
+      "fr": "peintre",
+      "it": "pittore",
+      "pt": "pintor",
+      "nl": "schilder",
+      "tr": "ressam",
+      "ja": "がか"
+     }
+    },
+    {
+     "e": "🧑‍✈️",
+     "w": {
+      "pl": "pilot",
+      "en": "pilot",
+      "de": "Pilot",
+      "es": "piloto",
+      "fr": "pilote",
+      "it": "pilota",
+      "pt": "piloto",
+      "nl": "piloot",
+      "tr": "pilot",
+      "ja": "パイロット"
+     }
+    },
+    {
+     "e": "🧑‍🔧",
+     "w": {
+      "pl": "mechanik",
+      "en": "mechanic",
+      "de": "Mechaniker",
+      "es": "mecánico",
+      "fr": "mécanicien",
+      "it": "meccanico",
+      "pt": "mecânico",
+      "nl": "monteur",
+      "tr": "tamirci",
+      "ja": "せいびし"
+     }
+    },
+    {
+     "e": "🧑‍🔬",
+     "w": {
+      "pl": "naukowiec",
+      "en": "scientist",
+      "de": "Wissenschaftler",
+      "es": "científico",
+      "fr": "scientifique",
+      "it": "scienziato",
+      "pt": "cientista",
+      "nl": "wetenschapper",
+      "tr": "bilimci",
+      "ja": "かがくしゃ"
+     }
+    },
+    {
+     "e": "👷",
+     "w": {
+      "pl": "budowlaniec",
+      "en": "builder",
+      "de": "Bauarbeiter",
+      "es": "albañil",
+      "fr": "maçon",
+      "it": "muratore",
+      "pt": "pedreiro",
+      "nl": "bouwvakker",
+      "tr": "inşaatçı",
+      "ja": "だいく"
+     }
+    },
+    {
+     "e": "🧑‍💻",
+     "w": {
+      "pl": "programista",
+      "en": "programmer",
+      "de": "Programmierer",
+      "es": "programador",
+      "fr": "programmeur",
+      "it": "programmatore",
+      "pt": "programador",
+      "nl": "programmeur",
+      "tr": "programcı",
+      "ja": "プログラマー"
+     }
+    },
+    {
+     "e": "🧑‍🎤",
+     "w": {
+      "pl": "piosenkarz",
+      "en": "singer",
+      "de": "Sänger",
+      "es": "cantante",
+      "fr": "chanteur",
+      "it": "cantante",
+      "pt": "cantor",
+      "nl": "zanger",
+      "tr": "şarkıcı",
+      "ja": "かしゅ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "feelings",
+   "icon": "😀",
+   "names": {
+    "pl": "Uczucia",
+    "en": "Feelings",
+    "de": "Gefühle",
+    "es": "Emociones",
+    "fr": "Émotions",
+    "it": "Emozioni",
+    "pt": "Sentimentos",
+    "nl": "Gevoelens",
+    "tr": "Duygular",
+    "ja": "きもち"
+   },
+   "level": 3,
+   "words": [
+    {
+     "e": "😀",
+     "w": {
+      "pl": "szczęśliwy",
+      "en": "happy",
+      "de": "glücklich",
+      "es": "feliz",
+      "fr": "heureux",
+      "it": "felice",
+      "pt": "feliz",
+      "nl": "blij",
+      "tr": "mutlu",
+      "ja": "うれしい"
+     }
+    },
+    {
+     "e": "😢",
+     "w": {
+      "pl": "smutny",
+      "en": "sad",
+      "de": "traurig",
+      "es": "triste",
+      "fr": "triste",
+      "it": "triste",
+      "pt": "triste",
+      "nl": "verdrietig",
+      "tr": "üzgün",
+      "ja": "かなしい"
+     }
+    },
+    {
+     "e": "😠",
+     "w": {
+      "pl": "zły",
+      "en": "angry",
+      "de": "wütend",
+      "es": "enfadado",
+      "fr": "fâché",
+      "it": "arrabbiato",
+      "pt": "zangado",
+      "nl": "boos",
+      "tr": "kızgın",
+      "ja": "おこる"
+     }
+    },
+    {
+     "e": "😴",
+     "w": {
+      "pl": "śpiący",
+      "en": "sleepy",
+      "de": "schläfrig",
+      "es": "somnoliento",
+      "fr": "endormi",
+      "it": "assonnato",
+      "pt": "sonolento",
+      "nl": "slaperig",
+      "tr": "uykulu",
+      "ja": "ねむい"
+     }
+    },
+    {
+     "e": "😮",
+     "w": {
+      "pl": "zdziwiony",
+      "en": "surprised",
+      "de": "überrascht",
+      "es": "sorprendido",
+      "fr": "surpris",
+      "it": "sorpreso",
+      "pt": "surpreso",
+      "nl": "verrast",
+      "tr": "şaşkın",
+      "ja": "おどろく"
+     }
+    },
+    {
+     "e": "😱",
+     "w": {
+      "pl": "przestraszony",
+      "en": "scared",
+      "de": "erschrocken",
+      "es": "asustado",
+      "fr": "effrayé",
+      "it": "spaventato",
+      "pt": "assustado",
+      "nl": "bang",
+      "tr": "korkmuş",
+      "ja": "こわい"
+     }
+    },
+    {
+     "e": "😎",
+     "w": {
+      "pl": "fajny",
+      "en": "cool",
+      "de": "cool",
+      "es": "genial",
+      "fr": "cool",
+      "it": "figo",
+      "pt": "legal",
+      "nl": "stoer",
+      "tr": "havalı",
+      "ja": "かっこいい"
+     }
+    },
+    {
+     "e": "🤒",
+     "w": {
+      "pl": "chory",
+      "en": "sick",
+      "de": "krank",
+      "es": "enfermo",
+      "fr": "malade",
+      "it": "malato",
+      "pt": "doente",
+      "nl": "ziek",
+      "tr": "hasta",
+      "ja": "びょうき"
+     }
+    },
+    {
+     "e": "😋",
+     "w": {
+      "pl": "pyszny",
+      "en": "delicious",
+      "de": "lecker",
+      "es": "delicioso",
+      "fr": "délicieux",
+      "it": "delizioso",
+      "pt": "delicioso",
+      "nl": "lekker",
+      "tr": "lezzetli",
+      "ja": "おいしい"
+     }
+    },
+    {
+     "e": "😭",
+     "w": {
+      "pl": "płakać",
+      "en": "cry",
+      "de": "weinen",
+      "es": "llorar",
+      "fr": "pleurer",
+      "it": "piangere",
+      "pt": "chorar",
+      "nl": "huilen",
+      "tr": "ağlamak",
+      "ja": "なく"
+     }
+    },
+    {
+     "e": "🥶",
+     "w": {
+      "pl": "zimno",
+      "en": "cold",
+      "de": "kalt",
+      "es": "frío",
+      "fr": "froid",
+      "it": "freddo",
+      "pt": "frio",
+      "nl": "koud",
+      "tr": "soğuk",
+      "ja": "さむい"
+     }
+    },
+    {
+     "e": "🥵",
+     "w": {
+      "pl": "gorąco",
+      "en": "hot",
+      "de": "heiß",
+      "es": "caliente",
+      "fr": "chaud",
+      "it": "caldo",
+      "pt": "quente",
+      "nl": "heet",
+      "tr": "sıcak",
+      "ja": "あつい"
+     }
+    },
+    {
+     "e": "😊",
+     "w": {
+      "pl": "uśmiech",
+      "en": "smile",
+      "de": "Lächeln",
+      "es": "sonrisa",
+      "fr": "sourire",
+      "it": "sorriso",
+      "pt": "sorriso",
+      "nl": "glimlach",
+      "tr": "gülümseme",
+      "ja": "えがお"
+     }
+    }
+   ]
+  }
+ ]
+}
