@@ -103,7 +103,7 @@ body.solo #pad:not([hidden])~#phone{display:none}
     <h1>Hopla!</h1>
     <p>Wybierz grę na telefonie albo pilotem</p>
     <div class="grid" id="grid"></div>
-    <button class="sm" id="mpbtn" style="font-size:20px"></button><button class="sm" id="qbtn" style="font-size:20px"></button><button class="sm" id="accbtn" style="font-size:20px"></button><button class="sm" id="odc" style="font-size:20px;display:none" onclick="location.href='odcinek.html'">🏁 Odcinek Specjalny (High · pełny symulator rajdowy)</button><p class="hint" id="caps"></p><p class="hint" id="coll"></p>
+    <button class="sm" id="mpbtn" style="font-size:20px"></button><button class="sm" id="qbtn" style="font-size:20px"></button><button class="sm" id="accbtn" style="font-size:20px"></button><button class="sm" id="atbtn" style="font-size:20px"></button><button class="sm" id="odc" style="font-size:20px;display:none" onclick="location.href='odcinek.html'">🏁 Odcinek Specjalny (High · pełny symulator rajdowy)</button><p class="hint" id="caps"></p><p class="hint" id="coll"></p>
     <p class="hint" id="snd">🔇 Naciśnij OK na pilocie, żeby włączyć dźwięk</p>
   </div>
 </div>
@@ -293,8 +293,9 @@ if(!room||SOLO){
   let QSET='auto';try{const v=localStorage.getItem('hoplaQ');if(v!==null)QSET=v==='auto'?'auto':Math.min(2,Math.max(0,+v||0))}catch(e){}
   const qAuto=()=>{const hc=navigator.hardwareConcurrency||4,mem=navigator.deviceMemory||4;if(isTV||hc<=2||mem<=1)return 0;if(hc<=4||mem<=2)return 1;return hc>=8&&mem>=8?3:2};
   const ACN=['Wyłączona','Spokojny (wolniej, bez wstrząsów)','Duży kontrast','Spokojny + kontrast','Jeden przycisk (krótko = zmień kierunek, długo = akcja)'];let ACC=0;try{ACC=+localStorage.getItem('hoplaAcc')||0}catch(e){}
-  const ACslow=()=>ACC===1||ACC===3||ACC===4?.72:1,ACcalm=()=>ACC===1||ACC===3||ACC===4;
-  function applyAcc(){const b=$('accbtn');if(b)b.textContent='♿ Dostępność: '+ACN[ACC]+' (kliknij)';applyQuality()}
+  let ACT=1;try{ACT=+localStorage.getItem('hoplaAT')||1}catch(e){}
+  const ACslow=()=>(ACC===1||ACC===3||ACC===4?.72:1)*ACT,ACcalm=()=>ACC===1||ACC===3||ACC===4;
+  function applyAcc(){const a2=$('atbtn');if(a2)a2.textContent='⏩ Tempo gry: '+Math.round(ACT*100)+'% (kliknij)';const b=$('accbtn');if(b)b.textContent='♿ Dostępność: '+ACN[ACC]+' (kliknij)';applyQuality()}
   function applyQuality(){LOW=QL===0;HI=QL>=2;OUT=HI?'rgba(20,16,50,.55)':'#14123a';MAXW=QRES[QL];fit();$('c').style.filter=(ACC>=2?'contrast(1.3) saturate(1.25) brightness(1.05)':HI?'contrast(1.05) saturate(1.12)':'');$('c').style.imageRendering=LOW?'pixelated':'';const od=$('odc');if(od)od.style.display=HI?'':'none';const q=$('qbtn');if(q)q.textContent='⚙️ Grafika: '+(QSET==='auto'?'Auto → ':'')+QN[QL]+' (kliknij, żeby zmienić)'}
   const shC=new Map();function shade(col,f){const k=col+f;let r=shC.get(k);if(r)return r;let h=col.length===4?col[1]+col[1]+col[2]+col[2]+col[3]+col[3]:col.slice(1,7);const c=i=>Math.max(0,Math.min(255,Math.round(parseInt(h.slice(i,i+2),16)*f)));r='rgb('+c(0)+','+c(2)+','+c(4)+')';shC.set(k,r);return r}
   const STY=[{n:'Bajkowy',res:960,f:'none',px:0}];
@@ -320,6 +321,7 @@ if(!room||SOLO){
   function mpNext(t){const m=cur.mp;m.sc[0]=cur.score;m.round=1;m.ap=1;parts=[];floats=[];cur.s={};cur.score=0;cur.combo=0;cur.el=0;cur.endTxt='';GY.cal=null;copyActive();cur.g.init(cur.s);cur.phase='count';cur.tStart=t+4200;cur.spoke=0;cur.lastN=0;sendTurn();tvSend({t:'vcfg',gate:[.012,.006,.003][cur.o.mic|0]});speak('Teraz gracz drugi!')}
   let code=SOLO?'solo':String(Math.floor(1000+Math.random()*9000));
   $('mpbtn').onclick=()=>{if(PL[1]&&PL[1].open){MPON=!MPON;mpUi()}else if(SOLO){$('caps').textContent='Gra we dwóch wymaga trybu z telefonami'}else{$('p2ov').hidden=false;$('code2').textContent=code;const q=$('qr2');q.innerHTML='';new QRCode(q,{text:location.href.split('?')[0]+'?room='+code,width:230,height:230})}};
+  $('atbtn').onclick=()=>{const o=[1,.85,.7,.55,.4];ACT=o[(o.indexOf(ACT)+1)%o.length]||1;try{localStorage.setItem('hoplaAT',ACT)}catch(e){}applyAcc()};
   $('accbtn').onclick=()=>{ACC=(ACC+1)%5;OS.dir=0;try{localStorage.setItem('hoplaAcc',ACC)}catch(e){}applyAcc()};
   $('qbtn').onclick=()=>{const o=['auto',0,1,2,3];QSET=o[(o.indexOf(QSET)+1)%5];QL=QSET==='auto'?qAuto():QSET;try{localStorage.setItem('hoplaQ',QSET)}catch(e){}applyQuality()};
   $('p2x').onclick=()=>{$('p2ov').hidden=true};mpUi();
@@ -1442,6 +1444,11 @@ if(!room||SOLO){
   /* ---------- pętla główna ---------- */
   let fpsLow=0,lastOk=0;
   QL=QSET==='auto'?qAuto():QSET;applyAcc();
+  (function profile(){let seen=0;try{seen=localStorage.getItem('hoplaProf')}catch(e){}if(((seen||demo)&&!Q.has('prof'))||!$('menu'))return;
+    const d=document.createElement('div');d.id='prof';d.setAttribute('role','dialog');d.style.cssText='position:fixed;inset:0;z-index:99;background:rgba(20,18,58,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;font-family:inherit;color:#fff';
+    d.innerHTML='<h2 style="margin:0;font-size:clamp(22px,4vw,40px)">Jak lubisz grać?</h2><p style="margin:0;opacity:.8">Możesz to zmienić w każdej chwili w menu (♿)</p>';
+    const set=(acc,t,txt)=>{const b=document.createElement('button');b.className='sm';b.style.cssText='font-size:clamp(18px,3vw,28px);padding:16px 24px;min-width:min(520px,90vw)';b.textContent=txt;b.onclick=()=>{ACC=acc;ACT=t;try{localStorage.setItem('hoplaAcc',ACC);localStorage.setItem('hoplaAT',ACT);localStorage.setItem('hoplaProf','1')}catch(e){}applyAcc();d.remove()};d.appendChild(b);return b};
+    const f=set(0,1,'🎮 Zwykle');set(1,.85,'🌿 Spokojnie i trochę wolniej');set(4,.7,'👆 Jednym przyciskiem');set(2,1,'🔆 Duży kontrast');const sk=document.createElement('button');sk.className='sm';sk.textContent='Pomiń';sk.onclick=()=>{try{localStorage.setItem('hoplaProf','1')}catch(e){}d.remove()};d.appendChild(sk);document.body.appendChild(d);f.focus()})();
   (function loop(t){requestAnimationFrame(loop);if(LOW&&t-lastT<28)return;const dt0=Math.min(50,t-(lastT||t)),dt=dt0*ACslow();lastT=t;if(dt>0){LAT.fps=LAT.fps*.95+Math.min(120,1000/dt0)*.05;if(LAT.fps<40&&QL>0){fpsLow+=dt;if(fpsLow>3000){QL--;applyQuality();fpsLow=0;LAT.fps=60;if(cur)say('Przełączam na grafikę: '+QN[QL],1800)}}else fpsLow=0}
     if(demo)demoFeed(t);sample(t);gestures(t,dt);mouth=Math.max(0,mouth-dt);
     x.save();if(ACcalm())shake=0;if(shake>.5){x.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.88}
