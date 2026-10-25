@@ -31,12 +31,12 @@ function mkTree(){const g=new THREE.Group();const t=new THREE.Mesh(new THREE.Cyl
 for(let i=0;i<40;i++){const g=mkTree();g.position.set((i%2?1:-1)*(5+Math.random()*10),0,-i*7);T.add(g);trees.push(g)}
 const things=[];const geoB=new THREE.BoxGeometry(1.4,1.2,1.2),geoBeam=new THREE.BoxGeometry(2.2,.35,.5),geoF=new THREE.SphereGeometry(.3,10,8);
 /* stan gry */
-let q,v,lane,tx,vy,y,slide,hp,sc,lvScore,inv,run,done,fail;const NEED=()=>14+L*3;
+let nextZ=-14,q,v,lane,tx,vy,y,slide,hp,sc,lvScore,inv,run,done,fail;const NEED=()=>14+L*3;
 function palette(){const p=PAL[Math.min(2,Math.floor(L/3))];S.background=new THREE.Color(p.sky);S.fog=new THREE.Fog(p.fog,18,70);ground.material.color.set(p.gr);trees.forEach(t=>t.getObjectByName('leaf').material.color.set(p.tr))}
-function reset(keep){things.forEach(t=>S.remove(t.m));things.length=0;q=0;v=9+L*.9;lane=0;tx=0;vy=0;y=0;slide=0;hp=3;inv=0;lvScore=0;done=false;fail=false;if(!keep)sc=sc||0;palette();upd();msg(lvName()+' · '+WN[Math.min(2,Math.floor(L/3))],2200)}
+function reset(keep){things.forEach(t=>{S.remove(t.m);t.m.material.dispose()});things.length=0;nextZ=-14;trees.forEach((g,i)=>g.position.z=-i*7);q=0;v=9+L*.9;lane=0;tx=0;vy=0;y=0;slide=0;hp=3;inv=0;lvScore=0;done=false;fail=false;if(!keep)sc=sc||0;palette();upd();msg(lvName()+' · '+WN[Math.min(2,Math.floor(L/3))],2200)}
 const lvName=()=>'Świat '+(Math.floor(L/3)+1)+'-'+(L%3+1);let msgT=0;function msg(t,ms){$('msg').textContent=t;msgT=performance.now()+ms}
 function upd(){$('sc').textContent='🍎 '+sc;$('lv').textContent=lvName();$('hp').textContent='❤️'.repeat(Math.max(0,hp));$('bar').firstChild.style.width=Math.min(100,lvScore/NEED()*100)+'%'}
-let nextZ=-14;function spawn(){while(nextZ>-q-60){const z=nextZ;nextZ-=3.6-Math.min(1.4,L*.15);const r=Math.random(),ln=Math.floor(Math.random()*3)-1;
+function spawn(){while(nextZ>-q-60){const z=nextZ;nextZ-=3.6-Math.min(1.4,L*.15);const r=Math.random(),ln=Math.floor(Math.random()*3)-1;
   if(r<.34){const m=new THREE.Mesh(geoB,M(0x9b6b3a));m.position.set(ln*2,.6,z);S.add(m);things.push({m,t:'box',z,l:ln})}
   else if(r<.5){const m=new THREE.Mesh(geoBeam,M(0xb23a3a));m.scale.x=2.4;m.position.set(0,.55,z);S.add(m);things.push({m,t:'beam',z,l:9})}
   else{for(let k=0;k<3;k++){const m=new THREE.Mesh(geoF,M(0xff4d4d,{emissive:0x551111}));m.position.set(ln*2,.7+(k===1?.5:0),z-k*1.1);S.add(m);things.push({m,t:'fruit',z:z-k*1.1,l:ln})}}}}
@@ -55,7 +55,8 @@ function tick(now){requestAnimationFrame(tick);const dt=Math.min(.05,(now-last)/
       if(o.t==='fruit'&&same&&y<1.4){o.hit=1;S.remove(o.m);sc++;lvScore++;upd()}
       else if(o.t==='box'&&same&&y<1.1&&inv<=0){o.hit=1;hurt()}
       else if(o.t==='beam'&&y<1.2&&slide<=0&&inv<=0){o.hit=1;hurt()}}
-      if(dz>4&&!o.gone){o.gone=1;S.remove(o.m)}}
+      if(dz>4&&!o.gone){o.gone=1;S.remove(o.m);o.m.material.dispose()}}
+    for(let i=things.length-1;i>=0;i--)if(things[i].gone||things[i].hit){if(things[i].hit&&things[i].m.parent){S.remove(things[i].m);things[i].m.material.dispose()}things.splice(i,1)}
     if(lvScore>=NEED())levelUp()}
   hero.position.set(tx,y,-q);hero.rotation.z=(lane*2-tx)*-.15;hero.scale.y=slide>0?.55:1;hero.visible=inv<=0||Math.floor(now/80)%2;
   C.position.set(tx*.6,3.2,-q+5.6);C.lookAt(tx*.6,1.1,-q-6);
