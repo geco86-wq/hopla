@@ -273,8 +273,8 @@ if(!room||SOLO){
   const isTV=/SMART-TV|SmartTV|Tizen|Web0S|webOS|NetCast|HbbTV|BRAVIA|VIDAA|Hisense|Roku|AppleTV|CrKey|AFT|GoogleTV|Android.*TV/i.test(navigator.userAgent);
   let QSET='auto';try{const v=localStorage.getItem('hoplaQ');if(v!==null)QSET=v==='auto'?'auto':Math.min(2,Math.max(0,+v||0))}catch(e){}
   const qAuto=()=>{const hc=navigator.hardwareConcurrency||4,mem=navigator.deviceMemory||4;if(isTV||hc<=2||mem<=1)return 0;if(hc<=4||mem<=2)return 1;return hc>=8&&mem>=8?3:2};
-  const ACN=['Wyłączona','Spokojny (wolniej, bez wstrząsów)','Duży kontrast','Spokojny + kontrast'];let ACC=0;try{ACC=+localStorage.getItem('hoplaAcc')||0}catch(e){}
-  const ACslow=()=>ACC===1||ACC===3?.72:1,ACcalm=()=>ACC===1||ACC===3;
+  const ACN=['Wyłączona','Spokojny (wolniej, bez wstrząsów)','Duży kontrast','Spokojny + kontrast','Jeden przycisk (krótko = zmień kierunek, długo = akcja)'];let ACC=0;try{ACC=+localStorage.getItem('hoplaAcc')||0}catch(e){}
+  const ACslow=()=>ACC===1||ACC===3||ACC===4?.72:1,ACcalm=()=>ACC===1||ACC===3||ACC===4;
   function applyAcc(){const b=$('accbtn');if(b)b.textContent='♿ Dostępność: '+ACN[ACC]+' (kliknij)';applyQuality()}
   function applyQuality(){LOW=QL===0;HI=QL>=2;OUT=HI?'rgba(20,16,50,.55)':'#14123a';MAXW=QRES[QL];fit();$('c').style.filter=(ACC>=2?'contrast(1.3) saturate(1.25) brightness(1.05)':HI?'contrast(1.05) saturate(1.12)':'');$('c').style.imageRendering=LOW?'pixelated':'';const od=$('odc');if(od)od.style.display=HI?'':'none';const q=$('qbtn');if(q)q.textContent='⚙️ Grafika: '+(QSET==='auto'?'Auto → ':'')+QN[QL]+' (kliknij, żeby zmienić)'}
   const shC=new Map();function shade(col,f){const k=col+f;let r=shC.get(k);if(r)return r;let h=col.length===4?col[1]+col[1]+col[2]+col[2]+col[3]+col[3]:col.slice(1,7);const c=i=>Math.max(0,Math.min(255,Math.round(parseInt(h.slice(i,i+2),16)*f)));r='rgb('+c(0)+','+c(2)+','+c(4)+')';shC.set(k,r);return r}
@@ -301,7 +301,7 @@ if(!room||SOLO){
   function mpNext(t){const m=cur.mp;m.sc[0]=cur.score;m.round=1;m.ap=1;parts=[];floats=[];cur.s={};cur.score=0;cur.combo=0;cur.el=0;cur.endTxt='';GY.cal=null;copyActive();cur.g.init(cur.s);cur.phase='count';cur.tStart=t+4200;cur.spoke=0;cur.lastN=0;sendTurn();tvSend({t:'vcfg',gate:[.012,.006,.003][cur.o.mic|0]});speak('Teraz gracz drugi!')}
   let code=SOLO?'solo':String(Math.floor(1000+Math.random()*9000));
   $('mpbtn').onclick=()=>{if(PL[1]&&PL[1].open){MPON=!MPON;mpUi()}else if(SOLO){$('caps').textContent='Gra we dwóch wymaga trybu z telefonami'}else{$('p2ov').hidden=false;$('code2').textContent=code;const q=$('qr2');q.innerHTML='';new QRCode(q,{text:location.href.split('?')[0]+'?room='+code,width:230,height:230})}};
-  $('accbtn').onclick=()=>{ACC=(ACC+1)%4;try{localStorage.setItem('hoplaAcc',ACC)}catch(e){}applyAcc()};
+  $('accbtn').onclick=()=>{ACC=(ACC+1)%5;OS.dir=0;try{localStorage.setItem('hoplaAcc',ACC)}catch(e){}applyAcc()};
   $('qbtn').onclick=()=>{const o=['auto',0,1,2,3];QSET=o[(o.indexOf(QSET)+1)%5];QL=QSET==='auto'?qAuto():QSET;try{localStorage.setItem('hoplaQ',QSET)}catch(e){}applyQuality()};
   $('p2x').onclick=()=>{$('p2ov').hidden=true};mpUi();
   function collUpd(){let n=0;try{n=JSON.parse(localStorage.getItem('hoplaStk')||'[]').length}catch(e){}$('coll').textContent='🏅 Kolekcja naklejek: '+n+' / '+META.length*3+' — zdobywaj gwiazdki w grach'}
@@ -340,7 +340,11 @@ if(!room||SOLO){
     const b=i=>g.buttons[i]&&g.buttons[i].pressed;let k=0;const f=v=>{const a=Math.abs(v);return a<.14?0:Math.sign(v)*Math.pow((a-.14)/.86,1.6)};
     GP.x=f(g.axes[0]||0);GP.y=f(g.axes[1]||0);if(b(14))k|=1;if(b(15))k|=2;if(b(12))k|=4;if(b(13))k|=8;if(GP.x<-.5)k|=1;if(GP.x>.5)k|=2;if(GP.y<-.5)k|=4;if(GP.y>.5)k|=8;
     if(b(0)||b(2))k|=16;if(b(1)||b(3)||b(4)||b(5)||b(6)||b(7))k|=32;if(b(9)&&cur&&!GP.m){GP.m=1;toMenu()}if(!b(9))GP.m=0;GP.name=g.id;return k};
-  const padBits=()=>{let k=INP.k|gpBits();for(const q of KEYS)k|=KB[q]||0;return k};
+  const OS={dir:0,t0:0,down:false,pulse:0,cur:-1};
+  const padRaw=()=>{let k=INP.k|gpBits();for(const q of KEYS)k|=KB[q]||0;return k};
+  const padBits=()=>{const k=padRaw();if(ACC!==4)return k;const now=performance.now();if(OS.cur===now)return OS.out;OS.cur=now;
+    const dn=k!==0;if(dn&&!OS.down){OS.down=true;OS.t0=now}else if(!dn&&OS.down){OS.down=false;if(now-OS.t0<350){OS.dir=(OS.dir+1)%3;beep(OS.dir?600+OS.dir*200:300,.06,'square',.08)}else{OS.pulse=now+160;beep(900,.06,'square',.08)}}
+    OS.out=(OS.dir===1?1:OS.dir===2?2:0)|(now<OS.pulse||(dn&&now-OS.t0>=350)?16:0);return OS.out};
   addEventListener('gamepadconnected',e=>{const t='🎮 Pad podłączony: '+e.gamepad.id.split('(')[0].trim();if($('caps'))$('caps').textContent=t});
   setInterval(()=>{if(cur)return;const k=gpBits(),e=m=>(k&m)&&!(GP.pk&m),kd=key=>window.dispatchEvent(new KeyboardEvent('keydown',{key}));
     if(e(1))kd('ArrowLeft');if(e(2))kd('ArrowRight');if(e(4))kd('ArrowUp');if(e(8))kd('ArrowDown');if(e(16)){const a=document.activeElement;a&&a.click&&a.click()}GP.pk=k},40);
