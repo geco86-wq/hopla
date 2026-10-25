@@ -269,11 +269,11 @@ if(!room||SOLO){
   const demo=Q.has('demo');
   const c=$('c'),x=c.getContext('2d');let W,H,FULL;
   const HF=()=>{const h=[0,120,200,290,60][(cur&&cur.o&&cur.o.ch)|0];return h?'hue-rotate('+h+'deg)':'none'};
-  const QRES=[420,720,1280],QN=['Niska (stare urządzenie)','Średnia','Wysoka'];let LOW=false,HI=false,QL=1;
+  const QRES=[420,720,1280,1920],QN=['Niska (stare urządzenie)','Średnia','Wysoka','Ultra'];let LOW=false,HI=false,QL=1;
   const isTV=/SMART-TV|SmartTV|Tizen|Web0S|webOS|NetCast|HbbTV|BRAVIA|VIDAA|Hisense|Roku|AppleTV|CrKey|AFT|GoogleTV|Android.*TV/i.test(navigator.userAgent);
   let QSET='auto';try{const v=localStorage.getItem('hoplaQ');if(v!==null)QSET=v==='auto'?'auto':Math.min(2,Math.max(0,+v||0))}catch(e){}
-  const qAuto=()=>{const hc=navigator.hardwareConcurrency||4,mem=navigator.deviceMemory||4;if(isTV||hc<=2||mem<=1)return 0;if(hc<=4||mem<=2)return 1;return 2};
-  function applyQuality(){LOW=QL===0;HI=QL===2;OUT=HI?'rgba(20,16,50,.55)':'#14123a';MAXW=QRES[QL];fit();$('c').style.filter=HI?'contrast(1.05) saturate(1.12)':'';$('c').style.imageRendering=LOW?'pixelated':'';const od=$('odc');if(od)od.style.display=HI?'':'none';const q=$('qbtn');if(q)q.textContent='⚙️ Grafika: '+(QSET==='auto'?'Auto → ':'')+QN[QL]+' (kliknij, żeby zmienić)'}
+  const qAuto=()=>{const hc=navigator.hardwareConcurrency||4,mem=navigator.deviceMemory||4;if(isTV||hc<=2||mem<=1)return 0;if(hc<=4||mem<=2)return 1;return hc>=8&&mem>=8?3:2};
+  function applyQuality(){LOW=QL===0;HI=QL>=2;OUT=HI?'rgba(20,16,50,.55)':'#14123a';MAXW=QRES[QL];fit();$('c').style.filter=HI?'contrast(1.05) saturate(1.12)':'';$('c').style.imageRendering=LOW?'pixelated':'';const od=$('odc');if(od)od.style.display=HI?'':'none';const q=$('qbtn');if(q)q.textContent='⚙️ Grafika: '+(QSET==='auto'?'Auto → ':'')+QN[QL]+' (kliknij, żeby zmienić)'}
   const shC=new Map();function shade(col,f){const k=col+f;let r=shC.get(k);if(r)return r;let h=col.length===4?col[1]+col[1]+col[2]+col[2]+col[3]+col[3]:col.slice(1,7);const c=i=>Math.max(0,Math.min(255,Math.round(parseInt(h.slice(i,i+2),16)*f)));r='rgb('+c(0)+','+c(2)+','+c(4)+')';shC.set(k,r);return r}
   const STY=[{n:'Bajkowy',res:960,f:'none',px:0}];
   let STYLE=0;
@@ -298,7 +298,7 @@ if(!room||SOLO){
   function mpNext(t){const m=cur.mp;m.sc[0]=cur.score;m.round=1;m.ap=1;parts=[];floats=[];cur.s={};cur.score=0;cur.combo=0;cur.el=0;cur.endTxt='';GY.cal=null;copyActive();cur.g.init(cur.s);cur.phase='count';cur.tStart=t+4200;cur.spoke=0;cur.lastN=0;sendTurn();tvSend({t:'vcfg',gate:[.012,.006,.003][cur.o.mic|0]});speak('Teraz gracz drugi!')}
   let code=SOLO?'solo':String(Math.floor(1000+Math.random()*9000));
   $('mpbtn').onclick=()=>{if(PL[1]&&PL[1].open){MPON=!MPON;mpUi()}else if(SOLO){$('caps').textContent='Gra we dwóch wymaga trybu z telefonami'}else{$('p2ov').hidden=false;$('code2').textContent=code;const q=$('qr2');q.innerHTML='';new QRCode(q,{text:location.href.split('?')[0]+'?room='+code,width:230,height:230})}};
-  $('qbtn').onclick=()=>{const o=['auto',0,1,2];QSET=o[(o.indexOf(QSET)+1)%4];QL=QSET==='auto'?qAuto():QSET;try{localStorage.setItem('hoplaQ',QSET)}catch(e){}applyQuality()};
+  $('qbtn').onclick=()=>{const o=['auto',0,1,2,3];QSET=o[(o.indexOf(QSET)+1)%5];QL=QSET==='auto'?qAuto():QSET;try{localStorage.setItem('hoplaQ',QSET)}catch(e){}applyQuality()};
   $('p2x').onclick=()=>{$('p2ov').hidden=true};mpUi();
   function collUpd(){let n=0;try{n=JSON.parse(localStorage.getItem('hoplaStk')||'[]').length}catch(e){}$('coll').textContent='🏅 Kolekcja naklejek: '+n+' / '+META.length*3+' — zdobywaj gwiazdki w grach'}
   function showMenu(){collUpd();$('pair').hidden=true;$('menu').hidden=false;const b=document.querySelector('#grid button');b&&b.focus()}
