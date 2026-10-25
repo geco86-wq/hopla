@@ -329,5 +329,21 @@
 "◀ ▶ ▲ ▼ wybierz · A odkryj kartę — połącz obrazek ze słowem": "◀ ▶ ▲ ▼ elegir · A voltear carta — une imagen y palabra",
 "◀ ▶ przesuwaj koszyk": "◀ ▶ mueve la cesta",
 "◀ ▶ wybierz literę · A połóż · B cofnij": "◀ ▶ elegir letra · A colocar · B deshacer",
-"◀ ▶ wybierz wynik · A potwierdź": "◀ ▶ elegir resultado · A confirmar"
+"◀ ▶ wybierz wynik · A potwierdź": "◀ ▶ elegir resultado · A confirmar",
+"Zwierzęta": "Animales",
+"Jedzenie": "Comida",
+"Kolory": "Colores",
+"Liczby": "Números",
+"Ciało": "Cuerpo",
+"Dom": "Hogar",
+"Ubrania": "Ropa",
+"Transport": "Transporte",
+"Przyroda": "Naturaleza",
+"Szkoła": "Escuela",
+"Sport": "Deportes",
+"Zawody": "Profesiones",
+"Uczucia": "Emociones",
+"Wszystko (zależnie od świata)": "Todo (según el mundo)",
+"🔊 Lektor (czyta instrukcje): włączony": "🔊 Narrador (lee las instrucciones): activado",
+"🔊 Lektor (czyta instrukcje): wyłączony": "🔊 Narrador (lee las instrucciones): desactivado"
 }

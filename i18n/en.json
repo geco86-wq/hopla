@@ -329,5 +329,21 @@
 "◀ ▶ ▲ ▼ wybierz · A odkryj kartę — połącz obrazek ze słowem": "◀ ▶ ▲ ▼ choose · A flip card — match picture with word",
 "◀ ▶ przesuwaj koszyk": "◀ ▶ move the basket",
 "◀ ▶ wybierz literę · A połóż · B cofnij": "◀ ▶ choose letter · A place · B undo",
-"◀ ▶ wybierz wynik · A potwierdź": "◀ ▶ choose answer · A confirm"
+"◀ ▶ wybierz wynik · A potwierdź": "◀ ▶ choose answer · A confirm",
+"Zwierzęta": "Animals",
+"Jedzenie": "Food",
+"Kolory": "Colors",
+"Liczby": "Numbers",
+"Ciało": "Body",
+"Dom": "Home",
+"Ubrania": "Clothes",
+"Transport": "Transport",
+"Przyroda": "Nature",
+"Szkoła": "School",
+"Sport": "Sports",
+"Zawody": "Jobs",
+"Uczucia": "Feelings",
+"Wszystko (zależnie od świata)": "Everything (by world)",
+"🔊 Lektor (czyta instrukcje): włączony": "🔊 Narrator (reads instructions): on",
+"🔊 Lektor (czyta instrukcje): wyłączony": "🔊 Narrator (reads instructions): off"
 }

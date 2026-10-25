@@ -329,5 +329,21 @@
 "◀ ▶ ▲ ▼ wybierz · A odkryj kartę — połącz obrazek ze słowem": "◀ ▶ ▲ ▼ choisir · A retourner la carte — associe image et mot",
 "◀ ▶ przesuwaj koszyk": "◀ ▶ déplace le panier",
 "◀ ▶ wybierz literę · A połóż · B cofnij": "◀ ▶ choisir lettre · A poser · B annuler",
-"◀ ▶ wybierz wynik · A potwierdź": "◀ ▶ choisir résultat · A valider"
+"◀ ▶ wybierz wynik · A potwierdź": "◀ ▶ choisir résultat · A valider",
+"Zwierzęta": "Animaux",
+"Jedzenie": "Nourriture",
+"Kolory": "Couleurs",
+"Liczby": "Nombres",
+"Ciało": "Corps",
+"Dom": "Maison",
+"Ubrania": "Vêtements",
+"Transport": "Transports",
+"Przyroda": "Nature",
+"Szkoła": "École",
+"Sport": "Sports",
+"Zawody": "Métiers",
+"Uczucia": "Émotions",
+"Wszystko (zależnie od świata)": "Tout (selon le monde)",
+"🔊 Lektor (czyta instrukcje): włączony": "🔊 Narrateur (lit les instructions) : activé",
+"🔊 Lektor (czyta instrukcje): wyłączony": "🔊 Narrateur (lit les instructions) : désactivé"
 }

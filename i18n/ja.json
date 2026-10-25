@@ -329,5 +329,21 @@
 "◀ ▶ ▲ ▼ wybierz · A odkryj kartę — połącz obrazek ze słowem": "◀ ▶ ▲ ▼ 選ぶ · A カードをめくる — 絵と単語を合わせよう",
 "◀ ▶ przesuwaj koszyk": "◀ ▶ かごを動かす",
 "◀ ▶ wybierz literę · A połóż · B cofnij": "◀ ▶ 文字を選ぶ · A 置く · B 戻す",
-"◀ ▶ wybierz wynik · A potwierdź": "◀ ▶ 答えを選ぶ · A 決定"
+"◀ ▶ wybierz wynik · A potwierdź": "◀ ▶ 答えを選ぶ · A 決定",
+"Zwierzęta": "どうぶつ",
+"Jedzenie": "たべもの",
+"Kolory": "いろ",
+"Liczby": "かず",
+"Ciało": "からだ",
+"Dom": "おうち",
+"Ubrania": "ふく",
+"Transport": "のりもの",
+"Przyroda": "しぜん",
+"Szkoła": "がっこう",
+"Sport": "スポーツ",
+"Zawody": "しごと",
+"Uczucia": "きもち",
+"Wszystko (zależnie od świata)": "すべて（ワールドによる）",
+"🔊 Lektor (czyta instrukcje): włączony": "🔊 ナレーター（説明を読み上げ）：オン",
+"🔊 Lektor (czyta instrukcje): wyłączony": "🔊 ナレーター（説明を読み上げ）：オフ"
 }
