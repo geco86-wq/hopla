@@ -1,0 +1,68 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Dzika Dżungla — Hopla Ultra</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#0b1a12;font-family:system-ui,sans-serif;touch-action:none}canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;color:#fff;font-weight:800;text-shadow:0 2px 6px #000}
+#hud div{position:absolute}#sc{left:16px;top:10px;font-size:28px}#lv{right:16px;top:10px;font-size:26px}#hp{left:16px;top:50px;font-size:26px}
+#bar{right:16px;top:50px;width:220px;height:12px;background:#0006;border-radius:6px;overflow:hidden}#bar i{display:block;height:100%;width:0;background:#ffd23f}
+#msg{left:0;right:0;top:32%;text-align:center;font-size:clamp(28px,6vw,64px);color:#ffd23f}
+#hint{left:0;right:0;bottom:14px;text-align:center;font-size:clamp(14px,2.2vw,22px);opacity:.9}
+#back{position:fixed;left:12px;bottom:12px;pointer-events:auto;background:#0008;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-size:16px}
+</style></head><body>
+<div id="hud"><div id="sc">🍎 0</div><div id="lv"></div><div id="hp"></div><div id="bar"><i></i></div><div id="msg"></div><div id="hint">◀ ▶ zmiana toru · ▲ / A / spacja — skok · ▼ — turlaj się pod belką</div></div>
+<button id="back" onclick="location.href='index.html'">⬅ Hopla</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const WN=['Dzika Dżungla','Złota Pustynia','Kryształowa Jaskinia'],PAL=[{sky:0x7fd0ff,fog:0xbfeaff,gr:0x4fae5c,tr:0x2e7d32},{sky:0xffc98a,fog:0xffe3b8,gr:0xe0b765,tr:0xc98b3b},{sky:0x2a1a5e,fog:0x2a1a5e,gr:0x4a3c8a,tr:0x8b6bff}];
+let prog=0;try{prog=+localStorage.getItem('hoplaU')||0}catch(e){}let L=prog>=9?0:prog;
+const R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(2,devicePixelRatio||1));R.setSize(innerWidth,innerHeight);document.body.appendChild(R.domElement);
+const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
+addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix()});
+S.add(new THREE.HemisphereLight(0xffffff,0x446655,.65));const sun=new THREE.DirectionalLight(0xffffff,.8);sun.position.set(5,10,6);S.add(sun);
+const M=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.7},o||{}));
+/* postać: kapitan w czapce */
+const hero=new THREE.Group();const body=new THREE.Mesh(new THREE.CylinderGeometry(.3,.34,.95,12),M(0x3b7bff));body.position.y=.65;hero.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.3,14,12),M(0xffcf8a));head.position.y=1.28;hero.add(head);
+const cap=new THREE.Mesh(new THREE.SphereGeometry(.32,14,10,0,Math.PI*2,0,Math.PI/2),M(0xff4d4d));cap.position.y=1.32;hero.add(cap);
+const brim=new THREE.Mesh(new THREE.BoxGeometry(.34,.04,.3),M(0xd63a3a));brim.position.set(0,1.3,-.3);hero.add(brim);S.add(hero);
+const road=new THREE.Mesh(new THREE.PlaneGeometry(7,400,1,1),M(0x6b5a45));road.rotation.x=-Math.PI/2;road.position.z=-190;S.add(road);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,400),M(0x4fae5c));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.02,-190);S.add(ground);
+const trees=[],T=new THREE.Group();S.add(T);
+function mkTree(){const g=new THREE.Group();const t=new THREE.Mesh(new THREE.CylinderGeometry(.2,.3,1.6,6),M(0x6b4a2a));t.position.y=.8;g.add(t);const l=new THREE.Mesh(new THREE.ConeGeometry(1.2,3,7),M(0x2e7d32));l.position.y=2.8;l.name='leaf';g.add(l);return g}
+for(let i=0;i<40;i++){const g=mkTree();g.position.set((i%2?1:-1)*(5+Math.random()*10),0,-i*7);T.add(g);trees.push(g)}
+const things=[];const geoB=new THREE.BoxGeometry(1.4,1.2,1.2),geoBeam=new THREE.BoxGeometry(2.2,.35,.5),geoF=new THREE.SphereGeometry(.3,10,8);
+/* stan gry */
+let q,v,lane,tx,vy,y,slide,hp,sc,lvScore,inv,run,done,fail;const NEED=()=>14+L*3;
+function palette(){const p=PAL[Math.min(2,Math.floor(L/3))];S.background=new THREE.Color(p.sky);S.fog=new THREE.Fog(p.fog,18,70);ground.material.color.set(p.gr);trees.forEach(t=>t.getObjectByName('leaf').material.color.set(p.tr))}
+function reset(keep){things.forEach(t=>S.remove(t.m));things.length=0;q=0;v=9+L*.9;lane=0;tx=0;vy=0;y=0;slide=0;hp=3;inv=0;lvScore=0;done=false;fail=false;if(!keep)sc=sc||0;palette();upd();msg(lvName()+' · '+WN[Math.min(2,Math.floor(L/3))],2200)}
+const lvName=()=>'Świat '+(Math.floor(L/3)+1)+'-'+(L%3+1);let msgT=0;function msg(t,ms){$('msg').textContent=t;msgT=performance.now()+ms}
+function upd(){$('sc').textContent='🍎 '+sc;$('lv').textContent=lvName();$('hp').textContent='❤️'.repeat(Math.max(0,hp));$('bar').firstChild.style.width=Math.min(100,lvScore/NEED()*100)+'%'}
+let nextZ=-14;function spawn(){while(nextZ>-q-60){const z=nextZ;nextZ-=3.6-Math.min(1.4,L*.15);const r=Math.random(),ln=Math.floor(Math.random()*3)-1;
+  if(r<.34){const m=new THREE.Mesh(geoB,M(0x9b6b3a));m.position.set(ln*2,.6,z);S.add(m);things.push({m,t:'box',z,l:ln})}
+  else if(r<.5){const m=new THREE.Mesh(geoBeam,M(0xb23a3a));m.scale.x=2.4;m.position.set(0,.55,z);S.add(m);things.push({m,t:'beam',z,l:9})}
+  else{for(let k=0;k<3;k++){const m=new THREE.Mesh(geoF,M(0xff4d4d,{emissive:0x551111}));m.position.set(ln*2,.7+(k===1?.5:0),z-k*1.1);S.add(m);things.push({m,t:'fruit',z:z-k*1.1,l:ln})}}}}
+/* sterowanie */
+const K={};addEventListener('keydown',e=>{K[e.code]=1;if(e.code==='ArrowLeft'||e.code==='KeyA')mv(-1);if(e.code==='ArrowRight'||e.code==='KeyD')mv(1);if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW')jump();if(e.code==='ArrowDown'||e.code==='KeyS')sl();e.preventDefault()});addEventListener('keyup',e=>K[e.code]=0);
+const mv=d=>{if(run&&!fail)lane=Math.max(-1,Math.min(1,lane+d))},jump=()=>{if(y<=.01&&run){vy=9.2}},sl=()=>{if(y<=.01)slide=.6;else vy=-12};
+let t0x=0,t0y=0;addEventListener('pointerdown',e=>{t0x=e.clientX;t0y=e.clientY});addEventListener('pointerup',e=>{const dx=e.clientX-t0x,dy=e.clientY-t0y;if(Math.hypot(dx,dy)<20)jump();else if(Math.abs(dx)>Math.abs(dy))mv(dx>0?1:-1);else dy<0?jump():sl()});
+const gp={l:0,r:0,u:0,d:0};function pad(){const g=(navigator.getGamepads&&navigator.getGamepads()||[])[0];if(!g)return;const ax=g.axes[0]||0,ay=g.axes[1]||0,b=i=>g.buttons[i]&&g.buttons[i].pressed;
+  const l=ax<-.5||b(14),r=ax>.5||b(15),u=b(0)||b(12)||ay<-.6,d=b(1)||b(13)||ay>.6;if(l&&!gp.l)mv(-1);if(r&&!gp.r)mv(1);if(u&&!gp.u)jump();if(d&&!gp.d)sl();gp.l=l;gp.r=r;gp.u=u;gp.d=d}
+/* pętla */
+run=false;sc=0;reset();let last=performance.now();
+setTimeout(()=>{run=true},1200);
+function tick(now){requestAnimationFrame(tick);const dt=Math.min(.05,(now-last)/1000);last=now;pad();
+  if(run&&!done){q+=v*dt;tx+=(lane*2-tx)*Math.min(1,dt*12);vy-=24*dt;y=Math.max(0,y+vy*dt);if(y===0&&vy<0)vy=0;slide=Math.max(0,slide-dt);inv=Math.max(0,inv-dt);spawn();
+    for(const o of things){if(o.hit)continue;const dz=o.z-(-q);if(Math.abs(dz)<.8){const same=o.t==='beam'?true:Math.abs(o.l*2-tx)<1;
+      if(o.t==='fruit'&&same&&y<1.4){o.hit=1;S.remove(o.m);sc++;lvScore++;upd()}
+      else if(o.t==='box'&&same&&y<1.1&&inv<=0){o.hit=1;hurt()}
+      else if(o.t==='beam'&&y<1.2&&slide<=0&&inv<=0){o.hit=1;hurt()}}
+      if(dz>4&&!o.gone){o.gone=1;S.remove(o.m)}}
+    if(lvScore>=NEED())levelUp()}
+  hero.position.set(tx,y,-q);hero.rotation.z=(lane*2-tx)*-.15;hero.scale.y=slide>0?.55:1;hero.visible=inv<=0||Math.floor(now/80)%2;
+  C.position.set(tx*.6,3.2,-q+5.6);C.lookAt(tx*.6,1.1,-q-6);
+  T.children.forEach(t=>{if(t.position.z>-q+10)t.position.z-=280});ground.position.z=-q-190;road.position.z=-q-190;
+  if(msgT&&now>msgT){$('msg').textContent='';msgT=0}R.render(S,C)}
+function hurt(){hp--;inv=1.6;msg('Auć!',700);v=Math.max(8,v*.8);upd();if(hp<=0){fail=true;run=false;msg('Spróbujmy jeszcze raz!',1800);setTimeout(()=>{reset(true);run=true},2000)}}
+function levelUp(){done=true;if(L>=8){try{localStorage.setItem('hoplaU',9)}catch(e){}msg('Gra ukończona! 🏆',99999);return}L++;try{const p=+localStorage.getItem('hoplaU')||0;if(p<9)localStorage.setItem('hoplaU',Math.max(p,L))}catch(e){}
+  msg(L%3===0?'Świat ukończony! ⭐':'Poziom ukończony! ⭐',2200);setTimeout(()=>{reset(true);done=false},2400)}
+requestAnimationFrame(tick);
+</script></body></html>
