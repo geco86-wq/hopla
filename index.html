@@ -4,6 +4,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>if('serviceWorker'in navigator&&location.protocol==='https:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
 <script>
 try{if(new URLSearchParams(location.search).has('solo')&&!sessionStorage.getItem('hoplaSolo'))location.replace(location.pathname)}catch(e){}
 /* tryb solo: "sieć" w pamięci strony — ta sama logika co telefon+TV, ale bez internetu */
