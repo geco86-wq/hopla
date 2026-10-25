@@ -1277,11 +1277,11 @@ if(!room||SOLO){
   function kmReset(s){s.p={r:13,c:3,dr:0,dc:0,p:0};s.wr=0;s.wc=0;s.gh=[[9,9,0],[9,8,3],[9,10,6],[7,9,9]].map((a,i)=>({r:a[0],c:a[1],dr:0,dc:0,p:0,wait:a[2],k:i,home:1,eaten:0}))}
   function kmDots(s){s.d=KM.map(row=>[...row].map(ch=>ch==='.'?1:ch==='o'?2:0));s.left=s.d.flat().filter(v=>v).length}
   GAMES.push({dur:180,goals:[60,150,280],
-    init(s){Object.assign(s,{lives:3,fr:0,lv:0,inv:0,ef:0,mouth:0});kmDots(s);kmReset(s)},
+    init(s){Object.assign(s,{lives:3,fr:0,lv:cur.lvl?cur.L:0,inv:0,ef:0,mouth:0});kmDots(s);kmReset(s)},
     step(s,dt,t,on){
       const d=Math.min(.05,dt/1000),k=padBits(),cz=Math.min(W/19,H*.92/15),x0=(W-cz*19)/2,y0=H*.05;
       const pos=e=>[e.c+e.dc*e.p,e.r+e.dr*e.p];
-      const eat=()=>{const p=s.p,v=s.d[p.r]&&s.d[p.r][p.c];if(v){s.d[p.r][p.c]=0;s.left--;if(v===2){s.fr=6;cur.score+=3;beep(300,.2,'triangle',.15)}else{cur.score+=1;beep(700+(s.left%2)*100,.03,'square',.06)}if(s.left<=0){cur.score+=20;say('Poziom ukończony! +20',1500);s.lv++;kmDots(s);kmReset(s)}}};
+      const eat=()=>{const p=s.p,v=s.d[p.r]&&s.d[p.r][p.c];if(v){s.d[p.r][p.c]=0;s.left--;if(v===2){s.fr=6;cur.score+=3;beep(300,.2,'triangle',.15)}else{cur.score+=1;beep(700+(s.left%2)*100,.03,'square',.06)}if(s.left<=0){cur.score+=20;if(cur.lvl){s.done=1;cur.el=cur.dur}else{say('Poziom ukończony! +20',1500);s.lv++;kmDots(s);kmReset(s)}}}};
       if(on){
         s.inv-=d;s.fr=Math.max(0,s.fr-d);s.mouth+=d*14;
         const want=k&4?[0,-1]:k&8?[0,1]:k&1?[-1,0]:k&2?[1,0]:null,p=s.p;if(want){s.wc=want[0];s.wr=want[1]}
@@ -1411,7 +1411,7 @@ if(!room||SOLO){
       else if(cur.el<7000)txt(['Głos wysoko = ptak wysoko, cisza = na dole','Śpiewaj, żeby lecieć — cisza = spadasz','Ptak biegnie sam — wyższy głos = wyższy skok'][m],W/2,H*.95,H*.036,'#fff')}});
   const CHOPT=[{n:'Postać (kolor)',v:['Oryginał','Zielony','Niebieski','Fioletowy','Żółty'],k:'ch'}];
   [11,14,17,19,20].forEach(i=>{GAMES[i].opts=(GAMES[i].opts||[]).concat(CHOPT)});
-  [5,11,19,20].forEach(i=>GAMES[i].fin=true);[10,21,23,24].forEach(i=>GAMES[i].lvf=.6);
+  [5,11,19,20,22].forEach(i=>GAMES[i].fin=true);[10,21,23,24].forEach(i=>GAMES[i].lvf=.6);
   /* ---------- pętla główna ---------- */
   let fpsLow=0,lastOk=0;
   QL=QSET==='auto'?qAuto():QSET;applyQuality();
