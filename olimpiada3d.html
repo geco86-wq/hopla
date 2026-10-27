@@ -42,6 +42,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
 #ta{width:74px;height:74px;font-size:30px;bottom:22px;left:50%;transform:translateX(-50%);background:#ffd23f2e;border-color:#ffd23f99;color:#ffd23f}
 #tp button:active{transform:scale(.94)}
 #ta:active{transform:translateX(-50%) scale(.94)}
+#tpause{left:50%;top:12px;transform:translateX(-50%);border-radius:10px;padding:8px 14px;font-size:14px}
 #back{position:fixed;left:12px;bottom:12px;z-index:6;pointer-events:auto;background:#0b0f16cc;color:#fff;border:1px solid #ffffff33;border-radius:12px;padding:10px 14px;font-size:16px;font-weight:700;font-family:inherit}
 #back:active{transform:scale(.97)}
 #menu{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;overflow:auto;
@@ -84,7 +85,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
   <div id="hint"></div>
   <div id="fps">60 FPS</div>
 </div>
-<div id="tp"><button id="tl" aria-label="lewo">◀</button><button id="ta" aria-label="akcja">A</button><button id="tr" aria-label="prawo">▶</button></div>
+<div id="tp"><button id="tl" aria-label="lewo">◀</button><button id="ta" aria-label="akcja">A</button><button id="tr" aria-label="prawo">▶</button><button id="tpause" aria-label="pauza">Ⅱ</button></div>
 <button id="back" onclick="location.href='index.html'">⬅ Hopla</button>
 <div id="menu">
   <h1 id="mt">HOPLA OLIMPIADA 3D</h1>
@@ -403,7 +404,7 @@ function disposeStadium(){
   ST.group.traverse(o=>{if(o.geometry)o.geometry.dispose()});
   ST.mats.forEach(m=>m.dispose());
   (ST.tex||[]).forEach(t=>t.dispose());          /* klony tekstur (murawa/tłum) — nie ruszamy cache TEX */
-  S.remove(ST.group);ST=null;FLOOD.mats.length=0;FLOOD.lights.length=0;
+  S.remove(ST.group);ST=null;FLOOD.mats.length=0;FLOOD.lights.length=0;CROWD_ANIM.length=0;
 }
 /* tablica wyników stadionu — tekst rysowany na canvasie (aktualizowany przy starcie) */
 function makeScoreboard(){
@@ -465,7 +466,7 @@ function buildStadium(L){
       const x=s*(TR.OUT+4.4+k*RD),hTop=0.45+k*RH;
       const row=new THREE.Mesh(new THREE.BoxGeometry(RD+0.1,hTop,lenX),matConc);
       row.position.set(x,hTop/2,0);row.receiveShadow=true;group.add(row);
-      const crowd=planeMesh(lenX,RH*1.6,matCrowdX,x-s*(RD*0.5+0.08),hTop+RH*0.7,0,s>0?-Math.PI/2:Math.PI/2,true);
+      const crowd=planeMesh(lenX,RH*1.6,matCrowdX,x-s*(RD*0.5+0.08),hTop+RH*0.7,0,s>0?-Math.PI/2:Math.PI/2,true);crowd.userData.baseY=crowd.position.y;
       group.add(crowd);CROWD_ANIM.push(crowd);
     }
     /* dach + słupy nad główną trybuną */
@@ -483,7 +484,7 @@ function buildStadium(L){
       const z=s*(TR.HS+TR.OUT+4.4+k*RD),hTop=0.45+k*RH;
       const row=new THREE.Mesh(new THREE.BoxGeometry(lenZ,hTop,RD+0.1),matConc);
       row.position.set(0,hTop/2,z);row.receiveShadow=true;group.add(row);
-      const crowd=planeMesh(lenZ,RH*1.6,matCrowdZ,0,hTop+RH*0.7,z-s*(RD*0.5+0.08),s>0?Math.PI:0,true);
+      const crowd=planeMesh(lenZ,RH*1.6,matCrowdZ,0,hTop+RH*0.7,z-s*(RD*0.5+0.08),s>0?Math.PI:0,true);crowd.userData.baseY=crowd.position.y;
       group.add(crowd);CROWD_ANIM.push(crowd);
     }
   }
@@ -629,6 +630,8 @@ function buildEquip(L){
     }
     eq.ball=new THREE.Mesh(new THREE.SphereGeometry(0.16,14,10),M({color:0x9aa3ad,roughness:0.5,metalness:0.7}));
     eq.ball.position.set(HAM.x,0.9,HAM.z);eq.ball.castShadow=true;ST.group.add(eq.ball);
+    eq.rope=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,1,6),M({color:0x252a31,roughness:0.8,metalness:0.25}));
+    eq.rope.visible=false;ST.group.add(eq.rope);
   }
   /* --- skok o tyczce: rozbieg, skrzynka, stojaki, poprzeczka, materace --- */
   if(L.ev==='pole'){
@@ -829,6 +832,7 @@ addEventListener('pointerdown',e=>{
 function bindHold(id,fn){const el=$(id);if(!el)return;
   el.addEventListener('pointerdown',ev=>{ev.preventDefault();audioInit();fn()},{passive:false})}
 bindHold('tl',hitL);bindHold('tr',hitR);bindHold('ta',hitA);
+$('tpause').addEventListener('pointerdown',e=>{e.preventDefault();togglePause()},{passive:false});
 /* ============================================================================
    DŹWIĘK (WebAudio, bez plików): szum trybun, strzał startowy, fanfary, muzyka
    ============================================================================ */
@@ -856,6 +860,8 @@ function audioInit(){
   }catch(e){AC=null}
 }
 function crowdTick(){
+  const ct=performance.now()*0.001;
+  for(let i=0;i<CROWD_ANIM.length;i++){const m=CROWD_ANIM[i];m.position.y=m.userData.baseY+Math.sin(ct*2.2+i*0.73)*0.035}
   if(!AC||!CROWD)return;
   const W=WORLDS[LV().world],on=(state==='play'||state==='count')?1:0.4;
   const want=muted?0:on*0.022*(0.5+W.crowd);
@@ -1473,6 +1479,9 @@ function updateGear(dt){
     }else if(L.ev==='ham'&&P.flight&&(P.ph==='flight'||P.ph==='land')){
       eq.ball.position.set(P.x,P.flight.y+0.15,P.flight.z);eq.ball.rotation.y+=9*dt;
     }else eq.ball.visible=false;
+    if(eq.rope){const active=L.ev==='ham'&&P.ph==='spin';eq.rope.visible=active;
+      if(active){const a=new THREE.Vector3(P.x,1.25,P.z),b=eq.ball.position,d=b.clone().sub(a),len=d.length();
+        eq.rope.position.copy(a).add(b).multiplyScalar(0.5);eq.rope.quaternion.setFromUnitVectors(UP,d.normalize());eq.rope.scale.y=len}}
   }
   if(eq.jav){
     if(L.ev==='jav'&&P.flight&&(P.ph==='flight'||P.ph==='land')){
@@ -1519,7 +1528,7 @@ function updateTable(){
   let h='<span class="h">Tabela biegu (4 tory)</span>';
   rows.forEach((r,i)=>{h+='<div class="r'+(r.me?' me':'')+'"><span>'+(i+1)+'. '+r.n+'</span><span>'+
     (r.t?fmtT(r.t):(r.d.toFixed(1)+' m'))+'</span></div>'});
-  EL.riv.innerHTML=h;
+  if(EL.riv._html!==h){EL.riv.innerHTML=h;EL.riv._html=h}
 }
 function updateHUD(){
   const L=LV();
@@ -1684,6 +1693,9 @@ requestAnimationFrame(frame);
      · usunięto powielony wpis światła słonecznego w shaderze nieba (duplikat GLSL),
      · dodano zapasowy CDN Three.js i komunikat, jeśli biblioteka nie jest dostępna,
      · zwalniane są geometrie zawodników przy zmianie poziomu (bez narastania VRAM),
-     · ograniczono DPR i dodano stopniowe obniżanie cieni przy spadku wydajności.
+     · ograniczono DPR i dodano stopniowe obniżanie cieni przy spadku wydajności,
+     · dodano subtelny ruch sektorów tłumu bez dodatkowych obiektów/tekstur,
+     · dodano widoczną linę młota oraz dotykowy przycisk pauzy,
+     · odświeżanie tabeli wyników pomija identyczny HTML między klatkami.
    ============================================================================ */
 </script></body></html>
