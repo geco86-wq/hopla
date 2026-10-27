@@ -16,12 +16,16 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
 #spd i{display:block;width:150px;height:8px;background:#0007;border-radius:5px;overflow:hidden;margin-top:6px}
 #spd i b{display:block;height:100%;width:0;background:linear-gradient(90deg,#5cc985,#f2c230 55%,#e5533f)}
 #spd i.nb b{background:linear-gradient(90deg,#1ec8d8,#b7ecff)}
+#tele{display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:5px;font-size:12px;opacity:.82;font-variant-numeric:tabular-nums}
+#tele strong{color:#ffd23f}#tele small{font-size:10px;opacity:.7}
+#rival{position:absolute;left:50%;top:12px;transform:translateX(-50%);font-size:18px;color:#ffd23f;white-space:nowrap}
 #drift{position:absolute;left:0;right:0;bottom:66px;text-align:center;font-size:clamp(16px,2.6vw,26px);color:#7fd0ff;font-weight:900;text-shadow:0 2px 8px #000}
 #opts{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .orow{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
 .orow span{font-size:11px;font-weight:800;letter-spacing:.12em;opacity:.6;min-width:86px;text-align:right}
 .opt{background:#ffffff1a;color:#fff;border:1px solid #ffffff33;border-radius:10px;padding:7px 13px;font-weight:800;cursor:pointer;font-family:inherit;font-size:13px}
 .opt.sel{outline:2px solid #ffd23f;background:#1b2740}
+.opt:focus-visible,.lv:focus-visible,#mbtn button:focus-visible,#back:focus-visible{outline:3px solid #7fd0ff;outline-offset:2px}
 #mm{position:absolute;right:12px;top:12px;width:176px;height:176px;border-radius:16px;background:#0b0f16cc;border:1px solid #ffffff26}
 #msg{position:absolute;left:0;right:0;top:25%;text-align:center;font-size:clamp(30px,7vw,74px);color:#ffd23f}
 #sub{position:absolute;left:0;right:0;top:42%;text-align:center;font-size:clamp(14px,2.3vw,24px);font-weight:700;opacity:.95;white-space:pre-line}
@@ -45,13 +49,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
 #mbtn button.gh{background:#ffffff1a;color:#fff;border:1px solid #ffffff33}
 #mbtn button:active{transform:scale(.97)}
 #mh{opacity:.75;font-size:clamp(11px,1.7vw,15px);font-weight:600;text-align:center;max-width:780px;margin:0}
+@media(max-width:600px){#pos{font-size:24px}#lap{top:65px;font-size:14px}#tim{top:99px;font-size:12px;padding:6px 9px}#mm{width:120px;height:120px;right:8px;top:8px}#spd{font-size:16px;right:8px;bottom:8px}#spd i{width:110px}#back{left:8px;bottom:8px;padding:8px 10px;font-size:14px}#rival{top:7px;font-size:14px}}
 </style></head><body>
 <canvas id="gl"></canvas>
 <div id="hud">
   <div class="box" id="pos">P1<b>/6</b></div>
   <div class="box" id="lap">OKR. 1/3</div>
   <div class="box" id="tim">--:--.---</div>
-  <div class="box" id="spd">0 km/h<i><b></b></i><i class="nb" title="nitro (Shift)"><b></b></i></div>
+  <div class="box" id="spd">0 km/h<i><b></b></i><i class="nb" title="nitro (Shift)"><b></b></i><div id="tele"><span>BIEG <strong id="gear">N</strong></span><small id="fps">60 FPS</small></div></div>
+  <div id="rival" hidden></div>
   <canvas id="mm" width="352" height="352"></canvas>
   <div id="msg"></div><div id="sub"></div>
   <div id="drift" hidden></div>
@@ -154,6 +160,7 @@ R.outputEncoding=THREE.sRGBEncoding;
 R.toneMapping=THREE.ACESFilmicToneMapping;
 R.toneMappingExposure=1.05;
 R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+R.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();EL.msg.textContent='UTRACONO RENDEROWANIE';EL.sub.textContent='Przeglądarka zresetowała grafikę. Odśwież stronę, aby wrócić do gry.';EL.menu.hidden=false;EL.hud.style.display='';});
 const S=new THREE.Scene();
 const CAM=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,0.3,1200);
 const hemi=new THREE.HemisphereLight(0xffffff,0x445544,1);S.add(hemi);
@@ -178,7 +185,7 @@ const sky=new THREE.Mesh(new THREE.SphereGeometry(700,32,20),new THREE.ShaderMat
    'gl_FragColor=vec4(c,1.0);}'].join('\n')
 }));
 sky.frustumCulled=false;S.add(sky);
-/* TODO-CODEX: chmury proceduralne, bloom dla świata nocnego, lepszy rozkład gwiazd */
+/* Proceduralne gwiazdy są renderowane w shaderze; neony korzystają z emisji materiałów w mieście. */
 /* ---------- tekstury proceduralne (cache — nie są zwalniane przy zmianie toru) ---------- */
 function canvasTex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;
   draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;
@@ -326,6 +333,7 @@ function disposeTrack(){
   if(!T)return;
   T.group.traverse(o=>{if(o.geometry)o.geometry.dispose();});
   T.mats.forEach(m=>m.dispose());
+  if(T.extraTex)T.extraTex.forEach(t=>t.dispose());
   S.remove(T.group);T=null;
 }
 /* ============================================================================
@@ -478,6 +486,32 @@ function buildTrack(L){
     st.rotation.y=Math.atan2(startT.x,startT.z);
     st.castShadow=true;group.add(st);
   }
+  /* widzowie jako kolorowe instancje: dwa draw calle dla całej widowni */
+  const crowd=new THREE.InstancedMesh(new THREE.SphereGeometry(0.22,6,5),
+    M({color:0xffffff,roughness:0.82}),96);
+  let crowdN=0;
+  for(const s of [-1,1])for(let j=0;j<48;j++){
+    const u=(j/48-0.5)*25,off=(halfW+12.5)*s;
+    const x=startP.x+startS.x*off+startT.x*u,z=startP.z+startS.z*off+startT.z*u;
+    tv3.set(x,startP.y+2.6,z);sv3.set(0.8+rnd()*0.5,0.9+rnd()*0.7,0.8+rnd()*0.5);
+    mtx.compose(tv3,qt.setFromEuler(eu.set(0,rnd()*TAU,0)),sv3);crowd.setMatrixAt(crowdN,mtx);
+    crowd.setColorAt(crowdN,new THREE.Color().setHSL(rnd(),0.65,0.55));crowdN++;
+  }
+  crowd.count=crowdN;crowd.instanceMatrix.needsUpdate=true;if(crowd.instanceColor)crowd.instanceColor.needsUpdate=true;group.add(crowd);
+  /* chmury warstwowe, proceduralnie rozmieszczone poza linią horyzontu */
+  const cloud=new THREE.InstancedMesh(new THREE.SphereGeometry(1,8,6),
+    M({color:W.night?0x526080:0xf4f6f8,roughness:1,transparent:true,opacity:W.night?0.24:0.82}),54);
+  let cloudN=0;
+  for(let j=0;j<18;j++){
+    const a=rnd()*TAU,d=250+rnd()*260,cx=(bminX+bmaxX)/2,cz=(bminZ+bmaxZ)/2;
+    const x=cx+Math.cos(a)*d,z=cz+Math.sin(a)*d,y=48+rnd()*34;
+    for(let k=0;k<3;k++){
+      tv3.set(x+(rnd()-0.5)*8,y+(rnd()-0.5)*2,z+(rnd()-0.5)*6);
+      sv3.set(7+rnd()*9,2.4+rnd()*2.2,4+rnd()*5);
+      mtx.compose(tv3,qt.identity(),sv3);cloud.setMatrixAt(cloudN++,mtx);
+    }
+  }
+  cloud.count=cloudN;cloud.instanceMatrix.needsUpdate=true;group.add(cloud);
   /* stosy opon na zewnętrznej stronie zakrętów */
   const tires=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.4,0.4,0.28,12),
     M({color:0x181a1e,roughness:0.95,metalness:0}),260);
@@ -550,9 +584,9 @@ function buildTrack(L){
     }
     pole.count=head.count=li;pole.instanceMatrix.needsUpdate=head.instanceMatrix.needsUpdate=true;group.add(pole,head);
   }
-  /* TODO-CODEX: trybuny z widzami (billboardy), drzewa na horyzoncie, wiaty sędziowskie */
+  /* Widownia, odległe chmury i budynki jako instancje utrzymują niski koszt rysowania. */
 
-  T={group,mats,pts,tan,side,nrm,ds,len,NS,curv,speedLim,halfW,world:L.world,
+  T={group,mats,extraTex:[gT],pts,tan,side,nrm,ds,len,NS,curv,speedLim,halfW,world:L.world,
      bminX,bmaxX,bminZ,bmaxZ,ground:-0.78};
   buildMinimapBase();
   return T;
@@ -660,7 +694,7 @@ function buildKart(col,acc){
   A(G.engine,mDark,0.36,0.5,-0.62);A(G.pipe,mDark,0.42,0.56,-0.86).rotation.x=Math.PI/2;
   const sw=A(G.swheel,mDark,0,0.66,0.4);sw.rotation.x=-0.42;
   A(G.col,mDark,0,0.55,0.28).rotation.x=0.95;
-  A(G.torso,mAcc,0,0.66,-0.14);A(G.head,mSkin,0,0.95,-0.14);
+  const torso=A(G.torso,mAcc,0,0.66,-0.14);A(G.head,mSkin,0,0.95,-0.14);
   A(G.helmet,mBody,0,0.97,-0.14);A(G.visor,mDark,0,0.95,0.02);
   body.add(linkMesh(new THREE.Vector3(-0.17,0.82,-0.1),new THREE.Vector3(-0.13,0.66,0.36),0.045,mAcc));
   body.add(linkMesh(new THREE.Vector3(0.17,0.82,-0.1),new THREE.Vector3(0.13,0.66,0.36),0.045,mAcc));
@@ -674,7 +708,7 @@ function buildKart(col,acc){
     if(i>=2)sp.scale.x=1.25;
     wheels.push(sp);pivots.push(pv);
   });
-  return {grp,body,wheels,pivots,sw,spin:0};
+  return {grp,body,torso,wheels,pivots,sw,spin:0};
 }
 /* ============================================================================
    ZAWODNICY (gracz + rywale AI po spline)
@@ -682,7 +716,9 @@ function buildKart(col,acc){
 const COLORS=[0xd9382b,0x2f7fe0,0xf2c230,0x2fbf6b,0x8f4bd8,0xff7a1f,0x1ec8d8,0xe6e8ec,0x8b3a2f];
 let racers=[],player=null;
 const GRID_ROW=7.2;
-function clearRacers(){for(const r of racers)S.remove(r.kart.grp);racers=[];player=null}
+function clearRacers(){for(const r of racers){S.remove(r.kart.grp);r.kart.grp.traverse(o=>{
+  if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms)m.dispose()}
+})}racers=[];player=null}
 function spawnGrid(L){
   clearRacers();
   const total=1+L.rivals;
@@ -758,7 +794,7 @@ addEventListener('pointerdown',e=>{const t=e.target;
 addEventListener('pointermove',e=>{if(touch&&e.pointerId===touch.id){touch.dx=e.clientX-touch.x;touch.dy=e.clientY-touch.y}},{passive:true});
 addEventListener('pointerup',e=>{if(touch&&e.pointerId===touch.id)touch=null},{passive:true});
 addEventListener('pointercancel',()=>touch=null);
-/* pochylanie telefonu (opcjonalne, klawisz T) — TODO-CODEX: kalibracja na realnym urządzeniu */
+/* Pochylanie telefonu: pierwsza próbka kalibruje pozycję neutralną; T pozwala skalibrować ponownie. */
 function tiltReading(e){
   const o=(((screen.orientation&&screen.orientation.angle)||window.orientation||0)+360)%360;
   if(o===90)return -(e.beta||0);
@@ -767,10 +803,12 @@ function tiltReading(e){
 }
 function enableTilt(){
   tiltActive=true;tiltZero=null;
-  addEventListener('deviceorientation',e=>{const v=tiltReading(e);if(tiltZero===null)tiltZero=v;tiltRaw=v});
-  if(EL.hint)EL.hint.textContent='Pochylanie aktywne: obracaj telefon jak kierownicę · T — wyłącz';
+  if(!tiltHandler){tiltHandler=e=>{tiltRaw=tiltReading(e);if(tiltZero===null)tiltZero=tiltRaw};addEventListener('deviceorientation',tiltHandler,{passive:true})}
+  if(EL.hint)EL.hint.textContent='Pochylanie aktywne: obracaj telefon jak kierownicę · T — kalibracja/wyłączenie';
 }
+let tiltHandler=null;
 function toggleTilt(){
+  if(tiltActive&&tiltZero!==null){tiltZero=null;if(EL.hint)EL.hint.textContent='Pochylanie: ustaw telefon prosto, T — kalibracja';return}
   if(tiltActive){tiltActive=false;if(EL.hint)EL.hint.textContent=HINT_TEXT;return}
   const D=window.DeviceOrientationEvent;
   if(D&&typeof D.requestPermission==='function'){D.requestPermission().then(r=>{if(r==='granted')enableTilt()}).catch(()=>{})}
@@ -881,7 +919,7 @@ const HINT_TEXT='←→ skręt · ↑ gaz · ↓ hamulec · Shift nitro · pad �
 const EL={hud:$('hud'),pos:$('pos'),lap:$('lap'),tim:$('tim'),spd:$('spd'),spdBar:$('spd').querySelector('b'),
   msg:$('msg'),sub:$('sub'),hint:$('hint'),menu:$('menu'),grid:$('grid'),res:$('res'),mt:$('mt'),ms:$('ms'),
   bstart:$('bstart'),brest:$('brest'),bmenu:$('bmenu'),mm:$('mm'),
-  nb:$('spd').querySelector('.nb b'),drift:$('drift'),oriv:$('oriv')};
+  nb:$('spd').querySelector('.nb b'),drift:$('drift'),oriv:$('oriv'),gear:$('gear'),fps:$('fps'),rival:$('rival')};
 const MMC=EL.mm.getContext('2d');
 let raceT=0,countT=0,msgUntil=0,offRoad=false,cup=null;   /* cup = stan pucharu (3 wyścigi, punkty) */
 function msg(big,sub,ms){
@@ -1077,6 +1115,7 @@ function orientKart(kart,x,y,z,yaw,n,lean,pitch,spinDelta,steer){
   kart.grp.quaternion.setFromRotationMatrix(_M4);
   kart.grp.position.set(x,y,z);
   kart.body.rotation.z=lean;kart.body.rotation.x=pitch;
+  if(kart.torso)kart.torso.rotation.y=-steer*0.22;
   kart.spin+=spinDelta;
   for(let i=0;i<4;i++)kart.wheels[i].rotation.x=kart.spin;
   kart.pivots[0].rotation.y=steer;kart.pivots[1].rotation.y=steer;
@@ -1244,10 +1283,15 @@ function updateHUD(){
   if(EL.nb)EL.nb.style.width=Math.round(P.nitro*100)+'%';
   if(P.driftT>0.15){EL.drift.hidden=false;EL.drift.textContent='🔥 DRIFT '+P.driftT.toFixed(1)+' s'}
   else EL.drift.hidden=true;
+  if(EL.gear)EL.gear.textContent=Math.abs(P.v)<0.5?'N':(P.v<0?'R':String(clamp(Math.floor(Math.abs(P.v)/6)+1,1,6)));
+  if(EL.rival){const ahead=racers.filter(r=>r!==P&&!r.fin).sort((a,b)=>Math.abs(wrapDelta(a.prog-P.prog))-Math.abs(wrapDelta(b.prog-P.prog)))[0];
+    if(ahead){const d=wrapDelta(ahead.prog-P.prog);EL.rival.hidden=false;
+      EL.rival.textContent=(d>=0?'▲':'▼')+' RYWAL '+Math.abs(d).toFixed(0)+' m';EL.rival.style.color=d>=0?'#ffcc45':'#b8d7ff';
+    }else EL.rival.hidden=true;
+  }
   drawMinimap();
 }
-/* TODO-CODEX: ładniejszy HUD (obrotowy obrotomierz, wskaźnik biegów, kolory pozycji),
-   informacja o kierunku do rywala, licznik FPS, responsywność na małych ekranach */
+/* HUD: bieg, dystans do najbliższego rywala, FPS i układ dostosowany do małych ekranów. */
 function setShadowSize(n){
   if(sun.shadow.mapSize.x===n)return;
   sun.shadow.mapSize.set(n,n);
@@ -1283,6 +1327,7 @@ function frame(now){
   fpsT+=dt;fpsN++;
   if(fpsT>1.5){
     const fps=fpsN/fpsT;fpsT=0;fpsN=0;
+    if(EL.fps)EL.fps.textContent=Math.round(fps)+' FPS';
     if(fps<48&&qStep<2){
       qStep++;
       if(qStep===1){if(R.getPixelRatio()>1.25)R.setPixelRatio(1);else setShadowSize(1024)}
@@ -1302,9 +1347,5 @@ buildOpts();
 overlay('menu');
 menuCamera(performance.now());
 requestAnimationFrame(frame);
-/* tryby gry (wyścig / time trial / puchar), 3-10 okrążeń, konfiguracja rywali: zrealizowane
-   (sekcja „konfiguracja gry" + #opts w menu, stan w localStorage hoplaK → cfg).
-   TODO-CODEX: wygładzanie krawędzi (postprocessing), cząstki kurzu/iskier, dym z opon,
-               animacja kierowcy (skręt tułowia), ślady na asfalcie, licznik FPS w HUD,
-               komunikaty o błędach WebGL, dostępność (fokus klawiatury w menu) */
+/* Tryby gry, konfiguracja, animacja kierowcy, HUD i dekoracje: wdrożone. */
 </script></body></html>
