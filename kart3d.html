@@ -15,6 +15,13 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
 #spd{right:12px;bottom:12px;text-align:right;font-size:20px;font-variant-numeric:tabular-nums}
 #spd i{display:block;width:150px;height:8px;background:#0007;border-radius:5px;overflow:hidden;margin-top:6px}
 #spd i b{display:block;height:100%;width:0;background:linear-gradient(90deg,#5cc985,#f2c230 55%,#e5533f)}
+#spd i.nb b{background:linear-gradient(90deg,#1ec8d8,#b7ecff)}
+#drift{position:absolute;left:0;right:0;bottom:66px;text-align:center;font-size:clamp(16px,2.6vw,26px);color:#7fd0ff;font-weight:900;text-shadow:0 2px 8px #000}
+#opts{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.orow{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+.orow span{font-size:11px;font-weight:800;letter-spacing:.12em;opacity:.6;min-width:86px;text-align:right}
+.opt{background:#ffffff1a;color:#fff;border:1px solid #ffffff33;border-radius:10px;padding:7px 13px;font-weight:800;cursor:pointer;font-family:inherit;font-size:13px}
+.opt.sel{outline:2px solid #ffd23f;background:#1b2740}
 #mm{position:absolute;right:12px;top:12px;width:176px;height:176px;border-radius:16px;background:#0b0f16cc;border:1px solid #ffffff26}
 #msg{position:absolute;left:0;right:0;top:25%;text-align:center;font-size:clamp(30px,7vw,74px);color:#ffd23f}
 #sub{position:absolute;left:0;right:0;top:42%;text-align:center;font-size:clamp(14px,2.3vw,24px);font-weight:700;opacity:.95;white-space:pre-line}
@@ -44,29 +51,37 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
   <div class="box" id="pos">P1<b>/6</b></div>
   <div class="box" id="lap">OKR. 1/3</div>
   <div class="box" id="tim">--:--.---</div>
-  <div class="box" id="spd">0 km/h<i><b></b></i></div>
+  <div class="box" id="spd">0 km/h<i><b></b></i><i class="nb" title="nitro (Shift)"><b></b></i></div>
   <canvas id="mm" width="352" height="352"></canvas>
   <div id="msg"></div><div id="sub"></div>
-  <div id="hint">←→ skręt · ↑ gaz · ↓ hamulec · pad · swipe/pochył · C kamera · R restart · Esc pauza</div>
+  <div id="drift" hidden></div>
+  <div id="hint">←→ skręt · ↑ gaz · ↓ hamulec · Shift nitro · pad · swipe/pochył · C kamera · R restart · Esc pauza</div>
 </div>
 <button id="back" onclick="location.href='index.html'">⬅ Hopla</button>
 <div id="menu">
   <h1 id="mt">HOPLA KART 3D</h1>
   <p class="tag" id="ms">Wybierz tor i wystartuj</p>
   <div id="grid"></div>
+  <div id="opts">
+    <div class="orow"><span>TRYB</span><button class="opt" data-m="race">🏁 Wyścig</button><button class="opt" data-m="tt">⏱ Time Trial</button><button class="opt" data-m="cup">🏆 Puchar (3 wyścigi)</button></div>
+    <div class="orow"><span>OKRĄŻENIA</span><button class="opt" data-l="3">3</button><button class="opt" data-l="6">6</button><button class="opt" data-l="10">10</button></div>
+    <div class="orow" id="oriv"><span>RYWALE</span><button class="opt" data-r="3">3</button><button class="opt" data-r="5">5</button><button class="opt" data-r="8">8</button></div>
+  </div>
   <div id="res" hidden></div>
   <div id="mbtn">
     <button id="bstart">▶ Start</button>
     <button id="brest" class="gh" hidden>🔁 Jeszcze raz</button>
     <button id="bmenu" class="gh" hidden>🏁 Wybór toru</button>
   </div>
-  <p id="mh">Sterowanie: ←→ / A,D — skręt · ↑ / W — gaz · ↓ / S — hamulec/wsteczny · pad (Gamepad API) · na telefonie swipe lub pochylanie · Enter — start · Esc — pauza</p>
+  <p id="mh">Sterowanie: ←→ / A,D — skręt · ↑ / W — gaz · ↓ / S — hamulec/wsteczny · Shift / N — nitro (ładuj driftem!) · pad (Gamepad API) · na telefonie swipe lub pochylanie · Enter — start · Esc — pauza</p>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ============================================================================
    HOPLA KART 3D — realistyczny wyścig kartingowy (Three.js r128, jeden plik)
    Część 1/3: rdzeń działającego rozwiązania (tor, kart, AI, okrążenia, HUD).
+   Część 2/3: nazwane tory + pogoda, normalMap/dekale/bandy, pisk opon/trawa/
+   muzyka, drift + nitro, osobowości i błędy AI, tryby gry (wyścig/TT/puchar).
    ============================================================================ */
 const $=id=>document.getElementById(id);
 const TAU=Math.PI*2, UP=new THREE.Vector3(0,1,0);
@@ -98,9 +113,15 @@ const WORLDS=[
   sun:0x9fbcf5,sunI:1.5,hemiS:0x36486f,hemiG:0x14161d,hemiI:.75,exposure:1.2,hills:3.5,scenery:'city',night:true}
 ];
 const TTAG=['Krótki','Średni','Mistrzowski'];
+/* nazwane tory (3 światy × 3) + pogoda per poziom: sun / cloud / rain */
+const TNAMES=[['Pętla Wzgórz','Wirujące Łąki','Szczyt Mistrzów'],
+  ['Wydmowy Owal','Kanion Kaktusów','Burza Piaskowa'],
+  ['Bulwar Neonów','Wiadukt Północy','Grand Prix Nocy']];
+const WTH=['sun','cloud','rain'],WICO={sun:'☀',cloud:'☁',rain:'🌧'};
 const LEVELS=[];
 for(let i=0;i<9;i++){const w=Math.floor(i/3),k=i%3;
-  LEVELS.push({id:i+1,world:w,idx:k,seed:101+i*137,name:WORLDS[w].name+' · '+TTAG[k],
+  LEVELS.push({id:i+1,world:w,idx:k,seed:101+i*137,name:TNAMES[w][k],tname:TNAMES[w][k],
+    tag:TTAG[k],weather:WTH[k],
     halfW:8.8-i*0.42,          /* im wyższy poziom, tym węższy tor */
     ctrl:16,                   /* liczba punktów kontrolnych konturu (wierność kształtu) */
     a2:0.19+i*0.017,           /* amplituda harmonicznej 2 (wyżej = ciaśniejsze zakręty) */
@@ -111,8 +132,16 @@ for(let i=0;i<9;i++){const w=Math.floor(i/3),k=i%3;
     aiSkill:0.9+i*0.035,     /* umiejętność pokonywania zakrętów */
     laps:3});
 }
-/* TODO-KIMI: rozbudowa poziomów (nowe układy torów, pogoda, różne nazwy torów, tryby) */
-const LV=()=>LEVELS[cur-1];
+/* ---------- konfiguracja gry: tryb, liczba okrążeń, liczba rywali (zapisywana) ---------- */
+const MODE_NAME={race:'🏁 Wyścig',tt:'⏱ Time Trial',cup:'🏆 Puchar'};
+let CFG={mode:'race',laps:3,rivals:5};
+try{const c=PROG.cfg;if(c&&typeof c==='object'){
+  if(MODE_NAME[c.mode])CFG.mode=c.mode;
+  if([3,6,10].indexOf(+c.laps)>=0)CFG.laps=+c.laps;
+  if([3,5,8].indexOf(+c.rivals)>=0)CFG.rivals=+c.rivals;}}catch(e){}
+/* LV(): bieżący poziom z nałożoną konfiguracją (cache ustawiany przy starcie wyścigu) */
+let _LVc=null;
+const LV=()=>_LVc||LEVELS[cur-1];
 let cur=clamp(Math.round(PROG.unlocked),1,9), sel=cur;
 
 /* ============================================================================
@@ -172,10 +201,14 @@ function kerbTex(){return tex('kerb',()=>canvasTex(64,256,(g,w,h)=>{
 }))}
 function checkerTex(){return tex('checker',()=>canvasTex(128,128,(g,w,h)=>{const n=8,s=w/n;
   for(let i=0;i<n;i++)for(let j=0;j<n;j++){g.fillStyle=((i+j)%2)?'#f4f3ee':'#15171b';g.fillRect(i*s,j*s,s,s)}}))}
-function boardTex(){return tex('board',()=>canvasTex(256,64,(g,w,h)=>{
-  g.fillStyle='#0e1e33';g.fillRect(0,0,w,h);g.fillStyle='#ffd23f';g.fillRect(0,0,w,7);g.fillRect(0,h-7,w,7);
-  g.fillStyle='#fff';g.font='bold 30px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';
-  g.fillText('HOPLA KART',w/2,h/2+2)}))}
+/* bandy reklamowe per świat: inna kolorystyka i napisy dla każdego świata */
+const BOARD_STYLE=[['#0e1e33','#ffd23f','#ffffff','HOPLA KART'],
+  ['#3a220e','#ffb347','#fff3df','DESERT GP'],
+  ['#0a0618','#31e6ff','#ff5ad0','NEON CITY']];
+function boardTex(w){return tex('board'+w,()=>canvasTex(256,64,(g,wd,h)=>{const P=BOARD_STYLE[w]||BOARD_STYLE[0];
+  g.fillStyle=P[0];g.fillRect(0,0,wd,h);g.fillStyle=P[1];g.fillRect(0,0,wd,7);g.fillRect(0,h-7,wd,7);
+  g.fillStyle=P[2];g.font='bold 30px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';
+  g.fillText(P[3],wd/2,h/2+2)}))}
 function winTex(){return tex('win',()=>canvasTex(128,256,(g,w,h)=>{
   g.fillStyle='#0c1120';g.fillRect(0,0,w,h);
   for(let y=7;y<h-8;y+=14)for(let x=6;x<w-8;x+=12){const lit=Math.random()<0.45;
@@ -189,7 +222,32 @@ function grassTex(world){return tex('grass'+world,()=>{const W=WORLDS[world],c1=
     for(let i=0;i<36;i++){const x=Math.random()*w,y=Math.random()*h,r=7+Math.random()*28;
       const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,0.11)');gr.addColorStop(1,'rgba(0,0,0,0)');
       g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill()}})})}
-/* TODO-KIMI: normalMap dla asfaltu, dekale startu/mety, tekstury band reklamowych per świat */
+/* normalMap asfaltu: mapa wysokości z drobnego szumu → normalne (Sobel), raz w cache */
+function asphaltNrm(){return tex('asphaltN',()=>{
+  const w=256,h=256,hc=document.createElement('canvas');hc.width=w;hc.height=h;
+  const hg=hc.getContext('2d');hg.fillStyle='#808080';hg.fillRect(0,0,w,h);
+  for(let i=0;i<7000;i++){const v=Math.floor(Math.random()*255);
+    hg.fillStyle='rgb('+v+','+v+','+v+')';hg.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2)}
+  const src=hg.getImageData(0,0,w,h).data;
+  const t=canvasTex(w,h,(g)=>{const out=g.createImageData(w,h),d=out.data;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const xm=(x-1+w)%w,xp=(x+1)%w,ym=(y-1+h)%h,yp=(y+1)%h;
+      const nx=(src[(y*w+xm)*4]-src[(y*w+xp)*4])/255*1.4,ny=(src[(yp*w+x)*4]-src[(ym*w+x)*4])/255*1.4,nz=1;
+      const inv=1/Math.hypot(nx,ny,nz),o=(y*w+x)*4;
+      d[o]=Math.round((nx*inv*0.5+0.5)*255);d[o+1]=Math.round((ny*inv*0.5+0.5)*255);
+      d[o+2]=Math.round((nz*inv*0.5+0.5)*255);d[o+3]=255;
+    }
+    g.putImageData(out,0,0)});
+  t.encoding=THREE.LinearEncoding;   /* normalMap musi być liniowa, nie sRGB */
+  return t})}
+/* dekal „START" malowany na jezdni tuż za linią mety (czytelny od strony najazdu) */
+function startTex(){return tex('startD',()=>canvasTex(512,128,(g,w,h)=>{
+  g.clearRect(0,0,w,h);
+  g.fillStyle='rgba(240,238,228,0.92)';g.font='900 92px system-ui,sans-serif';
+  g.textAlign='center';g.textBaseline='middle';g.fillText('START',w/2,h/2+4);
+  g.fillStyle='rgba(240,238,228,0.55)';
+  g.fillRect(14,h/2-6,52,12);g.fillRect(w-66,h/2-6,52,12);
+},false))}
 
 /* ---------- ustawienia świata (kolory, mgła, światła) ---------- */
 function applyWorld(W){
@@ -201,6 +259,40 @@ function applyWorld(W){
   amb.intensity=W.night?0.20:0;amb.color.setHex(0x9fb6e0);
   sun.color.setHex(W.sun);sun.intensity=W.sunI;
   R.setClearColor(W.fog);
+}
+/* pogoda poziomu: pochmurno / deszcz — przyciemnia niebo, zacieśnia mgłę, tłumi słońce */
+function applyWeather(L){
+  const W=WORLDS[L.world],w=L.weather;
+  if(w==='sun')return;
+  const k=W.night?0.5:1;                 /* nocne miasto jest i tak ciemne */
+  if(w==='cloud'){
+    sun.intensity*=1-0.45*k;hemi.intensity*=1-0.08*k;
+    S.fog.near*=0.8;S.fog.far*=0.85;
+    skyU.top.value.multiplyScalar(1-0.25*k);skyU.hor.value.multiplyScalar(1-0.18*k);
+    skyU.sunC.value.multiplyScalar(0.55);
+  }else{                                 /* rain */
+    sun.intensity*=1-0.62*k;hemi.intensity*=1-0.12*k;
+    S.fog.near*=0.6;S.fog.far*=0.62;R.toneMappingExposure*=0.94;
+    skyU.top.value.multiplyScalar(1-0.45*k);skyU.hor.value.multiplyScalar(1-0.38*k);
+    skyU.sunC.value.multiplyScalar(0.25);
+  }
+}
+/* deszcz: chmura punktów podążająca za kamerą (tworzona raz, tylko togglowana) */
+let rain=null;
+function ensureRain(){
+  if(rain)return rain;
+  const N=650,pos=new Float32Array(N*3);
+  for(let i=0;i<N;i++){pos[i*3]=(Math.random()-0.5)*70;pos[i*3+1]=Math.random()*35;pos[i*3+2]=(Math.random()-0.5)*70}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  rain=new THREE.Points(g,new THREE.PointsMaterial({color:0xcfe0f0,size:0.14,transparent:true,opacity:0.55,depthWrite:false}));
+  rain.frustumCulled=false;rain.visible=false;S.add(rain);return rain;
+}
+function updateRain(dt){
+  if(!rain||!rain.visible)return;
+  rain.position.set(CAM.position.x,0,CAM.position.z);
+  const a=rain.geometry.attributes.position,arr=a.array;
+  for(let i=1;i<arr.length;i+=3){arr[i]-=42*dt;if(arr[i]<0)arr[i]+=35}
+  a.needsUpdate=true;
 }
 
 /* ============================================================================
@@ -242,7 +334,7 @@ function disposeTrack(){
 function buildTrack(L){
   disposeTrack();
   const W=WORLDS[L.world],rnd=mulberry(L.seed),halfW=L.halfW;
-  applyWorld(W);
+  applyWorld(W);applyWeather(L);ensureRain().visible=(L.weather==='rain');
   const group=new THREE.Group();S.add(group);
   const mats=[];
   const M=o=>{const m=new THREE.MeshStandardMaterial(o);mats.push(m);return m};
@@ -288,7 +380,7 @@ function buildTrack(L){
 
   /* --- 2. jezdnia (pas asfaltu z liniami) --- */
   const base=0x3c3e43,t=W.asphalt,tint=(v,b)=>clamp(v/b,0,1.6);
-  const matRoad=M({map:asphaltTex(),roughness:0.94,metalness:0.02});
+  const matRoad=M({map:asphaltTex(),normalMap:asphaltNrm(),normalScale:new THREE.Vector2(0.55,0.55),roughness:0.94,metalness:0.02});
   matRoad.color.setRGB(tint((t>>16)&255,(base>>16)&255),tint((t>>8)&255,(base>>8)&255),tint(t&255,base&255));
   const vRoad=len/Math.max(1,Math.round(len/8));
   group.add(stripMesh([-halfW,halfW],(r,k,py)=>py,vRoad,'norm',false,matRoad,pts,side,NS));
@@ -321,6 +413,10 @@ function buildTrack(L){
   /* --- 5. linia startu/mety --- */
   const matChk=M({map:checkerTex(),roughness:0.8,metalness:0});
   group.add(stripMesh([-halfW,halfW],(rr,k,py)=>py+0.02,2.2,'norm',false,matChk,pts,side,NS,0,1));
+  /* dekal START malowany na asfalcie tuż za linią mety */
+  const matDecal=M({map:startTex(),transparent:true,roughness:0.9,metalness:0,depthWrite:false,
+    polygonOffset:true,polygonOffsetFactor:-2});
+  group.add(stripMesh([-halfW,halfW],(rr,k,py)=>py+0.018,3.05,'norm',false,matDecal,pts,side,NS,3,5));
   /* --- 6. bariery (Armco) po obu stronach: słupki + belki (2 draw calls, instancje) --- */
   const postG=new THREE.BoxGeometry(0.12,0.8,0.12);postG.translate(0,0.4,0);
   const matPost=M({color:0x8e949b,roughness:0.6,metalness:0.5});
@@ -357,14 +453,14 @@ function buildTrack(L){
     leg.castShadow=true;gantry.add(leg);
   }
   const beam=new THREE.Mesh(new THREE.BoxGeometry(2*(halfW+1.4),0.95,0.45),
-    M({map:boardTex(),roughness:0.6,metalness:0.1}));
+    M({map:boardTex(L.world),roughness:0.6,metalness:0.1}));
   beam.position.set(startP.x,startP.y+7.1,startP.z);
   beam.rotation.y=Math.atan2(-startS.z,startS.x);
   beam.castShadow=true;gantry.add(beam);group.add(gantry);
 
   const bStep2=8,bCnt=Math.ceil(NS/bStep2)*2;
-  const matBoard=M({map:boardTex(),roughness:0.6,metalness:0.05,
-    emissive:W.night?0xffffff:0x000000,emissiveIntensity:W.night?0.45:0,emissiveMap:W.night?boardTex():null});
+  const matBoard=M({map:boardTex(L.world),roughness:0.6,metalness:0.05,
+    emissive:W.night?0xffffff:0x000000,emissiveIntensity:W.night?0.45:0,emissiveMap:W.night?boardTex(L.world):null});
   const boards=new THREE.InstancedMesh(new THREE.BoxGeometry(3.2,0.95,0.12),matBoard,bCnt);
   let ci=0;
   for(let i=0;i<NS;i+=bStep2)for(const s of [-1,1]){
@@ -601,7 +697,11 @@ function spawnGrid(L){
       yaw:Math.atan2(smp.t.x,smp.t.z),v:0,vPrev:0,steer:0,lean:0,pitch:0,
       prog,lane,laneBase:((i%3)-1)*Math.min(2.3,T.halfW*0.45),hint:0,
       dist:0,lastProg:prog,back:T.len-prog,k:-1,place:i+1,fin:false,finT:0,
-      lapStart:0,laps:[],best:0,hit:0,aiTop:L.aiTop*(0.95+0.09*Math.random()),wob:Math.random()*TAU,speed:0};
+      lapStart:0,laps:[],best:0,hit:0,aiTop:L.aiTop*(0.95+0.09*Math.random()),wob:Math.random()*TAU,speed:0,
+      /* osobowość AI: agresja (apeks, walka koło w koło) i skłonność do błędów */
+      aggro:0.88+Math.random()*0.24,errProne:Math.random(),errT:0,errCd:3+Math.random()*8,
+      /* gracz: nitro / drift / poślizg (dla efektów) */
+      nitro:0.6,driftT:0,slip:0,nitroOn:false};
     r.hint=project(r.x,r.z,0).i;
     orientKart(kart,r.x,r.y,r.z,r.yaw,T.nrm[r.hint],0,0,0,0);   /* ustaw kart na polu startowym */
     if(!isP)r.speed=r.aiTop*0.5;
@@ -616,9 +716,10 @@ const wrapDelta=d=>{const L=T.len;return d-Math.round(d/L)*L};
 /* ============================================================================
    STEROWANIE: klawiatura, pad (Gamepad API), swipe, pochylanie telefonu
    ============================================================================ */
-const IN={thr:0,steer:0,keys:{},pad:false,padSteer:0,padThr:0,padBrk:0};
+const IN={thr:0,steer:0,keys:{},pad:false,padSteer:0,padThr:0,padBrk:0,padNitro:false,nitro:false};
 let touch=null,tiltActive=false,tiltRaw=0,tiltZero=null,tiltInv=false,camMode=0,state='menu',pausedFrom='race';
-const KMAP={ArrowUp:'up',KeyW:'up',Space:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right'};
+const KMAP={ArrowUp:'up',KeyW:'up',Space:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',
+  ShiftLeft:'nitro',ShiftRight:'nitro',KeyN:'nitro'};
 addEventListener('keydown',e=>{
   audioInit();
   if(state==='menu'||state==='finish'){
@@ -629,7 +730,7 @@ addEventListener('keydown',e=>{
   const k=KMAP[e.code];if(k){IN.keys[k]=1;e.preventDefault()}
   if(e.code==='KeyC')camMode=(camMode+1)%2;
   else if(e.code==='KeyR')restartRace();
-  else if(e.code==='KeyM'){muted=!muted;if(muted)audioStop()}
+  else if(e.code==='KeyM'){muted=!muted;if(MASTER)MASTER.gain.value=muted?0:0.9;if(muted)audioStop()}
   else if(e.code==='KeyT')toggleTilt();
   else if(e.code==='Escape'||e.code==='KeyP')togglePause();
 },{passive:false});
@@ -645,6 +746,7 @@ function pollPad(){
   IN.padSteer=clamp((g.axes[0]||0)+(b(15)?1:0)-(b(14)?1:0),-1,1);
   IN.padThr=clamp(Math.max(b(7)?1:0,val(7),b(0)?1:0,b(12)?1:0),0,1);
   IN.padBrk=clamp(Math.max(b(6)?1:0,val(6),b(1)?1:0,b(13)?1:0),0,1);
+  IN.padNitro=b(2)||b(5);                      /* X / RB = nitro */
   const st=b(9),bk=b(8);
   if(st&&!padPrev.start)menuConfirm();
   if(bk&&!padPrev.back)restartRace();
@@ -682,21 +784,76 @@ function inputAxes(){
   if(touch){steer+=clamp((touch.dx||0)/95,-1,1);thr+=(touch.dy>70?-1:1)}
   else if(tiltActive&&tiltZero!==null){steer+=clamp((tiltRaw-tiltZero)*(tiltInv?-1:1)/26,-1,1);thr+=1}
   if(state!=='race'){thr=0;steer=0}
-  IN.steer=clamp(steer,-1,1);IN.thr=clamp(thr,-1,1);
+  IN.steer=clamp(steer,-1,1);
+  IN.nitro=state==='race'&&!!(k.nitro||(IN.pad&&IN.padNitro));IN.thr=clamp(thr,-1,1);
 }
-/* ---------- dźwięk (WebAudio, bez plików) ---------- */
-let AC=null,ENG=null,muted=false;
+/* ---------- dźwięk (WebAudio, bez plików): silnik + pisk opon + trawa + muzyka, master mix ---------- */
+let AC=null,ENG=null,MASTER=null,SKID=null,GRASS=null,NOISE=null,muted=false;
+function noiseBuf(){
+  if(NOISE)return NOISE;
+  const b=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  NOISE=b;return b;
+}
 function audioInit(){
   if(AC||muted)return;
   try{
     const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
     AC=new Ctx();
+    MASTER=AC.createGain();MASTER.gain.value=0.9;MASTER.connect(AC.destination);   /* jedno wejście miksu */
     const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();
     o.type='sawtooth';o.frequency.value=70;f.type='lowpass';f.frequency.value=700;f.Q.value=5;g.gain.value=0;
-    o.connect(f);f.connect(g);g.connect(AC.destination);o.start();ENG={o,f,g};
+    o.connect(f);f.connect(g);g.connect(MASTER);o.start();ENG={o,f,g};
+    /* pisk opon: szum przez filtr pasmowy (głośność z poślizgu) */
+    const s1=AC.createBufferSource();s1.buffer=noiseBuf();s1.loop=true;
+    const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=850;bp.Q.value=6;
+    const g1=AC.createGain();g1.gain.value=0;
+    s1.connect(bp);bp.connect(g1);g1.connect(MASTER);s1.start();SKID={f:bp,g:g1};
+    /* dźwięk trawy: szum przez dolnoprzepustowy (jazda poza torem) */
+    const s2=AC.createBufferSource();s2.buffer=noiseBuf();s2.loop=true;s2.playbackRate.value=0.7;
+    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=380;
+    const g2=AC.createGain();g2.gain.value=0;
+    s2.connect(lp);lp.connect(g2);g2.connect(MASTER);s2.start();GRASS={g:g2};
   }catch(e){AC=null}
 }
-function audioStop(){if(ENG)try{ENG.g.gain.value=0}catch(e){}}
+function audioStop(){
+  try{if(ENG)ENG.g.gain.value=0;if(SKID)SKID.g.gain.value=0;if(GRASS)GRASS.g.gain.value=0}catch(e){}
+}
+/* pisk opon + trawa — wywoływane co klatkę w wyścigu */
+function fxTick(){
+  if(!AC||muted||!player)return;
+  const P=player,racing=state==='race';
+  if(SKID){
+    const skid=racing?clamp((P.slip-7)/12,0,1)*clamp(Math.abs(P.v)/22,0,1)+(P.driftT>0.15?0.4:0):0;
+    SKID.g.gain.value=lerp(SKID.g.gain.value,Math.min(0.05,skid*0.05),0.3);
+    SKID.f.frequency.value=750+Math.abs(P.v)*10;
+  }
+  if(GRASS){
+    const on=racing&&offRoad&&Math.abs(P.v)>4;
+    GRASS.g.gain.value=lerp(GRASS.g.gain.value,on?0.045:0,0.25);
+  }
+}
+/* muzyka menu: krótki sekwenser pentatoniczny planowany z wyprzedzeniem */
+let musNext=0,musStep=0;
+const MUSN=[0,3,7,10,12,10,7,3];
+function note(f,t,dur,vol,type){
+  try{const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;
+    o.connect(g);g.connect(MASTER);
+    g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.start(t);o.stop(t+dur+0.05);
+  }catch(e){}
+}
+function musicTick(){
+  if(!AC||muted||!MASTER||(state!=='menu'&&state!=='finish'))return;
+  const t=AC.currentTime;
+  if(musNext<t-0.3)musNext=t+0.05;
+  while(musNext<t+0.3){
+    const st=musStep%16;
+    if(st%2===0)note(196*Math.pow(2,MUSN[Math.floor(musStep/2)%MUSN.length]/12),musNext,0.22,0.026,'triangle');
+    if(st%8===0)note(98,musNext,0.4,0.03,'sine');
+    musNext+=0.21;musStep++;
+  }
+}
 function audioTick(v,thr){
   if(!AC||!ENG||muted)return;
   if(AC.state==='suspended')try{AC.resume()}catch(e){}
@@ -710,22 +867,23 @@ function beep(freq,dur,vol){
   try{
     const o=AC.createOscillator(),g=AC.createGain();
     o.type='square';o.frequency.value=freq;g.gain.value=vol||0.05;
-    o.connect(g);g.connect(AC.destination);o.start();
+    o.connect(g);g.connect(MASTER||AC.destination);o.start();
     g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+(dur||0.15));
     o.stop(AC.currentTime+(dur||0.15)+0.03);
   }catch(e){}
 }
-/* TODO-KIMI: pisk opon, dźwięk trawy, muzyka menu, miksowanie głośności */
+/* pisk opon, trawa, muzyka menu i miks głośności: zrealizowane wyżej (fxTick / musicTick / MASTER) */
 
 /* ============================================================================
    PRZEBIEG GRY: menu → odliczanie → wyścig → meta (3 okrążenia)
    ============================================================================ */
-const HINT_TEXT='←→ skręt · ↑ gaz · ↓ hamulec · pad · swipe/pochył · C kamera · R restart · Esc pauza';
+const HINT_TEXT='←→ skręt · ↑ gaz · ↓ hamulec · Shift nitro · pad · swipe/pochył · C kamera · R restart · Esc pauza';
 const EL={hud:$('hud'),pos:$('pos'),lap:$('lap'),tim:$('tim'),spd:$('spd'),spdBar:$('spd').querySelector('b'),
   msg:$('msg'),sub:$('sub'),hint:$('hint'),menu:$('menu'),grid:$('grid'),res:$('res'),mt:$('mt'),ms:$('ms'),
-  bstart:$('bstart'),brest:$('brest'),bmenu:$('bmenu'),mm:$('mm')};
+  bstart:$('bstart'),brest:$('brest'),bmenu:$('bmenu'),mm:$('mm'),
+  nb:$('spd').querySelector('.nb b'),drift:$('drift'),oriv:$('oriv')};
 const MMC=EL.mm.getContext('2d');
-let raceT=0,countT=0,msgUntil=0,offRoad=false;
+let raceT=0,countT=0,msgUntil=0,offRoad=false,cup=null;   /* cup = stan pucharu (3 wyścigi, punkty) */
 function msg(big,sub,ms){
   EL.msg.textContent=big||'';EL.sub.textContent=sub||'';
   msgUntil=performance.now()+(ms||1500);
@@ -736,13 +894,26 @@ function buildMenu(){
     const L=LEVELS[i],locked=i+1>PROG.unlocked,rec=PROG.best[L.id];
     const b=document.createElement('button');
     b.className='lv'+(locked?' lock':'')+(i+1===sel?' sel':'');
-    b.innerHTML='<span class="w">'+WORLDS[L.world].name+'</span>Tor '+L.id+' · '+TTAG[L.idx]+
-      '<small>'+(locked?'🔒 zablokowany (ukończ poprzedni)':(rec?('🏁 P'+rec.place+' · '+(rec.lap?fmt(rec.lap):fmt(rec.time))):'▶ gotowy'))+'</small>';
+    b.innerHTML='<span class="w">'+WORLDS[L.world].name+'</span>'+L.id+'. '+L.tname+
+      '<small>'+WICO[L.weather]+' '+L.tag+' · '+(locked?'🔒 zablokowany (ukończ poprzedni)':(rec?('🏁 P'+rec.place+' · '+(rec.lap?fmt(rec.lap):fmt(rec.time))):'▶ gotowy'))+'</small>';
     b.onclick=()=>{if(locked){beep(150,0.1,0.04);return}selectLevel(L.id);};
     EL.grid.appendChild(b);
   }
 }
 function selectLevel(n){sel=clamp(n,1,9);buildMenu();previewTrack()}
+/* przełączniki trybu / okrążeń / rywali w menu (zapisywane w hoplaK → cfg) */
+function buildOpts(){
+  document.querySelectorAll('#opts .opt').forEach(b=>{
+    const m=b.dataset.m,l=b.dataset.l,r=b.dataset.r;
+    b.classList.toggle('sel',!!((m&&CFG.mode===m)||(l&&CFG.laps===+l)||(r&&CFG.rivals===+r)));
+    if(!b._wired){b._wired=1;b.onclick=()=>{
+      if(m)CFG.mode=m;if(l)CFG.laps=+l;if(r)CFG.rivals=+r;
+      PROG.cfg=CFG;saveProg();cup=null;buildOpts();
+      if(state==='menu')overlay('menu');
+    }}
+  });
+  EL.oriv.style.display=CFG.mode==='tt'?'none':'';   /* w time trial nie ma rywali */
+}
 let prevT=0;
 function previewTrack(){clearTimeout(prevT);prevT=setTimeout(()=>{if(state==='menu')buildTrack(LEVELS[sel-1])},180)}
 function overlay(mode){
@@ -750,7 +921,7 @@ function overlay(mode){
   EL.grid.hidden=mode!=='menu';
   EL.res.hidden=mode==='menu';
   EL.mt.textContent=mode==='menu'?'HOPLA KART 3D':(mode==='pause'?'PAUZA':'WYNIK WYŚCIGU');
-  EL.ms.textContent=mode==='menu'?'Wybierz tor i wystartuj ('+PROG.unlocked+'/9 odblokowanych)':
+  EL.ms.textContent=mode==='menu'?'Wybierz tor i wystartuj ('+PROG.unlocked+'/9 odblokowanych) · '+MODE_NAME[CFG.mode]:
     (mode==='pause'?'Esc / P — wróć do jazdy':'Twój wynik na tym torze');
   EL.bstart.hidden=false;EL.brest.hidden=mode==='menu';EL.bmenu.hidden=mode==='menu';
   EL.bstart.textContent=mode==='menu'?'▶ Start':(mode==='pause'?'▶ Wróć do jazdy':(cur<9?'▶ Następny tor':'▶ Powtórz ostatni'));
@@ -760,15 +931,18 @@ function overlay(mode){
 function startRace(){
   audioInit();
   cur=sel;
+  /* poziom z konfiguracją: tryb (TT bez rywali), liczba okrążeń, liczba rywali */
+  _LVc=Object.assign({},LEVELS[cur-1],{laps:CFG.mode==='cup'?3:CFG.laps,rivals:CFG.mode==='tt'?0:CFG.rivals});
   const L=LV();
   buildTrack(L);
   spawnGrid(L);
+  if(CFG.mode==='cup'&&!cup)cup={pts:new Array(racers.length).fill(0),race:0,base:cur};
   raceT=0;countT=3.05;offRoad=false;
   state='count';
   EL.menu.hidden=true;EL.hud.style.display='';
   EL.res.hidden=true;EL.msg.textContent='';EL.sub.textContent='';
   EL.lap.textContent='OKR. 1/'+L.laps;
-  msg('3','Gotowi?',1000);beep(520,0.16,0.06);
+  msg('3',CFG.mode==='cup'?('Puchar · wyścig '+(cup.race+1)+'/3'):'Gotowi?',1000);beep(520,0.16,0.06);
   const fx=Math.sin(player.yaw),fz=Math.cos(player.yaw);
   CAM.position.set(player.x-fx*8,player.y+2.8,player.z-fz*8);
   _look.set(player.x+fx*10,player.y+1.3,player.z+fz*10);
@@ -779,15 +953,22 @@ function restartRace(){if(state==='menu')return;startRace()}
 function menuConfirm(){
   if(state==='menu')startRace();
   else if(state==='pause'){state=pausedFrom;EL.menu.hidden=true;EL.hud.style.display=''}
-  else if(state==='finish'){if(cur<9&&PROG.unlocked>cur){sel=cur+1;buildMenu();startRace()}else startRace()}
+  else if(state==='finish'){
+    if(CFG.mode==='cup'){
+      if(cup){sel=cup.base+cup.race;buildMenu();startRace()}        /* kolejny wyścig pucharu */
+      else{state='menu';clearRacers();buildMenu();overlay('menu')}  /* puchar rozstrzygnięty */
+    }
+    else if(cur<9&&PROG.unlocked>cur){sel=cur+1;buildMenu();startRace()}
+    else startRace();
+  }
 }
 function togglePause(){
   if(state==='race'||state==='count'){pausedFrom=state;state='pause';overlay('pause');audioStop()}
   else if(state==='pause'){state=pausedFrom;EL.menu.hidden=true;EL.hud.style.display=''}
 }
 EL.bstart.onclick=()=>menuConfirm();
-EL.brest.onclick=()=>startRace();
-EL.bmenu.onclick=()=>{state='menu';clearRacers();buildMenu();overlay('menu')};
+EL.brest.onclick=()=>{if(state==='finish'&&CFG.mode==='cup')menuConfirm();else startRace()};
+EL.bmenu.onclick=()=>{state='menu';cup=null;clearRacers();buildMenu();overlay('menu')};
 /* ============================================================================
    SYMULACJA: okrążenia, gracz, AI, kolizje, pozycje
    ============================================================================ */
@@ -832,12 +1013,37 @@ function finishRace(){
   const before=PROG.unlocked;
   if(cur+1<=9&&PROG.unlocked<cur+1)PROG.unlocked=cur+1;
   saveProg();buildMenu();
-  msg('META!',(place===1?'Zwycięstwo! 🏆':'Miejsce '+place+' / '+racers.length),3000);
+  let head='META!',sub=(place===1?'Zwycięstwo! 🏆':'Miejsce '+place+' / '+racers.length),extra='';
+  if(CFG.mode==='tt')sub='Czas: '+fmt(tot);
+  /* ---------- puchar: punkty za miejsca, 3 wyścigi na torach bieżącego świata ---------- */
+  if(CFG.mode==='cup'){
+    if(!cup)cup={pts:new Array(racers.length).fill(0),race:0,base:cur};
+    const PTS=[10,8,6,5,4,3,2,1];
+    for(const r of racers)cup.pts[r.i]+=PTS[Math.min(r.place-1,PTS.length-1)];
+    cup.race++;
+    const order=racers.slice().sort((a,b)=>cup.pts[b.i]-cup.pts[a.i]);
+    const line=(r,j)=>' '+(j+1)+'. '+(r.isPlayer?'TY':'Rywal '+r.i)+' — '+cup.pts[r.i]+' pkt';
+    if(cup.race<3){
+      head='WYŚCIG '+cup.race+' / 3';
+      extra='\n\nPuchar — klasyfikacja:'+order.slice(0,4).map((r,j)=>'\n'+line(r,j)).join('');
+      const pj=order.indexOf(P);if(pj>=4)extra+='\n …\n'+line(P,pj);
+    }else{
+      const win=order[0];
+      head=win.isPlayer?'PUCHAR WYGRANY! 🏆':'PUCHAR — KONIEC';
+      sub=win.isPlayer?'Zdobywasz puchar: '+WORLDS[LV().world].name+'!':'Wygrywa Rywal '+win.i+'. Spróbuj ponownie!';
+      extra='\n\nKlasyfikacja końcowa:'+order.map((r,j)=>'\n'+line(r,j)).join('');
+      cup=null;
+    }
+  }
+  msg(head,sub,3600);
   beep(place===1?1046:784,0.45,0.07);
-  EL.res.innerHTML='Miejsce: <b>'+place+' / '+racers.length+'</b>\nCzas wyścigu: <b>'+fmt(tot)+
+  EL.res.innerHTML=(CFG.mode==='tt'?'TIME TRIAL\n':'Miejsce: <b>'+place+' / '+racers.length+'</b>\n')+
+    'Czas wyścigu: <b>'+fmt(tot)+
     '</b>\nNajlepsze okrążenie: <b>'+(P.best?fmt(P.best):'—')+'</b>\nNajlepszy czas na torze: <b>'+fmt(rec.time)+'</b>'+
-    (PROG.unlocked>before?('\n<b>Odblokowano tor '+(cur+1)+'!</b>'):'')+'\n\nEnter / ▶ — dalej.';
+    (P.laps.length?('\nOkrążenia: '+P.laps.map(fmt).join(' · ')):'')+
+    (PROG.unlocked>before?('\n<b>Odblokowano tor '+(cur+1)+'!</b>'):'')+extra+'\n\nEnter / ▶ — dalej.';
   overlay('finish');
+  if(CFG.mode==='cup')EL.bstart.textContent=cup?('▶ Wyścig '+(cup.race+1)+' / 3'):'🏁 Koniec pucharu';
 }
 function updatePlaces(){
   const arr=racers.slice().sort((a,b)=>{
@@ -878,16 +1084,36 @@ function orientKart(kart,x,y,z,yaw,n,lean,pitch,spinDelta,steer){
 }
 /* ---------- gracz: fizyka kartu (arcade z ograniczoną przyczepnością) ---------- */
 function updatePlayer(dt){
-  const L=LV(),P=player,MAXV=31+L.id*1.15,t=IN.thr;
+  const L=LV(),P=player,t=IN.thr;
   P.vPrev=P.v;
+  /* nitro: Shift / N / X,RB na padzie; ładowane driftem, powoli regeneruje się samo */
+  const NIT=IN.nitro&&P.nitro>0.02&&P.v>1.5;
+  P.nitroOn=NIT;
+  const MAXV=(31+L.id*1.15)*(NIT?1.34:1);
+  if(NIT){P.nitro=Math.max(0,P.nitro-dt/3.0);P.v+=7*dt}
+  else P.nitro=Math.min(1,P.nitro+dt*0.035);
   if(t>0.02){P.v+=13.5*t*(1-clamp(P.v/MAXV,0,1))*dt;if(P.v<0)P.v=Math.min(0,P.v+30*dt)}
   else if(t<-0.02){if(P.v>0.3)P.v=Math.max(0,P.v+26*t*dt);else P.v=Math.max(-MAXV*0.3,P.v+7*t*dt)}
   else P.v-=sgn(P.v)*Math.min(Math.abs(P.v),(2.6+0.005*P.v*P.v)*dt);
   P.v-=sgn(P.v)*0.004*P.v*P.v*dt;
+  /* drift: mocny skręt przy dużej prędkości = kontrolowany poślizg ładujący nitro */
+  const DRIFT=Math.abs(IN.steer)>0.7&&Math.abs(P.v)>15&&!offRoad;
+  if(DRIFT)P.driftT+=dt;
+  else{
+    if(P.driftT>0.6){
+      P.nitro=Math.min(1,P.nitro+P.driftT*0.22);
+      if(P.driftT>1.2)msg('DRIFT +NITRO ⚡','',700);
+    }
+    P.driftT=0;
+  }
   const maxSteer=0.44/(1+Math.abs(P.v)*0.022);
   P.steer=damp(P.steer,IN.steer*maxSteer,7,dt);
-  const grip=0.22/(1+0.03*Math.abs(P.v));
-  const yawRate=(P.v/1.4)*Math.tan(P.steer)*grip;
+  let grip=0.22/(1+0.03*Math.abs(P.v));
+  if(L.weather==='rain')grip*=0.8;             /* deszcz = mniejsza przyczepność */
+  if(DRIFT)grip*=0.62;                          /* drift = częściowa utrata przyczepności */
+  let yawRate=(P.v/1.4)*Math.tan(P.steer)*grip;
+  if(DRIFT)yawRate*=1.35;                       /* …ale szybsza rotacja w poślizgu */
+  P.slip=Math.abs(yawRate*P.v);                 /* do pisku opon */
   P.yaw+=yawRate*dt;
   P.x+=Math.sin(P.yaw)*P.v*dt;P.z+=Math.cos(P.yaw)*P.v*dt;
   /* pozycja względem osi toru */
@@ -920,15 +1146,26 @@ function updatePlayer(dt){
   if(Math.abs(jump)<40)lapCount(P,pr.prog);else P.lastProg=pr.prog;
   P.prog=pr.prog;
 }
-/* TODO-KIMI: poślizg/drift z licznikiem, nitro, tuning kartu, ręczna skrzynia biegów */
-/* ---------- rywale: proste AI po spline (limit prędkości z krzywizny + unikanie) ---------- */
+/* drift + nitro gracza: zrealizowane w updatePlayer (poślizg z licznikiem ładuje nitro) */
+/* ---------- rywale: AI po spline z osobowościami (agresja, apeks, błędy w zakrętach) ---------- */
 function updateAI(r,dt){
   const L=LV(),N=T.NS;
   const i=Math.floor((r.prog/T.len)*N)%N;
   const look=(i+Math.round(24/T.ds))%N;
-  const target=Math.min(r.aiTop,T.speedLim[look]*L.aiSkill);
+  const rain=L.weather==='rain'?0.93:1;
+  let target=Math.min(r.aiTop*r.aggro,T.speedLim[look]*L.aiSkill*rain);
+  /* błędy: skłonni do pomyłek rywale od czasu do czasu mylą się w szybkich zakrętach */
+  if(r.errT>0){r.errT-=dt;target*=0.7}
+  else{
+    r.errCd-=dt*(0.5+r.errProne);
+    if(r.errCd<=0&&Math.abs(T.curv[i])>1/58){r.errT=0.35+Math.random()*0.55;r.errCd=6+Math.random()*10}
+  }
   r.speed=damp(r.speed,target,r.speed>target?3.4:1.5,dt);
-  let laneT=r.laneBase+Math.sin(raceT*0.32+r.wob)*0.85,avoid=0;
+  /* linia jazdy: agresywni tną do apeksu, spokojni trzymają się swojego pasa */
+  let laneT=r.laneBase*(1.25-r.aggro)+sgn(T.curv[look])*T.halfW*0.34*r.aggro
+    +Math.sin(raceT*0.32+r.wob)*(1.15-r.aggro*0.5);
+  if(r.errT>0)laneT+=Math.sin(raceT*8.5+r.wob)*1.3;   /* panika po błędzie */
+  let avoid=0;
   for(const o of racers){
     if(o===r)continue;
     const dp=wrapDelta(o.prog-r.prog);
@@ -937,6 +1174,7 @@ function updateAI(r,dt){
       if(Math.abs(dl)<1.9)avoid+=(dl>=0?-1:1)*(1.9-Math.abs(dl))*(1-dp/12);
     }
   }
+  avoid*=clamp(1.55-r.aggro,0.4,1);                  /* agresywni walczą koło w koło — mniej ustepują */
   r.lane=damp(r.lane,clamp(laneT+avoid*1.1,-(T.halfW-1.35),T.halfW-1.35),2.4,dt);
   r.prog+=r.speed*dt;
   if(r.prog>=T.len)r.prog-=T.len;if(r.prog<0)r.prog+=T.len;
@@ -949,7 +1187,7 @@ function updateAI(r,dt){
   lapCount(r,r.prog);
   if(!r.fin&&r.k>=L.laps){r.fin=true;r.finT=raceT}
 }
-/* TODO-KIMI: trudniejsze AI (walka koło w koło, różne osobowości, błędy w zakrętach) */
+/* trudniejsze AI (osobowości, apeks, walka koło w koło, błędy): zrealizowane w updateAI */
 /* ============================================================================
    KAMERA (podążająca / zza kasku) + HUD + MINI-MAPA + PĘTLA
    ============================================================================ */
@@ -971,7 +1209,7 @@ function updateCamera(dt){
     _look.lerp(_lookT,1-Math.exp(-8*dt));
     CAM.lookAt(_look);
   }
-  CAM.fov=damp(CAM.fov,66+sp*0.34,3,dt);CAM.updateProjectionMatrix();
+  CAM.fov=damp(CAM.fov,66+sp*0.34+(P.nitroOn?7:0),3,dt);CAM.updateProjectionMatrix();
   if(offRoad)CAM.position.y+=(Math.random()-0.5)*0.09;
   sky.position.copy(CAM.position);
 }
@@ -996,13 +1234,16 @@ function drawMinimap(){
 }
 function updateHUD(){
   const P=player,L=LV();
-  EL.pos.innerHTML='P'+P.place+'<b>/'+racers.length+'</b>';
+  EL.pos.innerHTML=CFG.mode==='tt'?'⏱<b> TT</b>':('P'+P.place+'<b>/'+racers.length+'</b>');
   EL.lap.textContent='OKR. '+clamp(P.k+1,1,L.laps)+'/'+L.laps+' · '+L.name;
   EL.tim.textContent='Okrążenie  '+fmt(raceT-P.lapStart)+'\nNajlepsze   '+(P.best?fmt(P.best):'--:--.---')+
     '\nWyścig      '+fmt(raceT);
   const kmh=Math.abs(P.v)*3.6;
   if(EL.spd.firstChild)EL.spd.firstChild.nodeValue=Math.round(kmh)+' km/h';
   EL.spdBar.style.width=Math.min(100,kmh/1.5)+'%';
+  if(EL.nb)EL.nb.style.width=Math.round(P.nitro*100)+'%';
+  if(P.driftT>0.15){EL.drift.hidden=false;EL.drift.textContent='🔥 DRIFT '+P.driftT.toFixed(1)+' s'}
+  else EL.drift.hidden=true;
   drawMinimap();
 }
 /* TODO-CODEX: ładniejszy HUD (obrotowy obrotomierz, wskaźnik biegów, kolory pozycji),
@@ -1027,6 +1268,7 @@ function frame(now){
       audioTick(player.v,IN.thr);
     }
     if(state==='menu')menuCamera(now);else updateCamera(dt);
+    fxTick();musicTick();updateRain(dt);
     if(state!=='menu'){
       updateHUD();
       if(msgUntil&&now>msgUntil){EL.msg.textContent='';EL.sub.textContent='';msgUntil=0}
@@ -1056,10 +1298,12 @@ addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight,false);
   CAM.aspect=innerWidth/innerHeight;CAM.updateProjectionMatrix()});
 buildTrack(LEVELS[sel-1]);
 buildMenu();
+buildOpts();
 overlay('menu');
 menuCamera(performance.now());
 requestAnimationFrame(frame);
-/* TODO-KIMI: tryby gry (time trial, puchar), 6-10 okrążeń, konfiguracja liczby rywali
+/* tryby gry (wyścig / time trial / puchar), 3-10 okrążeń, konfiguracja rywali: zrealizowane
+   (sekcja „konfiguracja gry" + #opts w menu, stan w localStorage hoplaK → cfg).
    TODO-CODEX: wygładzanie krawędzi (postprocessing), cząstki kurzu/iskier, dym z opon,
                animacja kierowcy (skręt tułowia), ślady na asfalcie, licznik FPS w HUD,
                komunikaty o błędach WebGL, dostępność (fokus klawiatury w menu) */
