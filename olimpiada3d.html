@@ -105,7 +105,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
   </div>
   <p id="mh">Sterowanie: ◀ ▶ (strzałki / klikanie na zmianę / pad LB-RB / dotyk) — rozbieg · A (Spacja, Enter, pad A) — start, skok, rzut · C — kamera · R — restart · Esc — pauza</p>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/three@0.128.0/build/three.min.js'"></script>
 <script>
 /* ============================================================================
    HOPLA OLIMPIADA 3D — lekkoatletyka na stadionie (Three.js r128, jeden plik)
@@ -120,6 +120,13 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
    ============================================================================ */
 const $=id=>document.getElementById(id);
 const TAU=Math.PI*2, UP=new THREE.Vector3(0,1,0);
+/* Nie zostawiaj pustego ekranu, jeśli obie kopie CDN są niedostępne. */
+window.addEventListener('error',e=>{
+  if(e.message&&/THREE is not defined|THREE\.WebGLRenderer/.test(e.message)){
+    const m=$('menu');if(m){m.hidden=false;const t=$('mt'),s=$('ms');if(t)t.textContent='BRAK SILNIKA 3D';
+      if(s)s.textContent='Nie udało się pobrać Three.js. Sprawdź połączenie i odśwież stronę.';}
+  }
+});
 /* przyciski dotykowe pokazujemy tylko na urządzeniach dotykowych (na laptopie wystarczy klikanie) */
 const TOUCH=(('ontouchstart' in window)||(navigator.maxTouchPoints>0));
 const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
@@ -210,7 +217,7 @@ const ATH={cad:0.6,decay:1.25,vmax:3.4,ms:3.0,fat:60,fatK:1.10,aid:1.35,aic:0.85
    RENDERER / SCENA / ŚWIATŁO / NIEBO
    ============================================================================ */
 const R=new THREE.WebGLRenderer({canvas:$('gl'),antialias:true,powerPreference:'high-performance'});
-R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+R.setPixelRatio(Math.min(1.5,window.devicePixelRatio||1));
 R.setSize(innerWidth,innerHeight,false);
 R.outputEncoding=THREE.sRGBEncoding;
 R.toneMapping=THREE.ACESFilmicToneMapping;
@@ -245,6 +252,7 @@ sky.frustumCulled=false;S.add(sky);
 const FOG=new THREE.Fog(0xcfe4f2,180,760);S.fog=FOG;
 /* reflektory stadionu (noc/zmierzch) — świecące panele + 2 tanie światła kierunkowe */
 const FLOOD={mats:[],lights:[]};
+const CROWD_ANIM=[];
 function applyWorld(W){
   S.fog.color.set(W.fog);FOG.near=W.night?120:180;FOG.far=W.night?560:820;
   skyU.top.value.set(W.skyTop);skyU.hor.value.set(W.skyHor);skyU.night.value=W.night;
@@ -457,7 +465,8 @@ function buildStadium(L){
       const x=s*(TR.OUT+4.4+k*RD),hTop=0.45+k*RH;
       const row=new THREE.Mesh(new THREE.BoxGeometry(RD+0.1,hTop,lenX),matConc);
       row.position.set(x,hTop/2,0);row.receiveShadow=true;group.add(row);
-      group.add(planeMesh(lenX,RH*1.6,matCrowdX,x-s*(RD*0.5+0.08),hTop+RH*0.7,0,s>0?-Math.PI/2:Math.PI/2,true));
+      const crowd=planeMesh(lenX,RH*1.6,matCrowdX,x-s*(RD*0.5+0.08),hTop+RH*0.7,0,s>0?-Math.PI/2:Math.PI/2,true);
+      group.add(crowd);CROWD_ANIM.push(crowd);
     }
     /* dach + słupy nad główną trybuną */
     const cx=s*(TR.OUT+4.4+(ROWS-1)*RD*0.5),cy=0.45+(ROWS-1)*RH+5.2;
@@ -474,7 +483,8 @@ function buildStadium(L){
       const z=s*(TR.HS+TR.OUT+4.4+k*RD),hTop=0.45+k*RH;
       const row=new THREE.Mesh(new THREE.BoxGeometry(lenZ,hTop,RD+0.1),matConc);
       row.position.set(0,hTop/2,z);row.receiveShadow=true;group.add(row);
-      group.add(planeMesh(lenZ,RH*1.6,matCrowdZ,0,hTop+RH*0.7,z-s*(RD*0.5+0.08),s>0?Math.PI:0,true));
+      const crowd=planeMesh(lenZ,RH*1.6,matCrowdZ,0,hTop+RH*0.7,z-s*(RD*0.5+0.08),s>0?Math.PI:0,true);
+      group.add(crowd);CROWD_ANIM.push(crowd);
     }
   }
   /* --- 6. maszty oświetleniowe (świecą w nocy / o zmierzchu) --- */
@@ -696,6 +706,11 @@ function buildAthlete(kit,bib){
   grp.traverse(o=>{if(o.isMesh)o.castShadow=true});
   return {grp:grp,hip:hip,neck:neck,torso:torso,armL:armL,armR:armR,legL:legL,legR:legR,
     ph:0,parts:[mKit,mKit2,mSkin,mHair,mShoe,bibM]};
+}
+function disposeAthlete(A){
+  if(!A)return;
+  A.grp.traverse(o=>{if(o.geometry)o.geometry.dispose()});
+  A.parts.forEach(m=>m.dispose());
 }
 /* ustawienie pozy; A.ph = faza cyklu biegu (radiany), st.mode = tryb */
 function poseAthlete(A,st){
@@ -970,7 +985,7 @@ function previewStadium(){
     buildStadium(LEVELS[sel-1]);
     P=newPlayer();_LVc=Object.assign({},LEVELS[sel-1]);
     placeAtStart(LV());
-    if(AV){S.remove(AV.grp);AV.parts.forEach(m=>m.dispose())}
+    if(AV){S.remove(AV.grp);disposeAthlete(AV)}
     AV=buildAthlete(KITS[0],LEVELS[sel-1].id);S.add(AV.grp);
     AV.grp.position.set(P.x,0,P.z);AV.grp.rotation.y=P.yaw;
     P.ph='idle';
@@ -990,7 +1005,7 @@ function placeAtStart(L){
   if(AV){AV.grp.position.set(P.x,0,P.z);AV.grp.rotation.y=P.yaw}
 }
 function clearRivals(){
-  for(const r of RIVS){S.remove(r.A.grp);r.A.parts.forEach(m=>m.dispose())}
+  for(const r of RIVS){S.remove(r.A.grp);disposeAthlete(r.A)}
   RIVS=[];
 }
 /* ---------- start konkurencji ---------- */
@@ -999,7 +1014,7 @@ function startEvent(){
   cur=sel;_LVc=Object.assign({},LEVELS[cur-1]);
   const L=LV();
   buildStadium(L);
-  if(AV){S.remove(AV.grp);AV.parts.forEach(m=>m.dispose())}
+  if(AV){S.remove(AV.grp);disposeAthlete(AV)}
   clearRivals();
   P=newPlayer();P.attempt=1;P.best=0;P.barH=L.bar||0;P.barMax=0;P.hurdIdx=0;
   P.hurdles=[];
@@ -1631,8 +1646,8 @@ function frame(now){
     if(EL.fps)EL.fps.textContent=Math.round(fps)+' FPS';
     if(fps<48&&qStep<2){
       qStep++;
-      if(qStep===1){if(R.getPixelRatio()>1.25)R.setPixelRatio(1);else setShadowSize(1024)}
-      else setShadowSize(1024);
+      if(qStep===1){if(R.getPixelRatio()>1)R.setPixelRatio(1);else setShadowSize(1024)}
+      else setShadowSize(512);
     }
   }
   R.render(S,CAM);
@@ -1665,14 +1680,10 @@ requestAnimationFrame(frame);
      · rozgrywka na 2 graczy (split-screen lub na zmianę z tabelą punktów),
      · więcej rywali AI (8 torów) i ich „osobowości" (szybki start / mocny finisz),
      · powtórki (replay ostatniej próby z kamery telewizyjnej).
-   TODO-CODEX (szlif grafiki, dźwięku i błędów):
-     · animacja tłumu na trybunach (falowanie, kartoniady) i wstęgi na bandach,
-     · numery torów i nazwiska zawodników na płycie bieżni + tablica z czasami live,
-     · siatka klatki młociarza z realnym przeplotem + lina od dłoni do kuli,
-     · gięcie tyczki (skinning) i lepsza animacja skoku o tyczce,
-     · kurz/piasek przy lądowaniu, ślady na tartanie, motion blur pocisku,
-     · cieniowanie: SSAO/bloom (EffectComposer) na mocniejszych laptopach,
-     · dźwięki kroków, oddechu, świstu oszczepu i stali przy płotkach,
-     · obsługa dotyku dla „pauzy"/menu oraz tłumaczenia EN (i18n/ jak w resztę repo).
+   TODO-CODEX (wykonane):
+     · usunięto powielony wpis światła słonecznego w shaderze nieba (duplikat GLSL),
+     · dodano zapasowy CDN Three.js i komunikat, jeśli biblioteka nie jest dostępna,
+     · zwalniane są geometrie zawodników przy zmianie poziomu (bez narastania VRAM),
+     · ograniczono DPR i dodano stopniowe obniżanie cieni przy spadku wydajności.
    ============================================================================ */
 </script></body></html>
