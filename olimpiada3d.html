@@ -1,0 +1,1981 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Hopla Olimpiada 3D — lekkoatletyka na stadionie</title>
+<style>
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:none;-webkit-user-select:none;user-select:none}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;inset:0;pointer-events:none;font-weight:800;text-shadow:0 2px 8px #000c}
+#hud .box{position:absolute;background:#0b0f16cc;border:1px solid #ffffff26;border-radius:12px;padding:8px 12px;backdrop-filter:blur(3px)}
+#ev{left:12px;top:12px;font-size:17px;line-height:1.2;max-width:46vw}
+#ev small{display:block;font-size:11px;font-weight:700;opacity:.72;letter-spacing:.09em;text-transform:uppercase;margin-top:3px}
+#big{left:12px;top:84px;font-size:clamp(26px,4.6vw,40px);font-variant-numeric:tabular-nums;line-height:1}
+#det{left:12px;top:140px;font-size:13px;font-weight:700;opacity:.92;font-variant-numeric:tabular-nums;white-space:pre-line;line-height:1.45}
+#riv{right:12px;top:12px;font-size:13px;font-weight:700;line-height:1.55;font-variant-numeric:tabular-nums;min-width:214px}
+#riv .h{display:block;opacity:.6;font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:3px}
+#riv .me{color:#ffd23f}
+#riv .r{display:flex;gap:8px;justify-content:space-between}
+#riv .r span:first-child{opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:118px}
+#bar{left:12px;bottom:70px;width:min(330px,54vw)}
+#bar i,#mk i{display:block;height:9px;background:#0007;border-radius:5px;overflow:hidden;border:1px solid #ffffff1f}
+#bar i b{display:block;height:100%;width:0;background:linear-gradient(90deg,#5cc985,#f2c230 58%,#e5533f)}
+#bar small,#mk small{display:block;font-size:10px;letter-spacing:.16em;opacity:.62;margin-bottom:4px}
+#mk{left:50%;bottom:70px;transform:translateX(-50%);width:min(430px,74vw);text-align:center}
+#mk i{position:relative;height:15px}
+#mk i u{position:absolute;top:0;bottom:0;background:#9be36b40;border-left:2px solid #9be36b;border-right:2px solid #9be36b}
+#mk i b{position:absolute;top:-3px;bottom:-3px;width:3px;left:0;background:#ffd23f;border-radius:2px}
+#mk em{font-style:normal;font-size:14px;font-weight:800}
+#alt{position:absolute;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:30px;font-size:clamp(22px,3.4vw,32px);opacity:.3}
+#alt span{transition:transform .07s,color .07s}
+#alt span.on{opacity:1;color:#ffd23f;transform:scale(1.3)}
+#msg{position:absolute;left:0;right:0;top:26%;text-align:center;font-size:clamp(28px,6.4vw,68px);color:#ffd23f}
+#sub{position:absolute;left:0;right:0;top:44%;text-align:center;font-size:clamp(13px,2.2vw,23px);font-weight:700;opacity:.95;white-space:pre-line}
+#hint{position:absolute;left:0;right:0;bottom:44px;text-align:center;font-size:clamp(11px,1.7vw,16px);font-weight:600;opacity:.85;padding:0 12px}
+#fps{position:absolute;right:12px;bottom:12px;font-size:11px;opacity:.55;font-weight:600}
+#tp{position:fixed;left:0;right:0;bottom:0;height:34vh;pointer-events:none;z-index:4}
+#tp button{position:absolute;pointer-events:auto;border:1px solid #ffffff33;background:#0b0f16b3;color:#fff;font-family:inherit;font-weight:900;border-radius:50%;backdrop-filter:blur(3px)}
+#tl,#tr{width:84px;height:84px;font-size:34px;bottom:16px}
+#tl{left:14px}#tr{right:14px}
+#ta{width:74px;height:74px;font-size:30px;bottom:22px;left:50%;transform:translateX(-50%);background:#ffd23f2e;border-color:#ffd23f99;color:#ffd23f}
+#tp button:active{transform:scale(.94)}
+#ta:active{transform:translateX(-50%) scale(.94)}
+#back{position:fixed;left:12px;bottom:12px;z-index:6;pointer-events:auto;background:#0b0f16cc;color:#fff;border:1px solid #ffffff33;border-radius:12px;padding:10px 14px;font-size:16px;font-weight:700;font-family:inherit}
+#back:active{transform:scale(.97)}
+#menu{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;overflow:auto;
+ background:radial-gradient(120% 90% at 50% 0%,#16233aee,#05070bf7 70%)}
+#menu h1{margin:0;font-size:clamp(26px,5.4vw,50px);letter-spacing:.06em;color:#ffd23f;font-weight:900;text-shadow:0 4px 22px #000;text-align:center}
+#menu .tag{margin:0;opacity:.85;font-size:clamp(12px,2vw,16px);font-weight:600;text-align:center}
+#grid{display:grid;grid-template-columns:repeat(3,minmax(140px,215px));gap:8px;margin-top:4px}
+.lv{position:relative;text-align:left;background:#101827dd;border:1px solid #ffffff26;border-radius:12px;padding:9px 11px;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;line-height:1.22}
+.lv small{display:block;font-size:11px;font-weight:600;opacity:.74;margin-top:3px}
+.lv .w{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.62}
+.lv.sel{outline:3px solid #ffd23f;background:#1b2740ee}
+.lv.lock{opacity:.42;cursor:not-allowed}
+.lv i{position:absolute;right:8px;top:8px;font-style:normal;font-size:17px}
+#res{max-width:min(660px,94vw);background:#101827cc;border:1px solid #ffffff26;border-radius:14px;padding:12px 16px;font-weight:600;font-size:clamp(13px,2vw,17px);line-height:1.55;white-space:pre-line;font-variant-numeric:tabular-nums}
+#res b{color:#ffd23f}
+#mbtn{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#mbtn button{background:#ffd23f;color:#141310;border:0;border-radius:12px;padding:12px 22px;font-size:18px;font-weight:900;font-family:inherit;cursor:pointer}
+#mbtn button.gh{background:#ffffff1a;color:#fff;border:1px solid #ffffff33}
+#mbtn button:active{transform:scale(.97)}
+#mh{opacity:.75;font-size:clamp(11px,1.7vw,15px);font-weight:600;text-align:center;max-width:820px;margin:0}
+#opts{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.orow{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+.orow span{font-size:11px;font-weight:800;letter-spacing:.12em;opacity:.6;min-width:92px;text-align:right}
+.opt{background:#ffffff1a;color:#fff;border:1px solid #ffffff33;border-radius:10px;padding:7px 13px;font-weight:800;cursor:pointer;font-family:inherit;font-size:13px}
+.opt.sel{outline:2px solid #ffd23f;background:#1b2740}
+.opt:focus-visible,.lv:focus-visible,#mbtn button:focus-visible,#back:focus-visible{outline:3px solid #7fd0ff;outline-offset:2px}
+@media(max-width:700px){#ev{font-size:13px;max-width:52vw}#big{top:74px}#det{top:126px;font-size:11px}#riv{font-size:11px;min-width:150px;padding:6px 8px}#riv .r span:first-child{max-width:78px}#bar{bottom:104px;width:60vw}#mk{bottom:104px;width:80vw}#hint{bottom:150px}#alt{bottom:96px}#back{left:8px;bottom:8px;padding:8px 10px;font-size:14px}#grid{grid-template-columns:repeat(2,minmax(130px,1fr))}#tl,#tr{width:70px;height:70px;font-size:28px}#ta{width:64px;height:64px;font-size:24px}}
+</style></head><body>
+<canvas id="gl"></canvas>
+<div id="hud">
+  <div class="box" id="ev"><b id="evn">Sprint 100 m</b><small id="evi">Poziom 1 · Kwalifikacje</small></div>
+  <div class="box" id="big">0.00 s</div>
+  <div class="box" id="det"></div>
+  <div class="box" id="riv" hidden></div>
+  <div class="box" id="bar"><small id="barl">PRĘDKOŚĆ</small><i><b></b></i></div>
+  <div class="box" id="mk" hidden><small id="mkl">KĄT</small><i><u></u><b></b></i><em id="mkv"></em></div>
+  <div id="alt"><span id="al1">◀</span><span id="al2">▶</span></div>
+  <div id="msg"></div><div id="sub"></div>
+  <div id="hint"></div>
+  <div id="fps">60 FPS</div>
+</div>
+<div id="tp"><button id="tl" aria-label="lewo">◀</button><button id="ta" aria-label="akcja">A</button><button id="tr" aria-label="prawo">▶</button></div>
+<button id="back" onclick="location.href='index.html'">⬅ Hopla</button>
+<div id="menu">
+  <h1 id="mt">HOPLA OLIMPIADA 3D</h1>
+  <p class="tag" id="ms">Wybierz konkurencję i wystartuj</p>
+  <div id="grid"></div>
+  <div id="opts">
+    <div class="orow" id="ocam"><span>KAMERA</span><button class="opt" data-c="0">🎥 Auto</button><button class="opt" data-c="1">🏃 Śledząca</button><button class="opt" data-c="2">📺 Boczna</button></div>
+    <div class="orow" id="oas"><span>ASYSTA</span><button class="opt" data-h="0">Wyłączona</button><button class="opt" data-h="1">😊 Dla dzieci</button></div>
+    <div class="orow" id="opl"><span>GRACZE</span><button class="opt" data-p="1">1 gracz</button><button class="opt" data-p="2">👥 2 graczy (na zmianę)</button></div>
+  </div>
+  <div id="res" hidden></div>
+  <div id="mbtn">
+    <button id="bstart">▶ Start</button>
+    <button id="brepl" class="gh" hidden>📺 Powtórka</button>
+    <button id="brest" class="gh" hidden>🔁 Jeszcze raz</button>
+    <button id="bmenu" class="gh" hidden>🏟️ Wybór konkurencji</button>
+  </div>
+  <p id="mh">Sterowanie: ◀ ▶ (strzałki / klikanie na zmianę / pad LB-RB / dotyk) — rozbieg · A (Spacja, Enter, pad A) — start, skok, rzut · C — kamera · R — restart · V — powtórka · Esc — pauza</p>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================================
+   HOPLA OLIMPIADA 3D — lekkoatletyka na stadionie (Three.js r128, jeden plik)
+   Część 1/3: rdzeń działającego rozwiązania:
+     · stadion 3D (bieżnia 8 torów, murawa, trybuny z tłumem, światło, cienie)
+     · sportowiec z brył Three.js + animacja biegu (nogi, ręce, tułów)
+     · 6 konkurencji: sprint 100 m, skok w dal, oszczep, płotki 110 m,
+       skok o tyczce, rzut młotem — sterowanie arcade (na zmianę ◀ ▶ + A)
+     · 3 rywali AI w sprincie i płotkach + tabela wyników + rekordy
+     · 9 poziomów w 3 światach, odblokowywanie, postęp w localStorage hoplaO3
+   Część 2/3 (zrealizowana): pełne 3-próbowe serie z rywalami AI i sędzią przy belce,
+   wiatr i pogoda wpływające na wyniki, rywale AI do 8 torów z osobowościami,
+   wielobój 9 startów z punktacją wg tabel, mecz 2 graczy na zmianę, powtórki TV.
+   Część 3/3 (TODO-CODEX) szlifuje grafikę i dźwięk — lista na końcu pliku.
+   ============================================================================ */
+const $=id=>document.getElementById(id);
+const TAU=Math.PI*2, UP=new THREE.Vector3(0,1,0);
+/* przyciski dotykowe pokazujemy tylko na urządzeniach dotykowych (na laptopie wystarczy klikanie) */
+const TOUCH=(('ontouchstart' in window)||(navigator.maxTouchPoints>0));
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const lerp=(a,b,t)=>a+(b-a)*t;
+/* damp = wygładzanie niezależne od klatkażu (60/120/144 Hz dają ten sam efekt) */
+const damp=(a,b,l,dt)=>lerp(a,b,1-Math.exp(-l*dt));
+const sgn=v=>v<0?-1:(v>0?1:0);
+/* wyniki: czasy w formacie 12.345 s, odległości 6.42 m */
+const fmtT=t=>{t=Math.max(0,t||0);return t.toFixed(3)+' s'};
+const fmtM=d=>{d=d||0;return d.toFixed(2)+' m'};
+/* deterministyczny RNG — ten sam stadion dla danego poziomu na każdym urządzeniu */
+function mulberry(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;let t=Math.imul(a^(a>>>15),1|a);
+  t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}}
+
+/* ---------- postęp gracza (localStorage: hoplaO3) ---------- */
+const PKEY='hoplaO3';
+let PROG={unlocked:1,best:{},cfg:{}};
+try{const raw=localStorage.getItem(PKEY);if(raw){const o=JSON.parse(raw);
+  if(o&&typeof o==='object'&&!Array.isArray(o))PROG={unlocked:clamp(Math.round(+o.unlocked||1),1,9),best:o.best||{},cfg:o.cfg||{}};
+  else if(!isNaN(+raw))PROG={unlocked:clamp(Math.round(+raw||1),1,9),best:{},cfg:{}};}}catch(e){}
+function saveProg(){try{localStorage.setItem(PKEY,JSON.stringify(PROG))}catch(e){}}
+
+/* ============================================================================
+   3 ŚWIATY × 3 POZIOMY = 9 STARTÓW · 6 KONKURENCJI
+   ============================================================================ */
+const WORLDS=[
+ {name:'Stadion Miejski',skyTop:0x1f6fd0,skyHor:0xdcefff,fog:0xcfe4f2,grass:0x6c9f52,grass2:0x4f7a3a,
+  sun:0xfff4de,sunI:2.4,hemiS:0xcfe6ff,hemiG:0x59693f,hemiI:1.05,exposure:1.05,night:0,crowd:0.55,flood:0},
+ {name:'Stadion Olimpijski',skyTop:0x2a5f9e,skyHor:0xffd9a3,fog:0xe4d6b6,grass:0x7a9a4c,grass2:0x5b7a35,
+  sun:0xffd9a0,sunI:2.1,hemiS:0xffe0b8,hemiG:0x6b6644,hemiI:1.0,exposure:1.1,night:0,crowd:0.75,flood:0.35},
+ {name:'Stadion Mistrzów',skyTop:0x050b1c,skyHor:0x152a4c,fog:0x101a30,grass:0x2f4a35,grass2:0x24392a,
+  sun:0xa9c6ff,sunI:1.15,hemiS:0x2e4a76,hemiG:0x141a22,hemiI:0.85,exposure:1.25,night:1,crowd:0.95,flood:1}
+];
+/* definicje konkurencji — fizyka i sterowanie per konkurencja */
+const EV={
+ sprint:{name:'Sprint 100 m',icon:'🏃',hint:'na zmianę ◀ ▶ — nabierz prędkości · A na strzał startowy!',meas:'t'},
+ hur   :{name:'Płotki 110 m',icon:'🚧',hint:'biegnij ◀ ▶ · A = skok tuż przed płotkiem (~2,5 m), 10 płotków',meas:'t'},
+ long  :{name:'Skok w dal',icon:'🦘',hint:'rozbieg ◀ ▶ · A na belce, potem A = kąt odbicia',meas:'d'},
+ jav   :{name:'Rzut oszczepem',icon:'🎯',hint:'rozbieg ◀ ▶ · A = wyrzut, potem A = kąt (~35°)',meas:'d'},
+ ham   :{name:'Rzut młotem',icon:'🔨',hint:'◀ ▶ na zmianę = obroty · A = wypuszczenie, potem kąt (~44°)',meas:'d'},
+ pole  :{name:'Skok o tyczce',icon:'🧗',hint:'rozbieg ◀ ▶ · A przed skrzynką, potem A = wybicie',meas:'d'}
+};
+/* poziomy: [konkurencja, próg kwalifikacji, dodatkowe parametry trudności] */
+const LSPEC=[
+ ['sprint',{limit:15.5,bar:null,rivals:[13.4,12.9,12.4],aiSkill:0.72}],
+ ['long',  {qual:5.20,bar:null}],
+ ['jav',   {qual:48.0,bar:null}],
+ ['hur',   {limit:19.0,bar:null,rivals:[15.4,14.8,14.2],aiSkill:0.76}],
+ ['pole',  {bar:4.00,qual:4.00}],
+ ['ham',   {qual:52.0,bar:null}],
+ ['sprint',{limit:13.2,bar:null,rivals:[11.6,11.3,11.0],aiSkill:0.9}],
+ ['hur',   {limit:15.8,bar:null,rivals:[13.4,12.9,12.4],aiSkill:0.92}],
+ ['pole',  {bar:4.70,qual:4.70}]
+];
+const LNAME=['Bieg na 100 m','Skok w dal','Rzut oszczepem','Płotki 110 m','Skok o tyczce','Rzut młotem',
+  'Finał 100 m','Finał płotków','Finał tyczki'];
+const TTAG=['Kwalifikacje','Półfinał','Finał'];
+const LEVELS=[];
+for(let i=0;i<9;i++){const w=Math.floor(i/3),k=i%3,sp=LSPEC[i];
+  LEVELS.push(Object.assign({id:i+1,world:w,idx:k,ev:sp[0],seed:907+i*173,tag:TTAG[k],
+    name:LNAME[i],worldName:WORLDS[w].name},sp[1]));}
+/* ---------- konfiguracja gracza: kamera + asysta (zapisywana w hoplaO3.cfg) ---------- */
+let CFG={cam:0,assist:1,players:1};
+try{const c=PROG.cfg;if(c&&typeof c==='object'){
+  if([0,1,2].indexOf(+c.cam)>=0)CFG.cam=+c.cam;
+  if([0,1].indexOf(+c.assist)>=0)CFG.assist=+c.assist;
+  if([1,2].indexOf(+c.players)>=0)CFG.players=+c.players;}}catch(e){}
+let _LVc=null;                       /* poziom z nałożoną konfiguracją (ustawiany przy starcie) */
+const LV=()=>_LVc||LEVELS[cur-1];
+let cur=clamp(Math.round(PROG.unlocked),1,9), sel=cur;
+/* ============================================================================
+   STAŁE STADIONU (wspólne dla budowy geometrii, fizyki i kamery)
+   ============================================================================ */
+const TR={R:36.5,HS:50,LW:1.22,NL:8};            /* promień łuków, pół-długość prostej, szerokość toru, liczba torów */
+TR.W=TR.NL*TR.LW;                                 /* 9.76 m — szerokość całej bieżni */
+TR.OUT=TR.R+TR.W;                                 /* promień zewnętrzny */
+const laneX=k=>TR.R+(k-0.5)*TR.LW;                /* środek toru k (1..8) na prostej +X */
+const PLANE={sp:-50,fin:50,hurSp:-55,hurFin:55};  /* linie startu/mety sprintu i płotków */
+const LONG={x:20,start:-45,board:0,pit:11};       /* skok w dal: rozbieg 45 m, belka w z=0, piaskownica do 11 m */
+const JAV={x:-12,start:-32,line:0,sector:80};     /* oszczep: rozbieg 32 m, linia spalonego w z=0 */
+const HAM={x:-26,z:0,r:2.135,sector:72};          /* młot: koło 2.135 m, sektor 34.9° */
+const POLE={x:6,start:-40,box:0,mat:7,matW:5.6};  /* tyczka: rozbieg 40 m, skrzynka w z=0, materace do 7 m */
+const ATH={cad:0.6,decay:1.25,vmax:3.4,ms:3.0,fat:60,fatK:1.10,aid:1.35,aic:0.85};
+/* ATH: cad = impuls za każde poprawne ◀ ▶, decay = opór (v maleje o decay·v/s),
+   ms = ile m/s przypada na jednostkę v (3.0 → 10.2 m/s przy maksie ≈ 10 s na 100 m),
+   fat/fatK = zmęczenie po ATH.fat metrach, aid/aic = bonus trybu „Asysta" (impuls/opór) */
+
+/* ============================================================================
+   RENDERER / SCENA / ŚWIATŁO / NIEBO
+   ============================================================================ */
+const R=new THREE.WebGLRenderer({canvas:$('gl'),antialias:true,powerPreference:'high-performance'});
+R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+R.setSize(innerWidth,innerHeight,false);
+R.outputEncoding=THREE.sRGBEncoding;
+R.toneMapping=THREE.ACESFilmicToneMapping;
+R.toneMappingExposure=1.05;
+R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+R.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();EL.msg.textContent='UTRACONO RENDEROWANIE';
+  EL.sub.textContent='Przeglądarka zresetowała grafikę. Odśwież stronę, aby wrócić na stadion.';EL.menu.hidden=false;EL.hud.style.display='';});
+const S=new THREE.Scene();
+const CAM=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,0.2,1600);
+const hemi=new THREE.HemisphereLight(0xffffff,0x445544,1);S.add(hemi);
+const amb=new THREE.AmbientLight(0xffffff,0);S.add(amb);
+const sun=new THREE.DirectionalLight(0xffffff,2.4);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-46,right:46,top:46,bottom:-46,near:1,far:300});
+sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.05;
+S.add(sun,sun.target);
+const SUN_OFF=new THREE.Vector3(0.46,0.82,0.34).normalize().multiplyScalar(110);
+/* niebo: gradient + tarcza słońca + gwiazdy (świat nocny) — jak w kart3d.html */
+const skyU={top:{value:new THREE.Color(0x1f6fd0)},hor:{value:new THREE.Color(0xd6ecff)},sunC:{value:new THREE.Color(0xfff3dc)},
+  sunD:{value:SUN_OFF.clone().normalize()},night:{value:0}};
+const sky=new THREE.Mesh(new THREE.SphereGeometry(900,32,20),new THREE.ShaderMaterial({
+  uniforms:skyU,side:THREE.BackSide,depthWrite:false,
+  vertexShader:'varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:['uniform vec3 top;uniform vec3 hor;uniform vec3 sunC;uniform vec3 sunD;uniform float night;varying vec3 vD;',
+   'float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}',
+   'void main(){float h=vD.y;vec3 c=mix(hor,top,pow(clamp(h,0.0,1.0),0.45));if(h<0.0)c=hor;',
+   'float s=max(dot(vD,normalize(sunD)),0.0);c+=sunC*(pow(s,900.0)*3.0+pow(s,12.0)*0.22);',
+   'if(night>0.5){vec2 g=floor(vD.xz*190.0);float st=step(0.9960,h21(g));st*=smoothstep(0.02,0.3,h);c+=vec3(0.85,0.9,1.0)*st;}',
+   'gl_FragColor=vec4(c,1.0);}'].join('\n')
+}));
+sky.frustumCulled=false;S.add(sky);
+const FOG=new THREE.Fog(0xcfe4f2,180,760);S.fog=FOG;
+/* reflektory stadionu (noc/zmierzch) — świecące panele + 2 tanie światła kierunkowe */
+const FLOOD={mats:[],lights:[]};
+function applyWorld(W){
+  S.fog.color.set(W.fog);FOG.near=W.night?120:180;FOG.far=W.night?560:820;
+  skyU.top.value.set(W.skyTop);skyU.hor.value.set(W.skyHor);skyU.night.value=W.night;
+  hemi.color.set(W.hemiS);hemi.groundColor.set(W.hemiG);hemi.intensity=W.hemiI;
+  sun.color.set(W.sun);sun.intensity=W.sunI;
+  R.toneMappingExposure=W.exposure;
+  const on=W.flood>0;
+  FLOOD.mats.forEach(m=>{m.emissiveIntensity=on?1.5:0.0});
+  FLOOD.lights.forEach(l=>{l.visible=on;l.intensity=W.flood*1.35});
+  amb.intensity=W.night?0.25:0;
+}
+/* ============================================================================
+   TEKSTURY PROCEDURALNE (canvas — brak plików zewnętrznych, brak znaków firmowych)
+   ============================================================================ */
+function canvasTex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;
+  draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;
+  if(rep!==false)t.wrapS=t.wrapT=THREE.RepeatWrapping;
+  t.anisotropy=Math.min(8,R.capabilities.getMaxAnisotropy());return t}
+const TEX={};
+function tex(key,make){if(!TEX[key])TEX[key]=make();return TEX[key]}
+/* --- bieżnia: tartan + białe linie torów (u = poprzek bieżni, v = wzdłuż) --- */
+function trackTex(){return tex('track',()=>canvasTex(512,512,(g,w,h)=>{
+  g.fillStyle='#b0503a';g.fillRect(0,0,w,h);
+  for(let i=0;i<14000;i++){const v=Math.random();
+    g.fillStyle='rgba('+(v<0.5?'255,235,220':'40,15,10')+','+(0.03+Math.random()*0.07).toFixed(3)+')';
+    g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2)}
+  for(let k=1;k<8;k++){const x=Math.round(k/8*w);           /* 7 linii torów (8 torów) */
+    g.fillStyle='rgba(255,255,255,0.92)';g.fillRect(x-2,0,4,h)}
+  g.fillStyle='rgba(255,255,255,0.95)';g.fillRect(0,0,3,h);g.fillRect(w-3,0,3,h);
+}))}
+/* --- murawa: pasy koszenia + drobny szum --- */
+function grassTex(c1,c2){return tex('grass'+c1+c2,()=>canvasTex(256,256,(g,w,h)=>{
+  g.fillStyle=c1;g.fillRect(0,0,w,h);
+  for(let i=0;i<8;i++){g.fillStyle=i%2?c2:'rgba(255,255,255,0.05)';g.fillRect(0,i*h/8,w,h/8)}
+  for(let i=0;i<9000;i++){g.fillStyle='rgba(0,0,0,'+(0.02+Math.random()*0.06).toFixed(3)+')';
+    g.fillRect(Math.random()*w,Math.random()*h,2,2)}
+}))}
+/* --- trybuny: rzędy krzeseł + tłum kibiców (stonowana paleta, gęste plamki) --- */
+function crowdTex(dens){return tex('crowd'+dens,()=>canvasTex(512,256,(g,w,h)=>{
+  g.fillStyle='#1a2029';g.fillRect(0,0,w,h);
+  const rows=8,rh=h/rows,P=['#243a63','#5c2b2b','#2f4a3a','#3b3b46','#5a4630','#2a2a33','#6b5a3f','#8d9099','#3f2a52','#1f3d3d'];
+  for(let r=0;r<rows;r++){
+    g.fillStyle='rgba(0,0,0,0.45)';g.fillRect(0,r*rh+rh*0.9,w,rh*0.1);          /* cień rzędu */
+    g.fillStyle='rgba(255,255,255,0.05)';g.fillRect(0,r*rh,w,2);                 /* krawędź stopnia */
+    for(let x=2;x<w-2;x+=7){
+      if(Math.random()>dens)continue;
+      const lit=26+Math.random()*26;
+      g.fillStyle=Math.random()<0.12?('hsl('+Math.floor(Math.random()*360)+',45%,'+Math.round(lit+12)+'%)'):P[Math.floor(Math.random()*P.length)];
+      g.fillRect(x,r*rh+rh*0.34,5,rh*0.52);                                      /* tułów */
+      g.fillStyle='hsl('+(20+Math.random()*22)+',32%,'+(38+Math.random()*22)+'%)';
+      g.beginPath();g.arc(x+2.5,r*rh+rh*0.24,2,0,TAU);g.fill();                  /* głowa */
+    }
+  }
+}))}
+/* --- piaskownica do skoku w dal --- */
+function sandTex(){return tex('sand',()=>canvasTex(256,256,(g,w,h)=>{
+  g.fillStyle='#e3c489';g.fillRect(0,0,w,h);
+  for(let i=0;i<9000;i++){const v=Math.random();
+    g.fillStyle='rgba('+(v<0.5?'120,90,45':'255,240,205')+','+(0.05+Math.random()*0.14).toFixed(3)+')';
+    g.fillRect(Math.random()*w,Math.random()*h,2+Math.random()*3,2+Math.random()*3)}
+}))}
+/* --- materace (skok o tyczce): niebieska pianka z podziałem --- */
+function matTex(){return tex('mat',()=>canvasTex(256,256,(g,w,h)=>{
+  g.fillStyle='#1d4f8c';g.fillRect(0,0,w,h);
+  g.strokeStyle='rgba(255,255,255,0.28)';g.lineWidth=3;
+  for(let i=0;i<=4;i++){g.beginPath();g.moveTo(i*w/4,0);g.lineTo(i*w/4,h);g.stroke();
+    g.beginPath();g.moveTo(0,i*h/4);g.lineTo(w,i*h/4);g.stroke()}
+  for(let i=0;i<2500;i++){g.fillStyle='rgba(0,0,0,'+(0.02+Math.random()*0.05).toFixed(3)+')';
+    g.fillRect(Math.random()*w,Math.random()*h,3,3)}
+}))}
+/* --- siatka klatki młociarza (przezroczysta) --- */
+function netTex(){return tex('net',()=>canvasTex(128,128,(g,w,h)=>{
+  g.clearRect(0,0,w,h);g.strokeStyle='rgba(235,240,255,0.55)';g.lineWidth=2;
+  for(let i=0;i<=16;i++){g.beginPath();g.moveTo(i*w/16,0);g.lineTo(i*w/16,h);g.stroke();
+    g.beginPath();g.moveTo(0,i*h/16);g.lineTo(w,i*h/16);g.stroke()}
+}))}
+/* --- numer startowy sportowca (własny, bez znaków firmowych) --- */
+function bibTex(n){return tex('bib'+n,()=>canvasTex(128,128,(g,w,h)=>{
+  g.fillStyle='#f2f4f7';g.fillRect(0,0,w,h);
+  g.fillStyle='#0d1b34';g.font='bold 84px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';
+  g.fillText(String(n),w/2,h/2+4);
+}),false)}
+/* --- bandy reklamowe: abstrakcyjne pasy (bez logotypów) --- */
+function boardTex(seed){return tex('board'+seed,()=>canvasTex(512,64,(g,w,h)=>{
+  const rnd=mulberry(seed),P=['#123a6b','#1f7a5a','#8c3b2e','#4a3a86','#b3742a'];
+  g.fillStyle='#0f1420';g.fillRect(0,0,w,h);
+  let x=0;while(x<w){const bw=30+rnd()*70;g.fillStyle=P[Math.floor(rnd()*P.length)];g.fillRect(x,6,bw-8,h-12);x+=bw}
+  g.fillStyle='rgba(255,255,255,0.10)';
+  for(let i=0;i<8;i++){const cx=rnd()*w,cy=rnd()*h;g.beginPath();g.arc(cx,cy,6+rnd()*12,0,TAU);g.fill()}
+}))}
+/* ============================================================================
+   BUDOWA STADIONU — geometria z ścieżki (stadium shape): proste + łuki
+   ============================================================================ */
+let ST=null;
+/* ścieżka wewnętrznej krawędzi bieżni: proste wzdłuż Z przy x=±R + dwa półkola.
+   Każdy punkt ma zapamiętaną normalną skierowaną NA ZEWNĄTRZ (nx,nz). */
+function stadiumPath(Rr,HS,seg){
+  const p=[];
+  for(let i=0;i<=seg;i++){const t=i/seg;p.push({x:-Rr,z:-HS+2*HS*t,nx:-1,nz:0})}
+  for(let i=1;i<seg;i++){const a=Math.PI-Math.PI*i/seg;p.push({x:Rr*Math.cos(a),z:HS+Rr*Math.sin(a),nx:Math.cos(a),nz:Math.sin(a)})}
+  for(let i=0;i<=seg;i++){const t=i/seg;p.push({x:Rr,z:HS-2*HS*t,nx:1,nz:0})}
+  for(let i=1;i<seg;i++){const a=-Math.PI*i/seg;p.push({x:Rr*Math.cos(a),z:-HS+Rr*Math.sin(a),nx:Math.cos(a),nz:Math.sin(a)})}
+  return p;
+}
+/* pas (ribbon) wzdłuż ścieżki od offsetu off0 do off1; v = długość/vTile (kafelkowanie),
+   u = 0..1 poprzek — dzięki temu linie torów na teksturze są ciągłe wzdłuż całego stadionu */
+function ribbon(path,off0,off1,vTile,mat,y){
+  const N=path.length,pos=[],uv=[],nor=[],idx=[];
+  let s=0;
+  for(let i=0;i<N;i++){
+    const p=path[i],q=path[(i+1)%N];
+    if(i>0)s+=Math.hypot(p.x-q.x,p.z-q.z);
+    pos.push(p.x+p.nx*off0,y,p.z+p.nz*off0, p.x+p.nx*off1,y,p.z+p.nz*off1);
+    uv.push(0,s/vTile, 1,s/vTile);
+    nor.push(0,1,0, 0,1,0);
+  }
+  for(let i=0;i<N;i++){const a=i*2,b=((i+1)%N)*2;idx.push(a,a+1,b, b,a+1,b+1)}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx);g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,mat);m.receiveShadow=true;return m;
+}
+/* kształt murawy (wnętrze bieżni) jako ShapeGeometry */
+function infieldGeo(Rr,HS,seg){
+  const pts=stadiumPath(Rr,HS,seg).map(p=>new THREE.Vector2(p.x,p.z));
+  const sh=new THREE.Shape(pts),g=new THREE.ShapeGeometry(sh,24);
+  g.rotateX(-Math.PI/2);g.computeVertexNormals();return g;
+}
+/* prostokąt w płaszczyźnie poziomej lub pionowej (dla linii, band, paneli) */
+function planeMesh(w,h,mat,x,y,z,ry,vertical){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);
+  if(vertical)m.rotation.y=ry||0;else m.rotation.set(-Math.PI/2,0,ry||0);
+  m.position.set(x,y,z);m.receiveShadow=!vertical;return m;
+}
+/* znak (linia) na bieżni w danym z — ustawiany stycznie do ścieżki (również na łukach) */
+function markAt(path,off0,off1,z,mat,y){
+  let best=0,bd=1e9;
+  for(let i=0;i<path.length;i++){const d=Math.abs(path[i].z-z)+(path[i].x>0?0:40);if(d<bd){bd=d;best=i}}
+  const p=path[best],q=path[(best+1)%path.length];
+  const ry=Math.atan2(q.x-p.x,q.z-p.z);
+  const len=off1-off0,cx=p.x+p.nx*(off0+len/2),cz=p.z+p.nz*(off0+len/2);
+  return planeMesh(len,0.14,mat,cx,y,cz,ry,false);
+}
+function disposeStadium(){
+  if(!ST)return;
+  ST.group.traverse(o=>{if(o.geometry)o.geometry.dispose()});
+  ST.mats.forEach(m=>m.dispose());
+  (ST.tex||[]).forEach(t=>t.dispose());          /* klony tekstur (murawa/tłum) — nie ruszamy cache TEX */
+  S.remove(ST.group);ST=null;FLOOD.mats.length=0;FLOOD.lights.length=0;
+}
+/* tablica wyników stadionu — tekst rysowany na canvasie (aktualizowany przy starcie) */
+function makeScoreboard(){
+  const c=document.createElement('canvas');c.width=512;c.height=128;
+  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;
+  const draw=(big,small)=>{
+    const g=c.getContext('2d');
+    g.fillStyle='#05070d';g.fillRect(0,0,512,128);
+    g.strokeStyle='#2b3550';g.lineWidth=6;g.strokeRect(3,3,506,122);
+    g.fillStyle='#ffd23f';g.font='bold 54px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';
+    g.fillText(big,256,50);
+    g.fillStyle='#8fd0ff';g.font='bold 26px system-ui,sans-serif';g.fillText(small,256,100);
+    t.needsUpdate=true;
+  };
+  return {tex:t,draw:draw};
+}
+function buildStadium(L){
+  disposeStadium();
+  const W=WORLDS[L.world];
+  const group=new THREE.Group();S.add(group);
+  const mats=[];const M=o=>{const m=new THREE.MeshStandardMaterial(o);mats.push(m);return m};
+  const path=stadiumPath(TR.R,TR.HS,26);
+  /* --- 1. murawa wokół stadionu (pas koszenia) --- */
+  const gBase=grassTex('#'+W.grass.toString(16).padStart(6,'0'),'#'+W.grass2.toString(16).padStart(6,'0'));
+  const gOut=gBase.clone();gOut.needsUpdate=true;gOut.repeat.set(42,42);
+  const gIn=gBase.clone();gIn.needsUpdate=true;gIn.repeat.set(0.09,0.09);
+  const texClones=[gOut,gIn];
+  group.add(planeMesh(820,820,M({map:gOut,roughness:1,metalness:0}),0,0,0,0,false));
+  /* --- 2. bieżnia 8 torów + biała krawędź wewnętrzna (offsety LICZONE OD ŚCIEŻKI) --- */
+  const matTrack=M({map:trackTex(),roughness:0.92,metalness:0.02});
+  group.add(ribbon(path,0,TR.W,12,matTrack,0.03));
+  const matLine=M({color:0xf4f7ff,roughness:0.72,metalness:0,emissive:0xffffff,emissiveIntensity:0.05});
+  group.add(ribbon(path,-0.16,0.02,12,matLine,0.035));
+  /* --- 3. murawa wewnątrz bieżni --- */
+  const infield=new THREE.Mesh(infieldGeo(TR.R,TR.HS,26),M({map:gIn,roughness:1,metalness:0}));
+  infield.position.y=0.012;infield.receiveShadow=true;group.add(infield);
+  /* --- 4. linie startu i mety (sprint oraz płotki) --- */
+  const y=0.045;
+  group.add(markAt(path,0,TR.W,PLANE.sp,matLine,y));
+  group.add(planeMesh(TR.W,0.4,matLine,TR.R+TR.W/2,y,PLANE.fin,0,false));   /* meta sprintu */
+  group.add(markAt(path,0,TR.W,PLANE.hurSp,matLine,y));
+  group.add(planeMesh(TR.W,0.4,matLine,TR.R+TR.W/2,y,PLANE.hurFin,0,false));/* meta płotków */
+  /* biały pas na krawędzi zewnętrznej (bezpieczeństwo) */
+  group.add(ribbon(path,TR.W-0.2,TR.W,12,matLine,0.035));
+  /* ST musi istnieć przed buildEquip (używa ST.M / ST.matLine / ST.group);
+     pełny zestaw pól dopisujemy na końcu funkcji */
+  ST={group:group,mats:mats,path:path,M:M,matLine:matLine,W:W};
+  /* --- 5. trybuny: stopnie + tłum kibiców (tekstura tłumu = tanio i gęsto) --- */
+  const cBase=crowdTex(W.crowd);
+  const cX=cBase.clone();cX.needsUpdate=true;cX.repeat.set(5,1);
+  const cZ=cBase.clone();cZ.needsUpdate=true;cZ.repeat.set(2.4,1);
+  texClones.push(cX,cZ);
+  const matConc=M({color:0x9aa3ad,roughness:0.95,metalness:0});
+  const matCrowdX=M({map:cX,roughness:0.95,metalness:0,emissive:0xffffff,emissiveIntensity:W.night?0.2:0});
+  const matCrowdZ=M({map:cZ,roughness:0.95,metalness:0,emissive:0xffffff,emissiveIntensity:W.night?0.2:0});
+  const ROWS=14,RH=0.62,RD=1.35,lenX=2*(TR.HS+TR.OUT)+9,lenZ=2*TR.OUT+11;
+  for(const s of[-1,1]){
+    for(let k=0;k<ROWS;k++){
+      const x=s*(TR.OUT+4.4+k*RD),hTop=0.45+k*RH;
+      const row=new THREE.Mesh(new THREE.BoxGeometry(RD+0.1,hTop,lenX),matConc);
+      row.position.set(x,hTop/2,0);row.receiveShadow=true;group.add(row);
+      group.add(planeMesh(lenX,RH*1.6,matCrowdX,x-s*(RD*0.5+0.08),hTop+RH*0.7,0,s>0?-Math.PI/2:Math.PI/2,true));
+    }
+    /* dach + słupy nad główną trybuną */
+    const cx=s*(TR.OUT+4.4+(ROWS-1)*RD*0.5),cy=0.45+(ROWS-1)*RH+5.2;
+    const roof=new THREE.Mesh(new THREE.BoxGeometry(ROWS*RD+2,0.55,lenX+2),M({color:0x6d7683,roughness:0.8,metalness:0.1}));
+    roof.position.set(cx,cy,0);roof.castShadow=true;group.add(roof);
+    for(const zz of[-lenX*0.36,0,lenX*0.36]){
+      const col=new THREE.Mesh(new THREE.BoxGeometry(0.7,cy-0.45,0.7),matConc);
+      col.position.set(cx+s*(ROWS*RD*0.45),0.45+(cy-0.45)/2,zz);col.castShadow=true;group.add(col);
+    }
+  }
+  /* trybuny za łukami (krótsze, 8 rzędów) */
+  for(const s of[-1,1]){
+    for(let k=0;k<8;k++){
+      const z=s*(TR.HS+TR.OUT+4.4+k*RD),hTop=0.45+k*RH;
+      const row=new THREE.Mesh(new THREE.BoxGeometry(lenZ,hTop,RD+0.1),matConc);
+      row.position.set(0,hTop/2,z);row.receiveShadow=true;group.add(row);
+      group.add(planeMesh(lenZ,RH*1.6,matCrowdZ,0,hTop+RH*0.7,z-s*(RD*0.5+0.08),s>0?Math.PI:0,true));
+    }
+  }
+  /* --- 6. maszty oświetleniowe (świecą w nocy / o zmierzchu) --- */
+  const matLamp=M({color:0xfff6dd,emissive:0xfff2cc,emissiveIntensity:0,roughness:0.5,metalness:0.2});
+  FLOOD.mats.push(matLamp);
+  const matMast=M({color:0x555c66,roughness:0.7,metalness:0.35});
+  for(const sx of[-1,1])for(const sz of[-1,1]){
+    const mx=sx*(TR.OUT+17),mz=sz*(TR.HS+19);
+    const mast=new THREE.Mesh(new THREE.BoxGeometry(1.5,25,1.5),matMast);
+    mast.position.set(mx,12.5,mz);mast.castShadow=true;group.add(mast);
+    const head=new THREE.Mesh(new THREE.BoxGeometry(7.4,4.2,1.1),matLamp);
+    head.position.set(mx,26.5,mz);head.rotation.y=Math.atan2(-mx,-mz);group.add(head);
+  }
+  const l1=new THREE.DirectionalLight(0xfff4dd,0);l1.position.set(70,90,60);l1.visible=false;group.add(l1,l1.target);
+  const l2=new THREE.DirectionalLight(0xdfeaff,0);l2.position.set(-70,90,-60);l2.visible=false;group.add(l2,l2.target);
+  FLOOD.lights.push(l1,l2);
+  /* --- 7. bandy reklamowe (własne, abstrakcyjne wzory) + tablica wyników --- */
+  const bTex=boardTex(L.seed);bTex.repeat.set(11,1);
+  const matBoard=M({map:bTex,roughness:0.6,metalness:0.05});
+  for(const s of[-1,1]){
+    const bd=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.95,lenX-6),matBoard);
+    bd.position.set(s*(TR.OUT+2.4),0.5,0);bd.castShadow=true;group.add(bd);
+    const be=new THREE.Mesh(new THREE.BoxGeometry(lenZ-8,0.95,0.3),matBoard);
+    be.position.set(0,0.5,s*(TR.HS+TR.OUT+2.4));be.castShadow=true;group.add(be);
+  }
+  const board=makeScoreboard();
+  board.draw('HOPLA',L.name);
+  const matScore=M({map:board.tex,emissive:0xffffff,emissiveMap:board.tex,emissiveIntensity:0.85,roughness:0.6});
+  const sc=new THREE.Mesh(new THREE.BoxGeometry(17,5,0.7),M({color:0x141821,roughness:0.8,metalness:0.2}));
+  sc.position.set(0,15.5,-(TR.HS+TR.OUT+7.5));group.add(sc);
+  group.add(planeMesh(15.4,4.2,matScore,0,15.5,-(TR.HS+TR.OUT+7.1),0,true));
+  ST={group:group,mats:mats,path:path,M:M,matLine:matLine,W:W,board:board,matTrack:matTrack,tex:texClones};
+  board.tex&&texClones.push(board.tex);
+  buildEquip(L);
+  applyWorld(W);
+  /* --- 9. pogoda (część 2/3): mżawka przyciemnia stadion, zagęszcza mgłę i moczy tartan --- */
+  setupWeather(L);
+  if(RAIN){
+    FOG.near*=0.5;FOG.far*=0.7;
+    sun.intensity*=0.72;R.toneMappingExposure*=0.88;
+    skyU.top.value.multiplyScalar(0.7);skyU.hor.value.multiplyScalar(0.78);
+    skyU.sunC.value.multiplyScalar(0.45);FOG.color.multiplyScalar(0.85);
+  }
+  makeRain().visible=RAIN;
+  return ST;
+}
+/* ============================================================================
+   SPRZĘT KONKURENCJI — sklejanie brył w jeden mesh (mało draw calls)
+   ============================================================================ */
+function boxCluster(parts,mat,cast){
+  const pos=[],nor=[],uv=[],idx=[];let off=0;
+  for(const p of parts){
+    const g=new THREE.BoxGeometry(p.w,p.h,p.d);
+    if(p.rx||p.ry||p.rz)g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(p.rx||0,p.ry||0,p.rz||0)));
+    g.translate(p.x||0,p.y||0,p.z||0);
+    const gp=g.attributes.position.array,gn=g.attributes.normal.array,gu=g.attributes.uv.array;
+    for(let i=0;i<gp.length;i++)pos.push(gp[i]);
+    for(let i=0;i<gn.length;i++)nor.push(gn[i]);
+    for(let i=0;i<gu.length;i++)uv.push(gu[i]);
+    const gi=g.index.array;for(let i=0;i<gi.length;i++)idx.push(gi[i]+off);
+    off+=gp.length/3;g.dispose();
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx);g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,mat);m.castShadow=!!cast;m.receiveShadow=true;return m;
+}
+/* rozbieg: pas tartanu z białymi krawędziami (skok w dal / oszczep / tyczka) */
+function runway(cx,z0,z1,wid,matStrip,matLine){
+  const g=new THREE.Group(),len=z1-z0,cz=(z0+z1)/2;
+  g.add(planeMesh(wid,len,matStrip,cx,0.02,cz,0,false));
+  for(const s of[-1,1])g.add(planeMesh(0.09,len,matLine,cx+s*(wid/2-0.05),0.03,cz,0,false));
+  return g;
+}
+/* linia sektora rzutu pod kątem ang od osi +Z (start w cx,cz) */
+function sectorLine(cx,cz,ang,len,mat){
+  return planeMesh(0.12,len,mat,cx+Math.sin(ang)*len/2,0.035,cz+Math.cos(ang)*len/2,-ang,false);
+}
+function buildEquip(L){
+  const M=ST.M,matLine=ST.matLine,eq={};
+  const matStrip=M({color:0x8a3a2a,roughness:0.95,metalness:0});
+  const matWhite=M({color:0xffffff,roughness:0.7,metalness:0});
+  const matMetal=M({color:0xb9c2cc,roughness:0.42,metalness:0.75});
+  const matDark=M({color:0x1d222b,roughness:0.8,metalness:0.15});
+  /* --- sprint/płotki: bloki startowe we wszystkich 8 torach (finały: pełna obsada) --- */
+  if(L.ev==='sprint'||L.ev==='hur'){
+    const z0=L.ev==='sprint'?PLANE.sp:PLANE.hurSp;
+    for(let k=1;k<=8;k++){
+      const b=boxCluster([
+        {w:0.34,h:0.12,d:0.5,x:0,y:0.06,z:0.55},
+        {w:0.34,h:0.3,d:0.14,x:0,y:0.16,z:0.18,rx:-0.6},
+        {w:0.34,h:0.24,d:0.14,x:0,y:0.13,z:0.74,rx:-1.05}
+      ],matDark,true);
+      b.position.set(laneX(k),0,z0-0.9);ST.group.add(b);
+    }
+  }
+  /* --- płotki 110 m: 10 płotków w 8 torach (pierwszy 13.72 m, potem co 9.14 m) --- */
+  if(L.ev==='hur'){
+    eq.hurdles=[];
+    for(let k=1;k<=8;k++)for(let i=0;i<10;i++){
+      const z=PLANE.hurSp+13.72+i*9.14;
+      const h=boxCluster([
+        {w:0.07,h:1.05,d:0.09,x:-0.6,y:0.525,z:0},
+        {w:0.07,h:1.05,d:0.09,x: 0.6,y:0.525,z:0},
+        {w:0.07,h:0.2,d:0.5,x:-0.6,y:0.06,z:-0.2},
+        {w:0.07,h:0.2,d:0.5,x: 0.6,y:0.06,z:-0.2},
+        {w:1.27,h:0.28,d:0.05,x:0,y:0.92,z:-0.02}
+      ],matWhite,true);
+      h.position.set(laneX(k),0,z);ST.group.add(h);
+      eq.hurdles.push({mesh:h,lane:k,z:z,i:i});
+    }
+  }
+  /* --- skok w dal: rozbieg, belka, linia spalonego, piaskownica --- */
+  if(L.ev==='long'){
+    ST.group.add(runway(LONG.x,LONG.start,0.2,1.35,matStrip,matLine));
+    ST.group.add(planeMesh(1.3,0.22,matWhite,LONG.x,0.04,-0.11,0,false));
+    ST.group.add(planeMesh(1.3,0.08,M({color:0xd94b3a,roughness:0.8,metalness:0}),LONG.x,0.041,0.03,0,false));
+    const pit=new THREE.Mesh(new THREE.BoxGeometry(3.1,0.4,LONG.pit),M({map:sandTex(),roughness:1,metalness:0}));
+    pit.position.set(LONG.x,-0.05,0.4+LONG.pit/2);pit.receiveShadow=true;ST.group.add(pit);
+    for(const s of[-1,1])ST.group.add(planeMesh(0.1,LONG.pit,matLine,LONG.x+s*1.52,0.031,0.4+LONG.pit/2,0,false));
+    /* sędzia przy belce: chorągiewka biała = próba ważna, czerwona = spalony */
+    const jm=M({color:0x2a3a55,roughness:0.8,metalness:0.05});
+    const judge=boxCluster([
+      {w:0.32,h:0.6,d:0.22,x:0,y:1.05,z:0},
+      {w:0.11,h:0.75,d:0.13,x:-0.085,y:0.375,z:0},
+      {w:0.11,h:0.75,d:0.13,x:0.085,y:0.375,z:0},
+      {w:0.09,h:0.46,d:0.09,x:0.245,y:1.28,z:0,rz:-0.55}
+    ],jm,true);
+    judge.position.set(LONG.x-2.1,0,0.65);judge.rotation.y=Math.PI/2;ST.group.add(judge);
+    const jh=new THREE.Mesh(new THREE.SphereGeometry(0.11,10,8),M({color:0xc0865c,roughness:0.85,metalness:0}));
+    jh.position.set(LONG.x-2.1,1.5,0.65);jh.castShadow=true;ST.group.add(jh);
+    const flag=new THREE.Mesh(new THREE.PlaneGeometry(0.34,0.24),
+      M({color:0xf4f7ff,roughness:0.7,metalness:0,side:THREE.DoubleSide}));
+    flag.position.set(LONG.x-2.1,1.2,0.65+0.28);ST.group.add(flag);
+    eq.judge={flag:flag,mat:flag.material};
+  }
+  /* --- oszczep: rozbieg 4 m, łuk 8 m, sektor 29°, znaczniki co 10 m --- */
+  if(L.ev==='jav'){
+    ST.group.add(runway(JAV.x,JAV.start,0,4,matStrip,matLine));
+    const arc=new THREE.Mesh(new THREE.RingGeometry(7.9,8.02,48,1,0,Math.PI),matLine);
+    arc.rotation.x=-Math.PI/2;arc.position.set(JAV.x,0.04,0);ST.group.add(arc);
+    ST.group.add(sectorLine(JAV.x,0,-0.2533,JAV.sector,matLine));
+    ST.group.add(sectorLine(JAV.x,0, 0.2533,JAV.sector,matLine));
+    for(let d=10;d<=70;d+=10)ST.group.add(planeMesh(4,0.1,matLine,JAV.x,0.033,d,0,false));
+    eq.jav=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.02,2.6,8),
+      M({color:0xe8eef7,roughness:0.35,metalness:0.55}));
+    eq.jav.rotation.z=Math.PI/2;eq.jav.castShadow=true;ST.group.add(eq.jav);
+  }
+  /* --- młot: betonowe koło, klatka z siatki, sektor 34.9° --- */
+  if(L.ev==='ham'){
+    const pad=new THREE.Mesh(new THREE.CylinderGeometry(HAM.r,HAM.r,0.09,40),M({color:0xb8b2a6,roughness:0.95,metalness:0}));
+    pad.position.set(HAM.x,0.045,HAM.z);pad.receiveShadow=true;ST.group.add(pad);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(HAM.r-0.07,HAM.r,48),matLine);
+    ring.rotation.x=-Math.PI/2;ring.position.set(HAM.x,0.095,HAM.z);ST.group.add(ring);
+    ST.group.add(sectorLine(HAM.x,HAM.z,-0.3046,HAM.sector,matLine));
+    ST.group.add(sectorLine(HAM.x,HAM.z, 0.3046,HAM.sector,matLine));
+    const net=new THREE.Mesh(new THREE.CylinderGeometry(3.6,3.6,4.4,32,1,true,Math.PI*0.62,Math.PI*1.76),
+      M({map:netTex(),transparent:true,side:THREE.DoubleSide,roughness:0.9,metalness:0,alphaTest:0.04}));
+    net.position.set(HAM.x,2.25,HAM.z);ST.group.add(net);
+    for(const a of[0.62,1.12,1.88,2.38]){
+      const post=new THREE.Mesh(new THREE.BoxGeometry(0.16,4.7,0.16),matMetal);
+      post.position.set(HAM.x+Math.sin(a*Math.PI)*3.6,2.35,HAM.z+Math.cos(a*Math.PI)*3.6);
+      post.castShadow=true;ST.group.add(post);
+    }
+    eq.ball=new THREE.Mesh(new THREE.SphereGeometry(0.16,14,10),M({color:0x9aa3ad,roughness:0.5,metalness:0.7}));
+    eq.ball.position.set(HAM.x,0.9,HAM.z);eq.ball.castShadow=true;ST.group.add(eq.ball);
+  }
+  /* --- skok o tyczce: rozbieg, skrzynka, stojaki, poprzeczka, materace --- */
+  if(L.ev==='pole'){
+    ST.group.add(runway(POLE.x,POLE.start,0.4,1.35,matStrip,matLine));
+    const box=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.5,0.9),M({color:0x6d5a45,roughness:0.95,metalness:0}));
+    box.position.set(POLE.x,-0.2,0.25);box.rotation.x=0.35;ST.group.add(box);
+    for(const s of[-1,1]){
+      const up=boxCluster([{w:0.14,h:0.65,d:0.14,x:0,y:0.32,z:0},{w:0.5,h:0.08,d:0.5,x:0,y:0.04,z:0}],matMetal,true);
+      up.position.set(POLE.x+s*2.6,0,0.55);ST.group.add(up);
+    }
+    eq.bar=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,5.2,10),
+      M({color:0xf0f4ff,roughness:0.5,metalness:0.3,emissive:0xffffff,emissiveIntensity:0.08}));
+    eq.bar.rotation.z=Math.PI/2;eq.bar.position.set(POLE.x,4.0,0.55);eq.bar.castShadow=true;ST.group.add(eq.bar);
+    const mTex=matTex();mTex.repeat.set(2,2);
+    const mats=new THREE.Mesh(new THREE.BoxGeometry(POLE.matW,1.0,POLE.mat),M({map:mTex,roughness:0.95,metalness:0}));
+    mats.position.set(POLE.x,0.5,0.6+POLE.mat/2);mats.receiveShadow=true;mats.castShadow=true;ST.group.add(mats);
+    const mats2=new THREE.Mesh(new THREE.BoxGeometry(POLE.matW*0.7,0.55,POLE.mat*0.6),M({color:0x2c6cb0,roughness:0.95,metalness:0}));
+    mats2.position.set(POLE.x,1.27,0.6+POLE.mat*0.4);mats2.castShadow=true;ST.group.add(mats2);
+    eq.pole=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,5.0,8),M({color:0xf6d24a,roughness:0.45,metalness:0.2}));
+    eq.pole.castShadow=true;eq.pole.visible=false;ST.group.add(eq.pole);
+  }
+  ST.eq=eq;
+  return eq;
+}
+/* ============================================================================
+   SPORTOWIEC — bryły Three.js (tułów, głowa, ręce, nogi) + animacja biegu
+   ============================================================================ */
+/* Zawodnik: hierarchia grup (biodro → tułów → głowa/ręce, biodro → nogi),
+   dzięki temu animacja biegu to kilka sinusów na kątach przegubów. */
+const KITS=[
+ {kit:0x1d3f8c,kit2:0xeef2f8,skin:0xc0865c,shoe:0xf5f7fa},
+ {kit:0xc23b2f,kit2:0xf2e3c8,skin:0x8a5632,shoe:0xf0e9d8},
+ {kit:0x1c7a4a,kit2:0xffffff,skin:0xe2b78d,shoe:0xffffff},
+ {kit:0xe8b423,kit2:0x23272f,skin:0x6b4224,shoe:0xfff3d0},
+ {kit:0x6a2bb0,kit2:0xf2eaff,skin:0xd9a06b,shoe:0xffffff},
+ {kit:0x16697a,kit2:0xffe9a8,skin:0x7a4a2b,shoe:0xf5f7fa},
+ {kit:0x333a45,kit2:0xff7a3c,skin:0xe2b78d,shoe:0x23272f},
+ {kit:0xa8325b,kit2:0xffffff,skin:0x8a5632,shoe:0xffffff}
+];
+function buildAthlete(kit,bib){
+  const mKit=new THREE.MeshStandardMaterial({color:kit.kit,roughness:0.72,metalness:0.05});
+  const mKit2=new THREE.MeshStandardMaterial({color:kit.kit2,roughness:0.72,metalness:0.05});
+  const mSkin=new THREE.MeshStandardMaterial({color:kit.skin,roughness:0.86,metalness:0});
+  const mHair=new THREE.MeshStandardMaterial({color:0x1a1512,roughness:0.92,metalness:0});
+  const mShoe=new THREE.MeshStandardMaterial({color:kit.shoe,roughness:0.55,metalness:0.05});
+  const B=(w,h,d,m)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);
+  const S=(r,m)=>new THREE.Mesh(new THREE.SphereGeometry(r,14,10),m);
+  const C=(rt,rb,h,m)=>new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,10),m);
+  const grp=new THREE.Group();
+  const hip=new THREE.Group();hip.position.y=0.96;grp.add(hip);
+  const pelvis=B(0.3,0.2,0.19,mKit2);pelvis.position.set(0,0.03,0);hip.add(pelvis);
+  const torso=B(0.35,0.5,0.21,mKit);torso.position.set(0,0.37,0);hip.add(torso);
+  const chest=B(0.37,0.16,0.23,mKit);chest.position.set(0,0.56,0);hip.add(chest);
+  const bibM=new THREE.MeshStandardMaterial({map:bibTex(bib),roughness:0.8,metalness:0});
+  const bibP=new THREE.Mesh(new THREE.PlaneGeometry(0.2,0.2),bibM);
+  bibP.position.set(0,0.42,0.112);hip.add(bibP);
+  const neck=new THREE.Group();neck.position.set(0,0.66,0);hip.add(neck);
+  const nape=C(0.055,0.06,0.1,mSkin);nape.position.set(0,0.04,0);neck.add(nape);
+  const head=S(0.108,mSkin);head.position.set(0,0.17,0);head.scale.set(1,1.16,1.04);neck.add(head);
+  const hair=S(0.112,mHair);hair.position.set(0,0.19,-0.012);hair.scale.set(1,0.95,1.06);neck.add(hair);
+  const arm=(sx)=>{
+    const sh=new THREE.Group();sh.position.set(sx*0.215,0.55,0);hip.add(sh);
+    const cap=S(0.075,mKit);sh.add(cap);
+    const up=C(0.055,0.048,0.3,mSkin);up.position.set(0,-0.17,0);sh.add(up);
+    const el=new THREE.Group();el.position.set(0,-0.32,0);sh.add(el);
+    const fore=C(0.047,0.042,0.28,mSkin);fore.position.set(0,-0.14,0);el.add(fore);
+    const hand=S(0.048,mSkin);hand.position.set(0,-0.3,0);el.add(hand);
+    return {sh:sh,el:el};
+  };
+  const leg=(sx)=>{
+    const hp=new THREE.Group();hp.position.set(sx*0.095,0,0);hip.add(hp);
+    const thigh=C(0.085,0.07,0.46,mKit);thigh.position.set(0,-0.23,0);hp.add(thigh);
+    const kn=new THREE.Group();kn.position.set(0,-0.46,0);hp.add(kn);
+    const shin=C(0.07,0.055,0.44,mSkin);shin.position.set(0,-0.22,0);kn.add(shin);
+    const ft=B(0.11,0.075,0.25,mShoe);ft.position.set(0,-0.455,0.055);kn.add(ft);
+    return {hp:hp,kn:kn,ft:ft};
+  };
+  const armL=arm(-1),armR=arm(1),legL=leg(-1),legR=leg(1);
+  grp.traverse(o=>{if(o.isMesh)o.castShadow=true});
+  return {grp:grp,hip:hip,neck:neck,torso:torso,armL:armL,armR:armR,legL:legL,legR:legR,
+    ph:0,parts:[mKit,mKit2,mSkin,mHair,mShoe,bibM]};
+}
+/* ustawienie pozy; A.ph = faza cyklu biegu (radiany), st.mode = tryb */
+function poseAthlete(A,st){
+  const p=A.ph,sp=clamp(st.sp||0,0,1.2),mode=st.mode||'run';
+  const L=A.legL,R=A.legR,AL=A.armL,AR=A.armR;
+  if(mode==='run'){
+    const amp=0.55+0.45*clamp(sp,0,1);
+    L.hp.rotation.x=-amp*Math.sin(p);              /* ujemny = noga w przód */
+    R.hp.rotation.x=-amp*Math.sin(p+Math.PI);
+    L.kn.rotation.x=0.12+1.45*clamp(Math.sin(p+2.6),0,1);
+    R.kn.rotation.x=0.12+1.45*clamp(Math.sin(p+2.6+Math.PI),0,1);
+    AL.sh.rotation.x=0.95*amp*Math.sin(p+Math.PI);  /* ręce przeciwlegle do nóg */
+    AR.sh.rotation.x=0.95*amp*Math.sin(p);
+    AL.sh.rotation.z=-0.18;AR.sh.rotation.z=0.18;
+    AL.el.rotation.x=-1.25-0.35*Math.sin(p);
+    AR.el.rotation.x=-1.25+0.35*Math.sin(p);
+    A.hip.rotation.x=0.05+0.24*clamp(sp,0,1);
+    A.hip.rotation.y=-0.16*clamp(sp,0,1)*Math.sin(p);
+    A.hip.position.y=0.96+0.045*clamp(sp,0,1)*Math.abs(Math.sin(p));
+    A.neck.rotation.x=-A.hip.rotation.x*0.75;
+  }else if(mode==='start'){                         /* pozycja startowa w blokach */
+    L.hp.rotation.x=-0.95;R.hp.rotation.x=-0.75;L.kn.rotation.x=1.5;R.kn.rotation.x=1.25;
+    AL.sh.rotation.x=-1.5;AR.sh.rotation.x=-1.35;AL.el.rotation.x=-0.5;AR.el.rotation.x=-0.4;
+    A.hip.rotation.x=1.05;A.neck.rotation.x=-0.85;A.hip.position.y=0.86;
+  }else if(mode==='jump'||mode==='vault'){          /* odbicie i lot */
+    L.hp.rotation.x=-1.15;R.hp.rotation.x=-0.55;L.kn.rotation.x=1.05;R.kn.rotation.x=0.35;
+    AL.sh.rotation.x=-2.5;AR.sh.rotation.x=-2.3;AL.el.rotation.x=-0.25;AR.el.rotation.x=-0.3;
+    A.hip.rotation.x=0.16;A.neck.rotation.x=-0.2;A.hip.position.y=0.96;
+  }else if(mode==='land'){                          /* lądowanie */
+    L.hp.rotation.x=-0.85;R.hp.rotation.x=-0.5;L.kn.rotation.x=1.3;R.kn.rotation.x=0.9;
+    AL.sh.rotation.x=-0.6;AR.sh.rotation.x=-0.75;AL.el.rotation.x=-0.9;AR.el.rotation.x=-1.0;
+    A.hip.rotation.x=0.42;A.neck.rotation.x=-0.3;A.hip.position.y=0.82;
+  }else if(mode==='throw'){                         /* oszczep: zamach → wyrzut (t: 0..1) */
+    const t=clamp(st.t||0,0,1),k=Math.sin(t*Math.PI);
+    AR.sh.rotation.x=-2.9*k;AR.sh.rotation.z=0.9-1.4*t;
+    AR.el.rotation.x=-0.4-0.9*(1-t);
+    AL.sh.rotation.x=-0.9*k;AL.el.rotation.x=-1.2;
+    L.hp.rotation.x=-0.5;R.hp.rotation.x=-0.35;L.kn.rotation.x=0.6;R.kn.rotation.x=0.4;
+    A.hip.rotation.x=0.1-0.35*t;A.hip.rotation.y=0.35*(1-t);A.hip.position.y=0.96;
+  }else if(mode==='spin'){                          /* młot: obroty, ręce wyciągnięte */
+    AL.sh.rotation.x=-1.55;AR.sh.rotation.x=-1.55;AL.sh.rotation.z=-1.35;AR.sh.rotation.z=1.35;
+    AL.el.rotation.x=-0.12;AR.el.rotation.x=-0.12;
+    L.hp.rotation.x=-0.35;R.hp.rotation.x=-0.25;L.kn.rotation.x=0.5;R.kn.rotation.x=0.35;
+    A.hip.rotation.x=0.12;A.hip.rotation.y=0;A.hip.position.y=0.96;
+  }else{                                            /* bezruch / prezentacja w menu */
+    const t=st.t||0;
+    L.hp.rotation.x=0.05*Math.sin(t*1.4);R.hp.rotation.x=-0.05*Math.sin(t*1.4);
+    L.kn.rotation.x=0.08;R.kn.rotation.x=0.08;
+    AL.sh.rotation.x=-0.12+0.05*Math.sin(t*1.4);AR.sh.rotation.x=-0.12-0.05*Math.sin(t*1.4);
+    AL.sh.rotation.z=-0.14;AR.sh.rotation.z=0.14;
+    AL.el.rotation.x=-0.35;AR.el.rotation.x=-0.35;
+    A.hip.rotation.x=0.02;A.hip.rotation.y=0;A.hip.position.y=0.96;
+  }
+}
+/* ============================================================================
+   STEROWANIE — klasyczny arcade: ◀ ▶ na zmianę (rozbieg) + A (skok/rzut)
+   Klawiatura: strzałki / Z X · pad: LB RB + A · dotyk: przyciski lub ekran
+   ============================================================================ */
+const IN={keys:{},pad:false,padAx:0};
+let pL=0,pR=0,pA=0,lastSide='';
+const padPrev={l:false,r:false,a:false,st:false};
+function flash(id){const e=$(id);if(!e)return;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),110)}
+function hitL(){pL++;flash('al1')}
+function hitR(){pR++;flash('al2')}
+function hitA(){pA++}
+/* zużywa jedną parę naciśnięć; zalicza tylko naprzemienne (jak w klasykach) */
+function consumeAlt(){
+  if(pL>0){pL--;if(lastSide==='L')return '';lastSide='L';return 'L'}
+  if(pR>0){pR--;if(lastSide==='R')return '';lastSide='R';return 'R'}
+  return '';
+}
+function consumeA(){if(pA>0){pA--;return true}return false}
+function resetInput(){pL=pR=pA=0;lastSide=''}
+addEventListener('keydown',e=>{
+  const k=e.code;
+  if(state==='menu'){
+    if(k==='ArrowLeft'||k==='KeyZ'){selectLevel(sel-1);e.preventDefault();return}
+    if(k==='ArrowRight'||k==='KeyX'){selectLevel(sel+1);e.preventDefault();return}
+    if(k==='Enter'||k==='Space'||k==='NumpadEnter'||k==='KeyA'){startEvent();e.preventDefault();return}
+  }
+  if(state==='replay'){
+    if(k==='Escape'||k==='Enter'||k==='Space'||k==='NumpadEnter'||k==='KeyA'||k==='KeyV'||k==='KeyP')endReplay();
+    e.preventDefault();return;
+  }
+  if(state==='finish'&&k==='KeyV'){startReplay();e.preventDefault();return}
+  if(state==='finish'&&(k==='Enter'||k==='Space'||k==='NumpadEnter'||k==='KeyA')){menuConfirm();e.preventDefault();return}
+  if(k==='Escape'||k==='KeyP'){togglePause();return}
+  if(k==='KeyR'){restart();return}
+  if(k==='KeyC'){cycleCam();return}
+  if(e.repeat)return;
+  if(k==='ArrowLeft'||k==='KeyZ'){audioInit();hitL()}
+  else if(k==='ArrowRight'||k==='KeyX'){audioInit();hitR()}
+  else if(k==='Space'||k==='Enter'||k==='NumpadEnter'||k==='KeyA'){audioInit();hitA()}
+},{passive:false});
+/* --- pad (Gamepad API): LB/RB lub drążek w lewo/prawo + A --- */
+function pollPad(){
+  const pads=(navigator.getGamepads&&navigator.getGamepads())||[];
+  let g=null;for(let i=0;i<pads.length;i++){const p=pads[i];if(p&&p.connected){g=p;break}}
+  if(!g){IN.pad=false;return}
+  IN.pad=true;
+  const b=i=>!!(g.buttons[i]&&g.buttons[i].pressed);
+  const L=b(4)||b(14),Rr=b(5)||b(15),A=b(0)||b(1);
+  if(L&&!padPrev.l)hitL();
+  if(Rr&&!padPrev.r)hitR();
+  if(A&&!padPrev.a)hitA();
+  const ax=(g.axes[0]||0);
+  if(ax<-0.55&&IN.padAx>=-0.55)hitL();
+  if(ax>0.55&&IN.padAx<=0.55)hitR();
+  IN.padAx=ax;
+  const st=b(9);
+  if(st&&!padPrev.st){if(state==='menu'||state==='finish')menuConfirm();else togglePause()}
+  padPrev.l=L;padPrev.r=Rr;padPrev.a=A;padPrev.st=st;
+}
+/* --- dotyk / mysz: klikanie na zmianę ◀ ▶ (połówki ekranu) + przyciski --- */
+addEventListener('pointerdown',e=>{
+  const t=e.target;
+  if(t&&(t.id==='back'||(t.closest&&(t.closest('#menu')||t.closest('#tp')))))return;
+  if(state==='replay'){endReplay();return}
+  audioInit();
+  if(e.clientX<innerWidth*0.5)hitL();else hitR();
+},{passive:true});
+function bindHold(id,fn){const el=$(id);if(!el)return;
+  el.addEventListener('pointerdown',ev=>{ev.preventDefault();audioInit();fn()},{passive:false})}
+bindHold('tl',hitL);bindHold('tr',hitR);bindHold('ta',hitA);
+/* ============================================================================
+   DŹWIĘK (WebAudio, bez plików): szum trybun, strzał startowy, fanfary, muzyka
+   ============================================================================ */
+let AC=null,MASTER=null,CROWD=null,NOISE=null,muted=false;
+function noiseBuf(){
+  if(NOISE)return NOISE;
+  const b=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  NOISE=b;return b;
+}
+function audioInit(){
+  if(AC||muted)return;
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    AC=new Ctx();
+    MASTER=AC.createGain();MASTER.gain.value=0.9;MASTER.connect(AC.destination);
+    /* szum trybun: szum → dolnoprzepustowy + wolne falowanie głośności (LFO) */
+    const s=AC.createBufferSource();s.buffer=noiseBuf();s.loop=true;
+    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=780;lp.Q.value=0.7;
+    const g=AC.createGain();g.gain.value=0;
+    s.connect(lp);lp.connect(g);g.connect(MASTER);s.start();
+    const lfo=AC.createOscillator(),lg=AC.createGain();
+    lfo.frequency.value=0.17;lg.gain.value=0.28;lfo.connect(lg);lg.connect(g.gain);lfo.start();
+    CROWD={g:g,f:lp};
+  }catch(e){AC=null}
+}
+function crowdTick(){
+  if(!AC||!CROWD)return;
+  const W=WORLDS[LV().world],on=(state==='play'||state==='count')?1:0.4;
+  const want=muted?0:on*0.022*(0.5+W.crowd);
+  CROWD.g.gain.value=lerp(CROWD.g.gain.value,want,0.05);
+}
+function note(f,t,dur,vol,type){
+  if(!AC||muted||!MASTER)return;
+  try{const o=AC.createOscillator(),g=AC.createGain();o.type=type||'triangle';o.frequency.value=f;
+    o.connect(g);g.connect(MASTER);
+    g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.start(t);o.stop(t+dur+0.05);
+  }catch(e){}
+}
+function beep(freq,dur,vol,type){
+  if(!AC||muted)return;
+  try{
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type=type||'square';o.frequency.value=freq;g.gain.value=vol||0.05;
+    o.connect(g);g.connect(MASTER||AC.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+(dur||0.15));
+    o.stop(AC.currentTime+(dur||0.15)+0.03);
+  }catch(e){}
+}
+/* strzał startowy: trzask szumu + niski podmuch */
+function gunshot(){
+  if(!AC||muted)return;
+  try{
+    const s=AC.createBufferSource();s.buffer=noiseBuf();
+    const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1500;bp.Q.value=0.8;
+    const g=AC.createGain();g.gain.setValueAtTime(0.45,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0005,AC.currentTime+0.3);
+    s.connect(bp);bp.connect(g);g.connect(MASTER);s.start();s.stop(AC.currentTime+0.35);
+    const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.value=90;
+    og.gain.setValueAtTime(0.32,AC.currentTime);og.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+0.25);
+    o.connect(og);og.connect(MASTER);o.start();o.stop(AC.currentTime+0.3);
+  }catch(e){}
+}
+/* owacja trybun: narastający szum + akord */
+function cheer(){
+  if(!AC||muted)return;
+  try{
+    const s=AC.createBufferSource();s.buffer=noiseBuf();
+    const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.setValueAtTime(700,AC.currentTime);
+    bp.frequency.linearRampToValueAtTime(2200,AC.currentTime+0.7);bp.Q.value=0.7;
+    const g=AC.createGain();g.gain.setValueAtTime(0.001,AC.currentTime);
+    g.gain.linearRampToValueAtTime(0.15,AC.currentTime+0.4);
+    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+2.0);
+    s.connect(bp);bp.connect(g);g.connect(MASTER);s.start();s.stop(AC.currentTime+2.1);
+    [523,659,784].forEach((f,i)=>note(f,AC.currentTime+0.05+i*0.09,0.5,0.05,'triangle'));
+  }catch(e){}
+}
+let musNext=0,musStep=0;
+const MUSN=[0,4,7,11,7,4,0,-5];
+function musicTick(){
+  if(!AC||muted||!MASTER||(state!=='menu'&&state!=='finish'))return;
+  const t=AC.currentTime;
+  if(musNext<t-0.3)musNext=t+0.05;
+  while(musNext<t+0.35){
+    const st=musStep%16;
+    if(st%2===0)note(174*Math.pow(2,MUSN[Math.floor(musStep/2)%MUSN.length]/12),musNext,0.3,0.024,'triangle');
+    if(st%8===0)note(87,musNext,0.5,0.03,'sine');
+    musNext+=0.24;musStep++;
+  }
+}
+/* ============================================================================
+   PRZEBIEG GRY: menu → start → konkurencja → wynik (postęp w hoplaO3)
+   ============================================================================ */
+const EL={hud:$('hud'),evn:$('evn'),evi:$('evi'),big:$('big'),det:$('det'),riv:$('riv'),bar:$('bar'),
+  barF:$('bar').querySelector('b'),barl:$('barl'),mk:$('mk'),mkF:$('mk').querySelector('b'),
+  mkZ:$('mk').querySelector('u'),mkl:$('mkl'),mkv:$('mkv'),msg:$('msg'),sub:$('sub'),hint:$('hint'),
+  menu:$('menu'),grid:$('grid'),res:$('res'),mt:$('mt'),ms:$('ms'),bstart:$('bstart'),brest:$('brest'),
+  bmenu:$('bmenu'),fps:$('fps'),tp:$('tp'),ocam:$('ocam'),oas:$('oas'),opl:$('opl'),brepl:$('brepl')};
+let state='menu',msgUntil=0,countT=0,falseStart=0,camMode=0,prevT=0,pausedFrom='play';
+let P=null,AV=null,RIVS=[];
+/* ---------- część 2/3: wiatr, pogoda, rywale konkursów, wielobój, 2 graczy, powtórki ---------- */
+const WIND={v:0,txt:'0.0'};                 /* m/s: + = w plecy */
+let RAIN=false,rainPts=null;                 /* mżawka na części poziomów (deterministycznie) */
+let FRIV=[];                                 /* rywale AI w konkursach technicznych */
+let MATCH=null;                              /* mecz 2 graczy: {cur,res1,pts:{1,2},log:[]} */
+let COMBO=null;                              /* wielobój: {i:0..8,pts,log:[]} */
+let RPL=[],rplAcc=0,replayT=0;               /* nagranie ostatniej próby (20 kl./s) */
+const PHL=['start','run','air','wind','flight','land','foul','plant','vault','spin','idle'];
+const PHI={start:0,run:1,air:2,wind:3,flight:4,land:5,foul:6,plant:7,vault:8,spin:9,idle:10};
+function PNAME(){return (CFG.players===2&&MATCH)?('G'+MATCH.cur):'TY'}
+function newPlayer(){return {x:0,y:0,z:0,yaw:0,v:0,sp:0,ph:'run',t:0,air:0,stumble:0,w:0,rot:0,
+  mk:0,mkDir:1,q:0,res:0,best:0,attempt:1,foul:0,done:0,place:0,run:0,hurd:0,cleared:0,hits:0,
+  takeoff:0,qt:1,dist:0,flight:null,barH:0,barMax:0,mark:false,cyc:0,time:0,power:0,height:0,
+  vAt:0,jumpZ:-999,hurdles:[],tAcc:0,att:[],tkCm:null}}
+function msg(big,sub,ms){
+  EL.msg.textContent=big||'';EL.sub.textContent=sub||'';
+  msgUntil=performance.now()+(ms||1500);
+}
+/* ---------- menu: 9 poziomów w 3 światach ---------- */
+function fmtRes(L,r){return L.ev==='sprint'||L.ev==='hur'?fmtT(r):fmtM(r)}
+function goalTxt(L){return L.limit?('limit '+fmtT(L.limit)):('norma '+fmtM(L.qual))}
+function buildMenu(){
+  EL.grid.innerHTML='';
+  for(let i=0;i<9;i++){
+    const L=LEVELS[i],locked=i+1>PROG.unlocked,rec=PROG.best[L.id];
+    const b=document.createElement('button');
+    b.className='lv'+(locked?' lock':'')+(i+1===sel?' sel':'');
+    b.innerHTML='<span class="w">'+WORLDS[L.world].name+'</span>'+L.id+'. '+EV[L.ev].icon+' '+L.name+
+      '<small>'+(locked?'🔒 ukończ poprzedni poziom':goalTxt(L))+' · '+
+      (rec?('rekord '+fmtRes(L,rec.res)+(rec.medal?' '+rec.medal:'')):'brak rekordu')+'</small>'+
+      (rec&&rec.medal?'<i>'+rec.medal+'</i>':'');
+    b.onclick=()=>{if(locked){beep(150,0.1,0.04);return}selectLevel(L.id)};
+    EL.grid.appendChild(b);
+  }
+  /* wielobój: 9 startów pod rząd z klasyfikacją punktową wg tabel (tryb specjalny) */
+  const crec=PROG.best.combo;
+  const cb=document.createElement('button');
+  cb.className='lv';cb.style.gridColumn='1 / -1';
+  cb.innerHTML='<span class="w">Tryb specjalny</span>🏅 Wielobój — 9 startów'+
+    '<small>klasyfikacja punktowa wg tabel · medale od 5000 pkt'+
+    (crec?(' · rekord <b>'+crec.pts+' pkt</b>'):'')+
+    (CFG.players===2?' · niedostępny przy 2 graczach':'')+'</small>';
+  cb.onclick=()=>{if(CFG.players===2){beep(150,0.1,0.04);return}
+    COMBO={i:0,pts:0,log:[]};MATCH=null;sel=1;buildMenu();startEvent()};
+  EL.grid.appendChild(cb);
+}
+function buildOpts(){
+  document.querySelectorAll('#ocam .opt').forEach(b=>{
+    b.classList.toggle('sel',+b.dataset.c===CFG.cam);
+    if(!b._w){b._w=1;b.onclick=()=>{CFG.cam=+b.dataset.c;camMode=CFG.cam;PROG.cfg=CFG;saveProg();buildOpts()}}
+  });
+  document.querySelectorAll('#oas .opt').forEach(b=>{
+    b.classList.toggle('sel',+b.dataset.h===CFG.assist);
+    if(!b._w){b._w=1;b.onclick=()=>{CFG.assist=+b.dataset.h;PROG.cfg=CFG;saveProg();buildOpts()}}
+  });
+  document.querySelectorAll('#opl .opt').forEach(b=>{
+    b.classList.toggle('sel',+b.dataset.p===CFG.players);
+    if(!b._w){b._w=1;b.onclick=()=>{CFG.players=+b.dataset.p;MATCH=null;COMBO=null;
+      PROG.cfg=CFG;saveProg();buildOpts();buildMenu()}}
+  });
+}
+function selectLevel(n){sel=clamp(n,1,9);buildMenu();previewStadium()}
+function overlay(mode){
+  EL.menu.hidden=false;EL.hud.style.display='none';EL.tp.style.display='none';
+  EL.grid.hidden=mode!=='menu';EL.ocam.parentNode.hidden=mode!=='menu';
+  EL.res.hidden=mode==='menu';
+  EL.mt.textContent=mode==='menu'?'HOPLA OLIMPIADA 3D':(mode==='pause'?'PAUZA':'WYNIK KONKURENCJI');
+  EL.ms.textContent=mode==='menu'?('Wybierz start ('+PROG.unlocked+'/9 odblokowanych) · '+WORLDS[Math.floor((sel-1)/3)].name):
+    (mode==='pause'?'Esc / P — wróć do zawodów':'Twój rezultat');
+  EL.bstart.hidden=false;EL.brest.hidden=mode==='menu';EL.bmenu.hidden=mode==='menu';
+  EL.brepl.hidden=!(mode==='finish'&&RPL.length>8&&!(MATCH&&MATCH.res1)&&!COMBO);
+  EL.bstart.textContent=mode==='menu'?'▶ Start':(mode==='pause'?'▶ Wróć do zawodów':
+    ((MATCH&&MATCH.res1)?'▶ Start — Gracz 2':
+    (COMBO?(COMBO.i<8?('▶ Start '+(COMBO.i+2)+'/9 — '+LEVELS[COMBO.i+1].name):'🏅 Klasyfikacja wieloboju'):
+    (PROG.unlocked>cur?'▶ Następna konkurencja':'▶ Powtórz konkurencję'))));
+}
+/* podgląd stadionu w menu (bez rozgrywki) */
+function previewStadium(){
+  clearTimeout(prevT);
+  prevT=setTimeout(()=>{
+    if(state!=='menu')return;
+    buildStadium(LEVELS[sel-1]);
+    P=newPlayer();_LVc=Object.assign({},LEVELS[sel-1]);
+    placeAtStart(LV());
+    if(AV){S.remove(AV.grp);AV.parts.forEach(m=>m.dispose())}
+    AV=buildAthlete(KITS[0],LEVELS[sel-1].id);S.add(AV.grp);
+    AV.grp.position.set(P.x,0,P.z);AV.grp.rotation.y=P.yaw;
+    P.ph='idle';
+  },220);
+}
+/* ---------- pozycje startowe per konkurencja (kierunek biegu: +Z) ---------- */
+function placeAtStart(L){
+  P.x=0;P.z=0;P.y=0;P.rot=0;P.yaw=0;P.v=0;P.sp=0;P.t=0;P.air=0;P.stumble=0;P.run=0;P.hurd=0;P.mk=0;P.q=0;
+  P.flight=null;P.res=0;P.foul=0;P.takeoff=0;P.qt=1;P.dist=0;P.w=0;P.mark=false;P.cleared=0;P.hits=0;
+  P.cyc=0;P.power=0;P.height=0;P.vAt=0;P.jumpZ=-999;P.tAcc=0;
+  if(L.ev==='sprint'){P.x=laneX(3);P.z=PLANE.sp;P.ph='start'}
+  else if(L.ev==='hur'){P.x=laneX(3);P.z=PLANE.hurSp;P.ph='start'}
+  else if(L.ev==='long'){P.x=LONG.x;P.z=LONG.start;P.ph='run'}
+  else if(L.ev==='jav'){P.x=JAV.x;P.z=JAV.start;P.ph='run'}
+  else if(L.ev==='ham'){P.x=HAM.x;P.z=HAM.z;P.ph='spin'}
+  else{P.x=POLE.x;P.z=POLE.start;P.ph='run'}
+  if(AV){AV.grp.position.set(P.x,0,P.z);AV.grp.rotation.y=P.yaw}
+}
+function clearRivals(){
+  for(const r of RIVS){S.remove(r.A.grp);r.A.parts.forEach(m=>m.dispose())}
+  RIVS=[];
+}
+/* ---------- start konkurencji ---------- */
+function startEvent(){
+  audioInit();
+  cur=sel;_LVc=Object.assign({},LEVELS[cur-1]);
+  const L=LV();
+  buildStadium(L);                               /* w środku: setupWeather + ewentualna mżawka */
+  if(AV){S.remove(AV.grp);AV.parts.forEach(m=>m.dispose())}
+  clearRivals();
+  P=newPlayer();P.attempt=1;P.best=0;P.barH=L.bar||0;P.barMax=0;P.hurdIdx=0;P.att=[];
+  P.hurdles=[];
+  if(L.ev==='hur')for(const h of (ST.eq.hurdles||[]))if(h.lane===3)P.hurdles.push(h.z);
+  /* gracz 2 (hot-seat) startuje w czerwonym dresie */
+  const kitIdx=(CFG.players===2&&MATCH&&MATCH.cur===2)?1:0;
+  AV=buildAthlete(KITS[kitIdx],L.id);S.add(AV.grp);
+  placeAtStart(L);
+  makeRivals(L);
+  makeFieldRivals(L);
+  rollWind(L,1);
+  RPL.length=0;rplAcc=0;replayT=0;
+  if(ST.eq&&ST.eq.bar)ST.eq.bar.position.y=L.bar||4;
+  EL.evn.textContent=EV[L.ev].name;
+  EL.evi.textContent=(COMBO?('Wielobój '+(COMBO.i+1)+'/9 · '):'')+
+    (CFG.players===2&&MATCH?('Gracz '+MATCH.cur+' · '):'')+
+    'Poziom '+L.id+' · '+L.tag+' · '+WORLDS[L.world].name+(RAIN?' · 🌧 mżawka':'');
+  EL.hint.textContent=EV[L.ev].hint;
+  EL.riv.hidden=(L.ev==='pole');                 /* tabela: biegi i konkursy techniczne */
+  EL.mk.hidden=true;EL.barl.textContent=(L.ev==='sprint'||L.ev==='hur')?'PRĘDKOŚĆ':(L.ev==='ham'?'OBROTY':'PRĘDKOŚĆ ROZBIEGU');
+  if(ST.board)ST.board.draw(EV[L.ev].name,L.name+' · '+L.tag);
+  resetInput();falseStart=0;raceT=0;
+  state='count';countT=(L.ev==='sprint'||L.ev==='hur')?3.4:1.4;
+  EL.menu.hidden=true;EL.hud.style.display='';EL.tp.style.display=TOUCH?'':'none';
+  EL.res.hidden=true;EL.msg.textContent='';EL.sub.textContent='';
+  msg((CFG.players===2&&MATCH?('GRACZ '+MATCH.cur+' — '):'')+'GOTOWI?',
+    EV[L.ev].name+' · '+goalTxt(L)+(COMBO?(' · wielobój: '+COMBO.pts+' pkt'):''),1400);
+  camInit();
+  updateHUD();
+}
+/* ---------- odliczanie / strzał startowy ---------- */
+function updateCount(dt){
+  const L=LV(),isRace=(L.ev==='sprint'||L.ev==='hur');
+  if(isRace&&(pL>0||pR>0)){
+    resetInput();falseStart++;
+    if(falseStart>1){
+      msg('FALSSTART!','Dyskwalifikacja',2600);beep(150,0.5,0.07);state='finish';
+      EL.res.innerHTML='❌ <b>DYSKWALIFIKACJA</b> — falstart (dwa przedwczesne starty)\n\n'+
+        'Enter / ▶ — jeszcze raz · 🔁 Jeszcze raz · R — restart';
+      overlay('finish');
+      return;
+    }
+    countT=3.4;msg('FALSSTART!','Czekaj na strzał',1700);beep(200,0.35,0.07);return;
+  }
+  const before=countT;countT-=dt;
+  const n=Math.ceil(countT);
+  if(n!==Math.ceil(before)&&n>0&&n<=3)beep(520,0.14,0.06);
+  if(countT<=0){
+    state='play';P.ph=(L.ev==='ham')?'spin':'run';P.t=0;resetInput();raceT=0;
+    if(isRace){gunshot();msg('START!','',600)}else msg('', '',1);
+  }
+}
+function restart(){if(state==='menu'){startEvent();return}startEvent()}
+/* jedno miejsce obsługi „potwierdź": menu, pauza i ekran wyniku */
+let comboDone=false;
+function menuConfirm(){
+  audioInit();
+  if(state==='menu')startEvent();
+  else if(state==='pause')togglePause();
+  else if(state==='replay')endReplay();
+  else if(state==='finish'){
+    if(comboDone){comboDone=false;state='menu';buildMenu();overlay('menu');previewStadium();return}
+    if(MATCH&&MATCH.res1){startEvent();return}            /* kolej Gracza 2 */
+    if(COMBO){                                            /* następny start wieloboju */
+      if(!COMBO.log[COMBO.i]){const Lc=LEVELS[COMBO.i];   /* np. dyskwalifikacja za falstart */
+        COMBO.log[COMBO.i]={id:Lc.id,ev:Lc.ev,name:Lc.name,res:0,pts:0}}
+      if(COMBO.i<8){COMBO.i++;sel=COMBO.i+1;buildMenu();startEvent()}
+      else{comboFinal([]);comboDone=true}
+      return;
+    }
+    if(PROG.unlocked>cur){sel=cur+1;buildMenu();startEvent()}else startEvent();
+  }
+}
+function togglePause(){
+  if(state==='menu'||state==='finish')return;
+  if(state==='pause'){state=pausedFrom;EL.menu.hidden=true;EL.hud.style.display='';EL.tp.style.display=''}
+  else{pausedFrom=state;state='pause';overlay('pause')}
+}
+const CAMNAME=['🎥 Auto','🏃 Śledząca','📺 Boczna'];
+function cycleCam(){
+  camMode=(camMode+1)%3;CFG.cam=camMode;PROG.cfg=CFG;saveProg();buildOpts();
+  msg('',CAMNAME[camMode],900);
+}
+/* ============================================================================
+   FIZYKA I POMOCNIKI (rozbieg ◀ ▶, znacznik kąta, lot pocisku, rywale AI)
+   ============================================================================ */
+const G0=9.81;
+/* ---------- wiatr i pogoda (część 2/3) ----------
+   Wiatr losowany na każdą próbę (seed poziomu + nr próby): + = w plecy.
+   Wpływa na prędkość biegu (windK w stepRun) i na zasięg rzutów/skoków. */
+function rollWind(L,attempt){
+  const r=mulberry((L.seed^0x9e37)+attempt*7919);
+  WIND.v=Math.round((r()*4.4-2.2)*10)/10;
+  WIND.txt=(WIND.v>0?'+':'')+WIND.v.toFixed(1);
+}
+/* mżawka na części poziomów: deterministycznie z seeda (ten sam poziom = ta sama pogoda) */
+function setupWeather(L){RAIN=mulberry(L.seed*3+11)()<0.28;}
+let _rainPos=null;
+function makeRain(){
+  if(rainPts)return rainPts;
+  const n=850,p=new Float32Array(n*3),r=mulberry(4242);
+  for(let i=0;i<n;i++){p[i*3]=(r()-0.5)*120;p[i*3+1]=r()*42;p[i*3+2]=(r()-0.5)*120}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  rainPts=new THREE.Points(g,new THREE.PointsMaterial({color:0xb9cade,size:0.16,transparent:true,opacity:0.55,depthWrite:false}));
+  rainPts.frustumCulled=false;rainPts.visible=false;S.add(rainPts);_rainPos=p;return rainPts;
+}
+function rainTick(dt){
+  if(!rainPts||!rainPts.visible)return;
+  for(let i=0;i<_rainPos.length;i+=3){
+    _rainPos[i+1]-=26*dt;_rainPos[i]+=WIND.v*dt*1.4;
+    if(_rainPos[i+1]<0){_rainPos[i+1]+=42;_rainPos[i]=(Math.random()-0.5)*120}
+    if(_rainPos[i]>60)_rainPos[i]=-60;else if(_rainPos[i]<-60)_rainPos[i]=60;
+  }
+  rainPts.geometry.attributes.position.needsUpdate=true;
+  rainPts.position.set(CAM.position.x,0,CAM.position.z);
+}
+/* ---------- punkty wieloboju (uproszczone tabele w stylu wielobojów LA) ----------
+   biegi: A*(B-czas)^C · techniczne: A*(wynik-B)^C (skoki w cm) */
+const PTAB={sprint:[25.4347,18,1.81,'t'],hur:[5.74352,28.5,1.92,'t'],
+  long:[0.14354,220,1.4,'cm'],jav:[10.14,7,1.08,'m'],ham:[12.91,4,1.1,'m'],pole:[0.2797,100,1.35,'cm']};
+function evPoints(L,res){
+  const c=PTAB[L.ev];if(!c||!isFinite(res))return 0;
+  const m=(c[3]==='cm')?res*100:res;
+  const d=(c[3]==='t')?(c[1]-m):(m-c[1]);
+  return d>0?Math.floor(c[0]*Math.pow(d,c[2])):0;
+}
+/* jeden krok rozbiegu: impuls za naprzemienne ◀ ▶, opór zależny od prędkości,
+   zmęczenie po ATH.fat metrach; zwraca stronę zaliczonego naciśnięcia */
+function stepRun(dt,decay,ms,windK){
+  const wet=RAIN?0.96:1;                          /* mżawka: gorsze odbicie */
+  const a=consumeAlt();
+  if(a)P.v=Math.min(ATH.vmax*wet,P.v+ATH.cad*(CFG.assist?ATH.aid:1)*wet);
+  const fat=P.run>ATH.fat?ATH.fatK:1;
+  P.v=Math.max(0,P.v-decay*fat*(CFG.assist?ATH.aic:1)*P.v*dt);
+  P.sp=Math.max(0,P.v*ms*(1+(windK||0)*WIND.v)); /* wiatr: + w plecy przyspiesza */
+  P.z+=P.sp*dt;P.run+=P.sp*dt;
+  P.cyc+=P.sp*dt*1.55;
+  return a;
+}
+/* znacznik (kąt / wybicie) krąży tam i z powrotem w zakresie 0..1 */
+function markerSweep(dt,speed){
+  P.mk+=P.mkDir*speed*dt*(CFG.assist?0.82:1);
+  if(P.mk>1){P.mk=1;P.mkDir=-1}else if(P.mk<0){P.mk=0;P.mkDir=1}
+  P.mark=true;
+}
+function markerQ(target,tol){return clamp(1-Math.abs(P.mk-target)/tol,0,1.06)}
+/* lot pocisku: z zasięgu R i kąta wyprowadzamy prędkość, żeby animacja zgadzała się
+   z pomiarem (R = v²·sin2θ/g) — trajektoria jest prawdziwą parabolą */
+function launch(range,angDeg,z0,y0){
+  const th=clamp(angDeg,5,80)*Math.PI/180;
+  const vd=Math.sqrt(Math.max(1,range*G0/Math.max(0.15,Math.sin(2*th))));
+  return {t:0,z0:z0,y0:y0||0,vd:vd,th:th,R:range,T:2*vd*Math.sin(th)/G0,done:0,z:z0,y:y0||0,vy:0};
+}
+function projStep(dt,f){
+  f.t+=dt;
+  f.z=f.z0+f.vd*Math.cos(f.th)*f.t;
+  f.y=f.y0+f.vd*Math.sin(f.th)*f.t-0.5*G0*f.t*f.t;
+  f.vy=f.vd*Math.sin(f.th)-G0*f.t;
+  if(f.y<=0){f.y=0;f.done=1}
+  return f;
+}
+/* ---------- rywale AI (sprint i płotki): do 8 torów + osobowości ----------
+   Finały (aiSkill>=0.88) obsadzają wszystkie tory (gracz na torze 3, AI na 1,2,4-8).
+   Osobowość: 'start' = szybki start, słabszy finisz · 'finish' = odwrotnie · 'even'. */
+const RNAMES=['Borys','Kuba','Antek','Marek','Olek','Tymon','Igor'];
+const RPERS=['start','even','finish'];
+function makeRivals(L){
+  clearRivals();
+  if(!(L.ev==='sprint'||L.ev==='hur'))return;
+  const z0=L.ev==='sprint'?PLANE.sp:PLANE.hurSp;
+  const len=L.ev==='hur'?110:100;
+  const full=(L.aiSkill||0)>=0.88;
+  const lanes=full?[1,2,4,5,6,7,8]:[4,5,6];
+  const r0=mulberry(L.seed*29+3);
+  for(let i=0;i<lanes.length;i++){
+    const lane=lanes[i],A=buildAthlete(KITS[(i+1)%KITS.length],lane);S.add(A.grp);
+    let base;
+    if(i<L.rivals.length)base=L.rivals[i]+(r0()-0.5)*0.2;
+    else base=L.rivals[L.rivals.length-1]+0.25*(i-L.rivals.length+1)+r0()*0.3;
+    const r={A:A,lane:lane,x:laneX(lane),z:z0,v:0,sp:0,ph:0,dist:0,time:0,done:0,air:0,stumble:0,
+      jmp:0,hurd:0,hurdles:[],name:RNAMES[i],pers:RPERS[Math.floor(r0()*3)],target:base,
+      vm:len/(base-0.85),jumpZ:-999};
+    if(L.ev==='hur')for(const h of (ST.eq.hurdles||[]))if(h.lane===lane)r.hurdles.push(h.z);
+    A.grp.position.set(r.x,0,r.z);A.grp.rotation.y=0;
+    RIVS.push(r);
+  }
+}
+function updateRivals(dt){
+  const L=LV(),isHur=(L.ev==='hur'),len=isHur?110:100;
+  for(const r of RIVS){
+    if(r.done)continue;
+    if(r.stumble>0){r.stumble-=dt;r.v*=0.97}
+    if(r.air>0)r.air-=dt;
+    if(isHur&&r.stumble<=0){
+      const hz=r.hurdles[r.hurd];
+      if(hz!=null&&r.z>=hz-2.4&&!r.jmp){r.jmp=1;r.air=0.4;if(Math.random()<L.aiSkill)r.jumpZ=r.z}
+    }
+    /* profil osobowości: tempo zależne od fazy biegu */
+    const kk=clamp(r.dist/len,0,1);
+    const prof=r.pers==='start'?lerp(1.08,0.94,kk):(r.pers==='finish'?lerp(0.93,1.08,kk):1);
+    r.v=damp(r.v,r.vm*prof*(r.stumble>0?0.55:1),1.15,dt);
+    r.z+=r.v*dt;r.sp=r.v;r.ph+=r.v*dt*1.55;r.dist=r.z-(isHur?PLANE.hurSp:PLANE.sp);
+    if(isHur)while(r.hurd<r.hurdles.length&&r.z>r.hurdles[r.hurd]){
+      const hz=r.hurdles[r.hurd];
+      if(!(r.jumpZ<=hz&&(hz-r.jumpZ)<=2.7)){r.stumble=0.6;r.v*=0.6}
+      r.hurd++;r.jmp=0;r.jumpZ=-999;
+    }
+    if(r.dist>=len){r.done=1;r.time=raceT}
+    r.A.grp.position.set(r.x,0,r.z);
+    r.A.ph=r.ph;
+    poseAthlete(r.A,{mode:r.air>0?'jump':'run',sp:clamp(r.v/11.2,0,1),t:0});
+  }
+}
+/* ---------- rywale AI w konkursach technicznych (seria 3 prób, kolejność startowa) ---------- */
+function makeFieldRivals(L){
+  FRIV=[];
+  if(L.ev==='sprint'||L.ev==='hur'||L.ev==='pole')return;
+  const r0=mulberry(L.seed*13+7);
+  for(let i=0;i<3;i++)FRIV.push({name:RNAMES[(i+2)%RNAMES.length],sk:0.9+r0()*0.16,best:0,att:[]});
+}
+/* po każdej próbie gracza rywale wykonują swoją próbę w tej samej serii */
+function fieldAiThrow(L){
+  for(const r of FRIV){
+    const r1=mulberry(L.seed*7+r.name.charCodeAt(0)*101+P.attempt*313);
+    const foul=r1()<0.13;
+    const res=foul?0:L.qual*r.sk*(0.9+r1()*0.18);
+    r.att.push(res);if(res>r.best)r.best=res;
+  }
+}
+/* ============================================================================
+   KONKURENCJE — sprint, płotki, skok w dal, oszczep, młot, tyczka
+   ============================================================================ */
+function foulNow(big,sub){
+  if(P.ph==='foul')return;
+  P.ph='foul';P.t=0;P.foul=1;beep(140,0.4,0.07);msg(big,sub,2000);
+}
+/* --- sprint 100 m --- */
+function updSprint(dt){
+  consumeA();                       /* A nic nie robi w biegu — czyścimy kolejkę naciśnięć */
+  stepRun(dt,ATH.decay,ATH.ms,0.006);
+  P.dist=P.z-PLANE.sp;
+  if(P.dist>=100){P.done=1;finishRun()}
+}
+/* --- płotki 110 m: A w oknie ~2.5 m przed płotkiem = czysty przelot --- */
+function updHur(dt){
+  stepRun(dt,ATH.decay,ATH.ms,0.006);
+  if(P.stumble>0)P.stumble-=dt;
+  if(P.air>0){P.air-=dt;if(P.air<0)P.air=0}
+  if(consumeA()&&P.air<=0&&P.stumble<=0){
+    P.air=clamp(2.6/Math.max(4,P.sp||4),0.22,0.5);   /* lot proporcjonalny do prędkości */
+    P.jumpZ=P.z;beep(300,0.06,0.03);
+  }
+  while(P.hurd<P.hurdles.length&&P.z>P.hurdles[P.hurd]){
+    const hz=P.hurdles[P.hurd],ok=(P.jumpZ<=hz&&(hz-P.jumpZ)<=2.7&&P.stumble<=0);
+    if(ok)P.cleared++;
+    else{P.stumble=CFG.assist?0.4:0.6;P.v*=CFG.assist?0.72:0.55;P.hits++;beep(110,0.16,0.06,'sawtooth')}
+    P.jumpZ=-999;P.hurd++;
+  }
+  P.dist=P.z-PLANE.hurSp;
+  if(P.dist>=110){P.done=1;finishRun()}
+}
+/* --- skok w dal: rozbieg → belka (A) → kąt (A) → lot → pomiar --- */
+function updLong(dt){
+  if(P.ph==='run'){
+    stepRun(dt,ATH.decay,ATH.ms,0.004);
+    if(consumeA()){
+      if(P.z>=-0.5&&P.z<=0.10){
+        P.takeoff=P.z;P.qt=clamp(1-Math.abs(P.z+0.15)/0.7,0.68,1);
+        P.tkCm=Math.round((0.10-P.takeoff)*100);   /* dokładny pomiar strefy odbicia [cm] */
+        P.ph='air';P.t=0;P.mk=0;P.mkDir=1;
+        msg('ODBICIE!',(P.tkCm>0?(P.tkCm+' cm przed belką'):'dokładnie z krawędzi!')+' · A = kąt odbicia',1100);beep(420,0.1,0.05);
+      }else if(P.z>0.10)foulNow('SPALONY!','Odbicie za belką');
+      else msg('ZA WCZEŚNIE','Odbij się z belki',700);
+    }
+    if(P.ph==='run'&&P.z>0.6)foulNow('SPALONY!','Przebiegłeś belkę');
+  }else if(P.ph==='air'){
+    P.t+=dt;markerSweep(dt,0.75);
+    if(consumeA()||P.t>3.0){
+      const ang=10+P.mk*50,q=markerQ(0.34,0.3),vms=P.v*ATH.ms;
+      let R=(vms*vms*Math.sin(2*ang*Math.PI/180)/G0*1.05*q*P.qt+0.3)*(1+WIND.v*0.018);
+      if(R<0.6)R=0.6;
+      P.flight=launch(R,ang,P.z,0);
+      P.ph='flight';P.t=0;msg('','W LOCIE!',800);beep(520,0.09,0.05);
+    }
+  }else if(P.ph==='flight'){
+    projStep(dt,P.flight);
+    P.y=P.flight.y;
+    if(P.flight.done){P.ph='land';P.t=0;P.res=Math.max(0,P.flight.z);P.y=0}
+  }else if(P.ph==='land'){
+    P.t+=dt;
+    if(P.t>1.0)fieldEnd(P.res,false);
+  }
+}
+/* --- rzut oszczepem: rozbieg → A = wyrzut → A = kąt → lot --- */
+function updJav(dt){
+  if(P.ph==='run'){
+    stepRun(dt,ATH.decay,ATH.ms,0.004);
+    if(P.z>=JAV.line-0.1){foulNow('SPALONY!','Przekroczyłeś linię');return}
+    if(consumeA()){
+      P.ph='wind';P.t=0;P.vAt=P.v;P.mk=0;P.mkDir=1;
+      msg('WYRZUT!','A = kąt (~35°)',900);beep(380,0.1,0.05);
+    }
+  }else if(P.ph==='wind'){
+    P.t+=dt;P.v*=0.94;
+    if(P.t>0.4){P.ph='air';P.t=0}
+  }else if(P.ph==='air'){
+    P.t+=dt;markerSweep(dt,0.8);
+    if(consumeA()||P.t>3.0){
+      const ang=10+P.mk*50,q=markerQ(0.5,0.3);
+      const vms=(P.vAt||P.v)*ATH.ms;
+      let R=vms*vms*Math.sin(2*ang*Math.PI/180)/G0*9.0*q*(1+WIND.v*0.012);
+      if(R<4)R=4;
+      P.flight=launch(R,ang,P.z+0.6,1.7);
+      P.ph='flight';P.t=0;msg('','OSZCZEP W LOCIE!',800);
+    }
+  }else if(P.ph==='flight'){
+    projStep(dt,P.flight);
+    if(P.flight.done){P.ph='land';P.t=0;P.res=P.flight.z}
+  }else if(P.ph==='land'){
+    P.t+=dt;
+    if(P.t>0.9)fieldEnd(P.res,false);
+  }
+}
+/* --- rzut młotem: obroty (◀ ▶ na zmianę) → A = wypuszczenie → A = kąt --- */
+function updHam(dt){
+  if(P.ph==='spin'){
+    P.t+=dt;
+    const a=consumeAlt();
+    if(a)P.w=Math.min(2.6,P.w+0.32);
+    P.w=Math.max(0,P.w-0.45*P.w*dt);
+    P.rot+=P.w*dt;
+    const auto=(P.t>11&&P.w>0.5);            /* bezpiecznik: brak decyzji = wypuszczenie */
+    if(consumeA()||auto){
+      if(P.w>0.35){
+        P.power=clamp(P.w/2.6,0,1);P.ph='air';P.t=0;P.mk=0;P.mkDir=1;
+        msg('WYPUSZCZENIE!','A = kąt (~44°)',900);beep(380,0.1,0.05);
+      }else msg('ZA WOLNO','Rozkręć młot ◀ ▶',700);
+    }
+  }else if(P.ph==='air'){
+    P.t+=dt;markerSweep(dt,0.8);
+    if(consumeA()||P.t>3.0){
+      const ang=10+P.mk*50,q=markerQ(0.68,0.3);
+      const vms=3.0*ATH.vmax*P.power;
+      let R=vms*vms*Math.sin(2*ang*Math.PI/180)/G0*7.5*q*(1+WIND.v*0.004);
+      if(R<5)R=5;
+      P.flight=launch(R,ang,HAM.z+1.6,1.4);
+      P.ph='flight';P.t=0;msg('','MŁOT W LOCIE!',800);
+    }
+  }else if(P.ph==='flight'){
+    projStep(dt,P.flight);
+    if(P.flight.done){P.ph='land';P.t=0;P.res=P.flight.z-(HAM.z+HAM.r)}
+  }else if(P.ph==='land'){
+    P.t+=dt;
+    if(P.t>0.9)fieldEnd(P.res,false);
+  }
+}
+/* --- skok o tyczce: rozbieg → A przed skrzynką → A = moment wybicia --- */
+function updPole(dt){
+  if(P.ph==='run'){
+    stepRun(dt,ATH.decay,ATH.ms,0.003);
+    if(P.z>=0.35){foulNow('NIEUDANY','Przebiegłeś skrzynkę');return}
+    if(consumeA()){
+      if(P.z>=-2.6&&P.z<=0.3){
+        P.ph='plant';P.t=0;P.vAt=P.v;P.mk=0;P.mkDir=1;
+        msg('TYCZKA W SKRZYNCE!','A = moment wybicia',1000);beep(420,0.1,0.05);
+      }else msg('ZA WCZEŚNIE','Dobiegaj do skrzynki',700);
+    }
+  }else if(P.ph==='plant'){
+    P.t+=dt;
+    if(P.t>0.4){P.ph='air';P.t=0}
+  }else if(P.ph==='air'){
+    P.t+=dt;markerSweep(dt,0.6);
+    if(consumeA()||P.t>2.8){
+      const q=markerQ(0.72,0.5),vms=(P.vAt||P.v)*ATH.ms;
+      P.height=(1.2+vms*0.48)*q;
+      P.ph='vault';P.t=0;
+      msg('',fmtM(P.height)+' vs poprzeczka '+fmtM(P.barH),1300);
+    }
+  }else if(P.ph==='vault'){
+    P.t+=dt;
+    const k=clamp(P.t/1.5,0,1),peak=Math.max(1.2,P.height);
+    if(k<0.6){P.y=Math.sin(k/0.6*Math.PI*0.5)*peak;P.z=0.05+k*1.4}
+    else{const u=(k-0.6)/0.4;P.y=lerp(peak,1.05,u);P.z=lerp(0.89,3.4,u)}
+    if(k>=1){
+      P.cleared=(P.height>=P.barH-0.02)?1:0;
+      P.res=P.cleared?P.barH:0;
+      P.ph='land';P.t=0;
+      if(P.cleared)cheer();else{beep(120,0.45,0.07);msg('ZBRUKOWANE!','Poprzeczka spadła',1600)}
+    }
+  }else if(P.ph==='land'){
+    P.t+=dt;
+    if(P.t>0.9){P.y=0;poleEnd(!!P.cleared)}
+  }
+}
+/* ============================================================================
+   WYNIKI, PRÓBY, MEDALE, REKORDY (hoplaO3) i odblokowywanie poziomów
+   ============================================================================ */
+function finishRun(){
+  const L=LV(),len=L.ev==='hur'?110:100;
+  P.time=raceT;P.done=1;P.att=[P.time];
+  for(const r of RIVS)if(!r.done){r.time=raceT+Math.max(0,(len-r.dist))/Math.max(2,r.vm);r.done=1}
+  const all=RIVS.map(r=>({t:r.time,me:0})).concat([{t:P.time,me:1}]).sort((a,b)=>a.t-b.t);
+  P.place=all.findIndex(o=>o.me)+1;
+  const ok=P.time<=L.limit;
+  msg(fmtT(P.time),(ok?'✅ KWALIFIKACJA':'❌ za wolno')+' · miejsce '+P.place+'/'+(RIVS.length+1)+
+    ' · wiatr '+WIND.txt,2600);
+  if(ok)cheer();
+  finishEvent(ok,P.time);
+}
+/* pełna seria 3 prób: kwalifikację rozstrzyga najlepsza próba, rywale AI startują razem z nami */
+function fieldEnd(res,foul){
+  const L=LV();
+  P.res=foul?0:res;
+  P.att.push(foul?0:P.res);
+  if(!foul&&P.res>P.best)P.best=P.res;
+  if(ST.eq&&ST.eq.judge){                          /* sędzia: chorągiewka w górę */
+    ST.eq.judge.mat.color.set(foul?0xd43a2a:0xf4f7ff);
+    ST.eq.judge.flag.position.y=1.72;
+  }
+  fieldAiThrow(L);
+  if(P.attempt>=3){
+    const ok=P.best>=L.qual;
+    let pl=1;for(const r of FRIV)if(r.best>P.best)pl++;
+    P.place=pl;
+    msg(P.best?fmtM(P.best):'BRAK ZALICZENIA',
+      (ok?'✅ KWALIFIKACJA':'❌ norma '+fmtM(L.qual)+' nieosiągnięta')+' · miejsce '+pl+'/'+(FRIV.length+1),2800);
+    if(ok)cheer();
+    finishEvent(ok,P.best);return;
+  }
+  P.attempt++;
+  msg('PRÓBA '+P.attempt+'/3',
+    (P.best>=L.qual?('✅ norma jest ('+fmtM(P.best)+') — walcz o rekord'):goalTxt(L))+
+    ' · wiatr '+WIND.txt+' m/s',1900);
+  nextAttempt();
+}
+function nextAttempt(){
+  const L=LV();
+  placeAtStart(L);resetInput();
+  rollWind(L,P.attempt);                         /* nowa próba = nowy wiatr */
+  RPL.length=0;rplAcc=0;                         /* powtórka = ostatnia próba */
+  P.tkCm=null;
+  if(ST.eq&&ST.eq.judge){ST.eq.judge.mat.color.set(0xf4f7ff);ST.eq.judge.flag.position.y=1.2}
+  if(ST.eq&&ST.eq.jav)ST.eq.jav.visible=true;
+  if(ST.eq&&ST.eq.ball)ST.eq.ball.visible=true;
+  if(ST.eq&&ST.eq.bar)ST.eq.bar.position.y=P.barH;
+  state='count';countT=1.4;
+}
+function poleEnd(cleared){
+  const L=LV();
+  P.att.push(cleared?P.barH:0);
+  if(cleared){
+    P.barMax=Math.max(P.barMax,P.barH);
+    if(P.barH+0.2<=L.bar+0.41){
+      P.barH+=0.2;P.attempt++;
+      msg('PRZESZŁE!',fmtM(P.barMax)+' · następna poprzeczka '+fmtM(P.barH),2000);
+      nextAttempt();return;
+    }
+    finishEvent(true,P.barMax);return;
+  }
+  if(P.attempt>=3){finishEvent(P.barMax>=L.bar,P.barMax);return}
+  P.attempt++;
+  msg('ZBRUKOWANE','Próba '+P.attempt+'/3 · poprzeczka '+fmtM(P.barH),1600);
+  nextAttempt();
+}
+function finishEvent(ok,res){
+  const L=LV();
+  let medal='';
+  if(ok){
+    if(L.ev==='sprint'||L.ev==='hur')medal=P.place===1?'🥇':(P.place===2?'🥈':(P.place===3?'🥉':''));
+    else if(L.ev==='pole')medal=res>=L.bar+0.4?'🥇':(res>=L.bar+0.2?'🥈':'🥉');
+    else medal=res>=L.qual*1.2?'🥇':(res>=L.qual*1.1?'🥈':'🥉');
+  }
+  const prev=PROG.best[L.id];
+  if(ok){
+    const better=!prev||((L.ev==='sprint'||L.ev==='hur')?res<prev.res:res>prev.res);
+    if(better)PROG.best[L.id]={res:res,place:P.place||0,medal:medal,ts:Date.now()};
+    else if(medal&&!prev.medal)PROG.best[L.id].medal=medal;
+    if(L.id<9&&L.id+1>PROG.unlocked)PROG.unlocked=L.id+1;
+  }
+  saveProg();
+  state='finish';
+  const isRace=(L.ev==='sprint'||L.ev==='hur');
+  /* ---------- rozgrywka 2 graczy (hot-seat): najpierw G1, potem G2, potem porównanie ---------- */
+  let duo=null;
+  if(CFG.players===2&&!COMBO){
+    if(!MATCH)MATCH={cur:1,res1:null,pts:{1:0,2:0},log:[]};
+    if(!MATCH.res1){
+      MATCH.res1={ok:ok,res:res};
+      MATCH.cur=2;
+      EL.res.innerHTML='🏁 <b>GRACZ 1</b> — '+EV[L.ev].name+': <b>'+fmtRes(L,res)+'</b>'+(ok?' ✅':' ❌')+
+        '\n\nTeraz ta sama konkurencja dla <b>GRACZA 2</b> (czerwony dres).'+
+        '\n👥 Mecz: G1 '+MATCH.pts[1]+' : '+MATCH.pts[2]+' G2'+
+        '\n\nEnter / ▶ — start Gracza 2';
+      overlay('finish');
+      buildMenu();
+      return;
+    }
+    const r1=MATCH.res1;
+    let win=0;
+    if(r1.ok!==ok)win=ok?2:1;
+    else if(Math.abs(r1.res-res)>1e-9)win=(isRace?(res<r1.res):(res>r1.res))?2:1;
+    if(win)MATCH.pts[win]++;
+    MATCH.log.push(EV[L.ev].icon+' '+EV[L.ev].name+': G1 '+(r1.ok?fmtRes(L,r1.res):'❌')+
+      ' — G2 '+(ok?fmtRes(L,res):'❌')+(win?(' → punkt: G'+win):' → remis'));
+    duo={r1:r1,win:win};
+    MATCH.res1=null;MATCH.cur=1;
+  }
+  const out=[];
+  out.push((ok?'✅ <b>KWALIFIKACJA</b>':'❌ <b>BEZ KWALIFIKACJI</b>')+'   '+EV[L.ev].icon+' '+EV[L.ev].name+
+    ' · poziom '+L.id+' ('+L.tag+')'+(CFG.players===2?(' · <b>GRACZ '+(duo?2:1)+'</b>'):''));
+  if(isRace){
+    out.push('Twój czas: <b>'+fmtT(P.time)+'</b>   limit: '+fmtT(L.limit)+
+      '   miejsce: <b>'+P.place+'/'+(RIVS.length+1)+'</b>'+(medal?'   '+medal:'')+
+      '   wiatr '+WIND.txt+' m/s');
+    if(L.ev==='hur')out.push('Płotki: czysto '+P.cleared+'/10 · potrącone '+P.hits);
+    for(const r of RIVS)out.push('   '+r.name+' (tor '+r.lane+') — '+fmtT(r.time));
+  }else if(L.ev==='pole'){
+    out.push('Najwyższa poprzeczka: <b>'+fmtM(P.barMax)+'</b>   norma: '+fmtM(L.qual)+(medal?'   '+medal:''));
+    if(P.att.length)out.push('Próby: '+P.att.map(a=>a?fmtM(a)+' ✓':'✗').join(' · '));
+  }else{
+    out.push('Najlepsza próba: <b>'+fmtM(P.best)+'</b>   norma: '+fmtM(L.qual)+(medal?'   '+medal:'')+
+      '   miejsce: <b>'+(P.place||'-')+'/'+(FRIV.length+1)+'</b>   wiatr '+WIND.txt+' m/s');
+    out.push('Twoje próby: '+P.att.map(a=>a?fmtM(a):'✗ spalony').join(' · ')+
+      (P.tkCm!=null?(' · odbicie '+(P.tkCm>0?P.tkCm+' cm przed belką':'z krawędzi')):''));
+    if(FRIV.length){
+      const rows=FRIV.map(r=>({n:r.name,b:r.best,me:0})).concat([{n:PNAME(),b:P.best,me:1}])
+        .sort((a,b)=>b.b-a.b);
+      rows.forEach((r,i)=>out.push('   '+(i+1)+'. '+(r.me?'<b>'+r.n+'</b>':r.n)+' — '+(r.b?fmtM(r.b):'bez zaliczenia')));
+    }
+  }
+  const rec=PROG.best[L.id];
+  if(rec)out.push('Rekord tego poziomu: <b>'+fmtRes(L,rec.res)+'</b>'+(rec.medal?' '+rec.medal:''));
+  if(ok&&L.id<9)out.push('Odblokowano poziom '+(L.id+1)+' — '+LEVELS[L.id].name);
+  if(ok&&L.id===9&&!COMBO)out.push('🏆 <b>WSZYSTKIE 9 STARTÓW ZALICZONE — MISTRZ OLIMPIADY!</b>');
+  /* ---------- pojedynek 2 graczy: rozstrzygnięcie i tabela punktów ---------- */
+  if(duo){
+    out.push('');
+    out.push('👥 POJEDYNEK: G1 <b>'+fmtRes(L,duo.r1.res)+'</b>'+(duo.r1.ok?' ✅':' ❌')+
+      '  ·  G2 <b>'+fmtRes(L,res)+'</b>'+(ok?' ✅':' ❌')+
+      (duo.win?('  → punkt dla <b>GRACZA '+duo.win+'</b>'):'  → remis, bez punktu'));
+    out.push('👥 Tabela meczu: <b>G1 '+MATCH.pts[1]+' : '+MATCH.pts[2]+' G2</b>');
+    for(const l of MATCH.log.slice(-6))out.push('   '+l);
+  }
+  /* ---------- wielobój: punkty wg tabel, awans do następnego startu ---------- */
+  if(COMBO){
+    const pts=evPoints(L,isRace?P.time:(L.ev==='pole'?P.barMax:P.best));
+    if(COMBO.log[COMBO.i])COMBO.pts-=COMBO.log[COMBO.i].pts;   /* powtórka startu nie dolicza dwa razy */
+    COMBO.log[COMBO.i]={id:L.id,ev:L.ev,name:L.name,res:isRace?P.time:(L.ev==='pole'?P.barMax:P.best),pts:pts};
+    COMBO.pts+=pts;
+    out.push('');
+    out.push('🏅 WIELOBÓJ: <b>+'+pts+' pkt</b> · razem <b>'+COMBO.pts+' pkt</b> ('+(COMBO.i+1)+'/9)');
+    if(COMBO.i<8)out.push('Następny start: '+EV[LEVELS[COMBO.i+1].ev].icon+' '+LEVELS[COMBO.i+1].name);
+    else{comboFinal(out);comboDone=true;return}
+  }
+  out.push('');
+  out.push('Enter / ▶ — dalej · 🔁 Jeszcze raz · R — powtórz · V / 📺 — powtórka próby');
+  EL.res.innerHTML=out.join('\n');
+  overlay('finish');
+  buildMenu();
+  if(!ok)beep(180,0.5,0.06);
+}
+/* klasyfikacja końcowa wieloboju (po 9. starcie) */
+function comboFinal(out){
+  const tot=COMBO.pts;
+  const prev=PROG.best.combo;
+  const isRec=!prev||tot>prev.pts;
+  if(isRec)PROG.best.combo={pts:tot,ts:Date.now()};
+  saveProg();
+  const medal=tot>=8000?'🥇':(tot>=6500?'🥈':(tot>=5000?'🥉':''));
+  out.push('');
+  out.push('🏅 <b>WIELOBÓJ — KLASYFIKACJA KOŃCOWA</b>');
+  for(let i=0;i<9;i++){const e=COMBO.log[i]||{ev:LEVELS[i].ev,name:LEVELS[i].name,res:0,pts:0,id:i+1};
+    out.push('   '+(i+1)+'. '+EV[e.ev].icon+' '+e.name+' — '+
+      ((e.ev==='sprint'||e.ev==='hur')?(e.res?fmtT(e.res):'DQ'):fmtM(e.res))+' → <b>'+e.pts+' pkt</b>')}
+  out.push('');
+  out.push('RAZEM: <b>'+tot+' pkt</b>  '+(medal||'')+(isRec?'  🏆 NOWY REKORD!':(prev?('  (rekord: '+prev.pts+' pkt)'):'')));
+  out.push('');
+  out.push('Enter / ▶ — powrót do wyboru konkurencji');
+  EL.res.innerHTML=out.join('\n');
+  COMBO=null;
+  overlay('finish');
+  EL.bstart.textContent='🏟️ Wybór konkurencji';
+  buildMenu();
+  if(medal)cheer();
+}
+/* ---------- dyspozytor konkurencji ---------- */
+function updateEvent(dt){
+  const L=LV();
+  /* bezpiecznik: zbyt długa próba (np. brak naciskania) kończy się niepowodzeniem */
+  P.tAcc=(P.tAcc||0)+dt;
+  if(P.tAcc>32){
+    P.tAcc=0;
+    msg('CZAS MINĄŁ','',1600);
+    if(L.ev==='pole')poleEnd(false);
+    else if(L.ev==='sprint'||L.ev==='hur')finishRun();
+    else fieldEnd(0,true);
+    return;
+  }
+  if(P.ph==='foul'){
+    P.t+=dt;
+    if(P.t>1.3){if(L.ev==='pole')poleEnd(false);else fieldEnd(0,true)}
+    return;
+  }
+  if(L.ev==='sprint')updSprint(dt);
+  else if(L.ev==='hur')updHur(dt);
+  else if(L.ev==='long')updLong(dt);
+  else if(L.ev==='jav')updJav(dt);
+  else if(L.ev==='ham')updHam(dt);
+  else updPole(dt);
+  if(L.ev==='sprint'||L.ev==='hur')updateRivals(dt);
+}
+/* ============================================================================
+   ANIMACJA ZAWODNIKA / SPRZĘTU · HUD · KAMERA · PĘTLA
+   ============================================================================ */
+function posePlayer(now){
+  const L=LV(),sp=clamp((P.sp||0)/11.4,0,1);
+  let mode='run',t=0;
+  switch(P.ph){
+    case 'start':mode='start';break;
+    case 'wind':mode='throw';t=clamp(P.t/0.5,0,1);break;
+    case 'air':mode=(L.ev==='jav')?'throw':(L.ev==='pole'?'vault':'jump');t=(L.ev==='jav')?clamp(0.4+P.t/2,0,1):0;break;
+    case 'flight':mode=(L.ev==='long')?'jump':'throw';t=(L.ev==='jav')?1:0.5;break;
+    case 'plant':case 'vault':mode='vault';break;
+    case 'land':case 'foul':mode='land';break;
+    case 'spin':mode='spin';break;
+    case 'idle':mode='idle';t=now/1000;break;
+    default:mode='run';
+  }
+  AV.ph=(P.ph==='idle')?0:(P.cyc||0);
+  poseAthlete(AV,{mode:mode,sp:sp,t:t});
+  AV.grp.position.set(P.x,P.y||0,P.z);
+  AV.grp.rotation.y=(P.ph==='spin'||((P.ph==='air'||P.ph==='flight')&&L.ev==='ham'))?P.rot:P.yaw;
+}
+/* sprzęt w akcji: młot na linie, oszczep w ręku i w locie, tyczka, poprzeczka */
+function updateGear(dt){
+  const L=LV(),eq=(ST&&ST.eq)?ST.eq:null;
+  if(!eq||!P)return;
+  if(eq.ball){
+    if(L.ev==='ham'&&P.ph==='spin'){
+      eq.ball.visible=true;
+      eq.ball.position.set(P.x+Math.sin(P.rot)*1.55,1.0+0.3*Math.cos(P.rot*2),P.z+Math.cos(P.rot)*1.55);
+      eq.ball.rotation.y+=9*dt;
+    }else if(L.ev==='ham'&&P.flight&&(P.ph==='flight'||P.ph==='land')){
+      eq.ball.position.set(P.x,P.flight.y+0.15,P.flight.z);eq.ball.rotation.y+=9*dt;
+    }else eq.ball.visible=false;
+  }
+  if(eq.jav){
+    if(L.ev==='jav'&&P.flight&&(P.ph==='flight'||P.ph==='land')){
+      const f=P.flight;eq.jav.visible=true;
+      eq.jav.position.set(JAV.x,f.y+0.25,f.z);
+      eq.jav.rotation.set(Math.PI/2-Math.atan2(f.vy||0,Math.max(1,f.vd*Math.cos(f.th))),0,0);
+    }else if(L.ev==='jav'&&(P.ph==='wind'||P.ph==='air')){
+      eq.jav.visible=true;eq.jav.position.set(P.x+0.28,1.5,P.z-0.2);eq.jav.rotation.set(0.35,0,0);
+    }else eq.jav.visible=false;
+  }
+  if(eq.pole){
+    const on=(L.ev==='pole'&&(P.ph==='plant'||P.ph==='vault'||P.ph==='air'));
+    eq.pole.visible=on;
+    if(on){
+      const a=new THREE.Vector3(POLE.x,0,0.3),b=new THREE.Vector3(P.x,(P.y||0)+1.65,P.z);
+      const dir=b.clone().sub(a),len=Math.max(1,dir.length());
+      eq.pole.position.copy(a).add(b).multiplyScalar(0.5);
+      eq.pole.quaternion.setFromUnitVectors(UP,dir.normalize());
+      eq.pole.scale.set(1,len/5.0,1);
+    }
+  }
+  if(eq.bar){
+    const falling=(L.ev==='pole'&&P.ph==='land'&&!P.cleared);
+    eq.bar.position.y=falling?Math.max(0.2,P.barH-3.2*P.t):P.barH;
+    eq.bar.rotation.set(0,0,Math.PI/2+(falling?P.t*2.4:0));
+  }
+}
+/* ---------- HUD: pomiar, pasek prędkości, znacznik kąta, tabela biegu ---------- */
+function liveDist(L){
+  if(!P.flight)return null;
+  if(L.ev==='long')return Math.max(0,P.flight.z);
+  if(L.ev==='jav')return Math.max(0,P.flight.z-JAV.line);
+  if(L.ev==='ham')return Math.max(0,P.flight.z-(HAM.z+HAM.r));
+  return null;
+}
+function updateTable(){
+  const L=LV();
+  if(L.ev==='sprint'||L.ev==='hur'){
+    EL.riv.hidden=false;
+    const len=L.ev==='hur'?110:100;
+    const rows=RIVS.map(r=>({n:r.name,d:Math.min(r.dist,len),t:r.done?r.time:0,me:0}));
+    rows.push({n:PNAME(),d:Math.min(P.dist||0,len),t:P.done?P.time:0,me:1});
+    rows.sort((a,b)=>b.d-a.d);
+    let h='<span class="h">Tabela biegu ('+(RIVS.length+1)+' zawodników)</span>';
+    rows.forEach((r,i)=>{h+='<div class="r'+(r.me?' me':'')+'"><span>'+(i+1)+'. '+r.n+'</span><span>'+
+      (r.t?fmtT(r.t):(r.d.toFixed(1)+' m'))+'</span></div>'});
+    EL.riv.innerHTML=h;
+    return;
+  }
+  /* konkursy techniczne: stawka serii (gracz + rywale AI wg najlepszej próby) */
+  if(!FRIV.length){EL.riv.hidden=true;return}
+  EL.riv.hidden=false;
+  const rows=FRIV.map(r=>({n:r.name,b:r.best,a:r.att.length?r.att[r.att.length-1]:null,me:0}));
+  rows.push({n:PNAME(),b:P.best||0,a:P.att.length?P.att[P.att.length-1]:null,me:1});
+  rows.sort((a,b)=>b.b-a.b);
+  let h='<span class="h">Konkurs · seria '+Math.min(P.attempt,3)+'/3 (kolejność startowa)</span>';
+  rows.forEach((r,i)=>{h+='<div class="r'+(r.me?' me':'')+'"><span>'+(i+1)+'. '+r.n+'</span><span>'+
+    (r.b?fmtM(r.b):'—')+(r.a===null?'':(r.a?(' · ost. '+fmtM(r.a)):' · ost. ✗'))+'</span></div>'});
+  EL.riv.innerHTML=h;
+}
+function updateHUD(){
+  const L=LV();
+  let big='—',det='';
+  if(L.ev==='sprint'||L.ev==='hur'){
+    big=fmtT(raceT);
+    det='Dystans '+clamp(P.dist||0,0,200).toFixed(1)+' m / '+(L.ev==='hur'?110:100)+' m'+
+      (L.ev==='hur'?('\nPłotki '+(P.cleared+P.hits)+'/10 · potrącone '+P.hits):'')+
+      '\nPrędkość '+(P.sp||0).toFixed(2)+' m/s · limit '+fmtT(L.limit)+
+      '\nWiatr '+WIND.txt+' m/s'+(RAIN?' · 🌧 mokra nawierzchnia':'');
+  }else if(L.ev==='pole'){
+    big=fmtM(P.barH);
+    det='Norma '+fmtM(L.qual)+' · próba '+Math.min(P.attempt,3)+'/3\nWysokość '+(P.y||0).toFixed(2)+' m'+
+      (P.barMax?('\nNajwyższa '+fmtM(P.barMax)):'')+
+      (P.att.length?('\nPróby: '+P.att.map(a=>a?fmtM(a)+' ✓':'✗').join(' · ')):'');
+  }else{
+    const live=(P.ph==='flight')?liveDist(L):null;
+    big=(P.ph==='land'&&P.res)?fmtM(P.res):(live!=null?fmtM(live):(P.best?fmtM(P.best):'—'));
+    det='Norma '+fmtM(L.qual)+' · próba '+Math.min(P.attempt,3)+'/3'+(P.best?('\nNajlepsza '+fmtM(P.best)):'')+
+      (P.att.length?('\nSeria: '+P.att.map(a=>a?fmtM(a):'✗').join(' · ')):'')+
+      (P.tkCm!=null?('\nOdbicie '+(P.tkCm>0?P.tkCm+' cm przed belką':'dokładnie z krawędzi')):'')+
+      '\nPrędkość rozbiegu '+(P.sp||0).toFixed(2)+' m/s · wiatr '+WIND.txt+' m/s'+(RAIN?' · 🌧':'');
+  }
+  EL.big.textContent=big;EL.det.textContent=det;
+  const f=L.ev==='ham'?clamp(P.w/2.6,0,1):clamp((P.v||0)/ATH.vmax,0,1);
+  EL.barF.style.width=(f*100).toFixed(0)+'%';
+  if(P.mark&&(P.ph==='air'||P.ph==='plant')){
+    EL.mk.hidden=false;
+    EL.mkF.style.left=(P.mk*100).toFixed(1)+'%';
+    const tgt=L.ev==='long'?0.34:(L.ev==='jav'?0.5:(L.ev==='pole'?0.72:0.68));
+    const tol=L.ev==='pole'?0.5:0.3;
+    const z0=Math.max(0,(tgt-tol)*100),z1=Math.min(100,(tgt+tol)*100);
+    EL.mkZ.style.left=z0+'%';EL.mkZ.style.width=(z1-z0)+'%';
+    EL.mkl.textContent=L.ev==='pole'?'MOMENT WYBICIA':(L.ev==='long'?'KĄT ODBICIA':'KĄT WYRZUTU');
+    EL.mkv.textContent=L.ev==='pole'?'':(Math.round(10+P.mk*50)+'°');
+  }else EL.mk.hidden=true;
+  updateTable();
+}
+/* ---------- kamera: za plecami / boczna telewizyjna / orbitalna w menu ---------- */
+const _cam=new THREE.Vector3(),_tv=new THREE.Vector3(),_tv2=new THREE.Vector3(),_tv3=new THREE.Vector3(),camPos=new THREE.Vector3();
+function camInit(){
+  const L=LV(),race=(L.ev==='sprint'||L.ev==='hur'),side=L.ev==='ham'?-1:1;
+  camPos.set(P.x+(race?0:side*11),race?2.6:6.2,P.z+(race?-6.5:7.5));
+  CAM.position.copy(camPos);CAM.lookAt(P.x,1.1,P.z);
+}
+/* punkt „akcji" konkurencji: belka / linia rzutu / koło / skrzynka */
+function actionPoint(v){
+  const L=LV();
+  if(L.ev==='long')return v.set(LONG.x,0.5,0.5);
+  if(L.ev==='jav')return v.set(JAV.x,1.0,0);
+  if(L.ev==='ham')return v.set(HAM.x,1.2,HAM.z);
+  if(L.ev==='pole')return v.set(POLE.x,2.2,0.6);
+  return v.set(P.x,1.1,P.z);
+}
+function camTarget(v){
+  const L=LV();
+  if(P.flight&&(P.ph==='flight'||P.ph==='land')){
+    if(L.ev==='jav')return v.set(JAV.x,P.flight.y+0.5,P.flight.z);
+    if(L.ev==='ham')return v.set(P.x,P.flight.y+0.5,P.flight.z);
+    if(L.ev==='long')return v.set(P.x,P.flight.y+0.9,P.flight.z);
+  }
+  return v.set(P.x,(P.y||0)+1.1,P.z);
+}
+function updateCam(dt){
+  const L=LV(),race=(L.ev==='sprint'||L.ev==='hur');
+  const mode=state==='replay'?2:(camMode===0?(race?1:2):camMode);   /* powtórka: kamera TV */
+  const T=camTarget(_tv);
+  if(mode===1){
+    const sp=P.sp||0;
+    _cam.set(P.x,P.y+2.6,P.z-(6.5+sp*0.22));
+    camPos.lerp(_cam,1-Math.exp(-6*dt));
+    CAM.position.copy(camPos);
+    CAM.lookAt(P.x+(T.x-P.x)*0.2,P.y+1.15,P.z+9);
+  }else{
+    /* boczna: patrzymy w punkt między zawodnikiem (lub pociskiem) a miejscem akcji,
+       dzięki temu w kadrze jest i sportowiec, i belka/skrzynka/koło */
+    const side=L.ev==='ham'?-1:1,far=(L.ev==='jav'||L.ev==='ham');
+    actionPoint(_tv2);
+    const A=(P.flight&&P.ph==='flight')?_tv:T;
+    _tv3.copy(A).lerp(_tv2,far?0.3:0.45);
+    _cam.set(P.x+side*(far?14:11),far?8.4:6.2,_tv3.z+(far?9:7.5));
+    camPos.lerp(_cam,1-Math.exp(-5*dt));
+    CAM.position.copy(camPos);
+    CAM.lookAt(_tv3.x,_tv3.y,_tv3.z);
+  }
+  CAM.fov=damp(CAM.fov,66+(P.sp||0)*0.25,3,dt);CAM.updateProjectionMatrix();
+  sky.position.copy(CAM.position);
+}
+function menuCamera(now){
+  const t=now*0.00006,R0=148;
+  CAM.position.set(Math.cos(t)*R0,44+Math.sin(t*1.3)*9,Math.sin(t)*R0);
+  CAM.lookAt(0,0,0);
+  CAM.fov=damp(CAM.fov,58,2,0.016);CAM.updateProjectionMatrix();
+  sky.position.copy(CAM.position);
+}
+/* ============================================================================
+   POWTÓRKA (część 2/3): nagranie ostatniej próby 20 kl./s + kamera telewizyjna
+   Rekord: [x,y,z,yaw,rot,cyc,faza, fZ,fY] — fZ/fY = pozycja pocisku (-1 = brak).
+   ============================================================================ */
+function recSample(){
+  if(RPL.length>=1000)return;                       /* limit ~50 s nagrania */
+  RPL.push([P.x,P.y||0,P.z,P.yaw||0,P.rot||0,P.cyc||0,PHI[P.ph]||1,
+    P.flight?P.flight.z:-1,P.flight?P.flight.y:-1]);
+}
+function startReplay(){
+  if(state!=='finish'||RPL.length<8)return;
+  state='replay';replayT=0;
+  EL.menu.hidden=true;EL.hud.style.display='';EL.tp.style.display='none';
+  msg('📺 POWTÓRKA','kamera telewizyjna · Esc / A / klik — powrót do wyników',2600);
+  camInit();
+}
+function endReplay(){
+  if(state!=='replay')return;
+  const f=RPL[RPL.length-1];                        /* zawodnik wraca na pozycję końcową */
+  if(f){P.x=f[0];P.y=f[1];P.z=f[2];P.yaw=f[3];P.rot=f[4];P.cyc=f[5];P.ph=PHL[f[6]]||'land'}
+  P.flight=null;
+  state='finish';
+  overlay('finish');
+}
+function replayTick(dt){
+  replayT+=dt;
+  const i=Math.min(RPL.length-1,Math.floor(replayT*20)),f=RPL[i];
+  if(f){
+    P.x=f[0];P.y=f[1];P.z=f[2];P.yaw=f[3];P.rot=f[4];P.cyc=f[5];P.ph=PHL[f[6]]||'run';
+    P.flight=f[7]>=0?{z:f[7],y:f[8],vy:0,vd:1,th:0.6,done:0,z0:0,y0:0,t:0,T:1}:null;
+  }
+  if(replayT>RPL.length/20+1.2)endReplay();
+}
+/* ============================================================================
+   PĘTLA GŁÓWNA + AUTOMATYCZNA JAKOŚĆ (pilnujemy 60 fps) + START GRY
+   ============================================================================ */
+function setShadowSize(n){
+  if(sun.shadow.mapSize.x===n)return;
+  sun.shadow.mapSize.set(n,n);
+  if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}
+}
+let last=performance.now(),fpsT=0,fpsN=0,qStep=0;
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(state!=='pause'){
+    pollPad();
+    if(state==='count')updateCount(dt);
+    else if(state==='play'){raceT+=dt;updateEvent(dt);
+      rplAcc+=dt;if(rplAcc>=0.05){rplAcc-=0.05;recSample()}          /* nagranie powtórki */}
+    else if(state==='replay')replayTick(dt);
+    if(AV&&P)posePlayer(now);
+    updateGear(dt);
+    if(state==='menu')menuCamera(now);else updateCam(dt);
+    crowdTick();musicTick();rainTick(dt);
+    if(state!=='menu'){
+      updateHUD();
+      if(msgUntil&&now>msgUntil){EL.msg.textContent='';EL.sub.textContent='';msgUntil=0}
+    }
+  }
+  /* słońce i cień podążają za zawodnikiem (ostry cień wokół niego) */
+  if(P&&state!=='menu'){sun.position.set(P.x+SUN_OFF.x,60+SUN_OFF.y,P.z+SUN_OFF.z);sun.target.position.set(P.x,0,P.z)}
+  else{sun.position.set(SUN_OFF.x,90+SUN_OFF.y,SUN_OFF.z);sun.target.position.set(0,0,0)}
+  sun.target.updateMatrixWorld();
+  fpsT+=dt;fpsN++;
+  if(fpsT>1.5){
+    const fps=fpsN/fpsT;fpsT=0;fpsN=0;
+    if(EL.fps)EL.fps.textContent=Math.round(fps)+' FPS';
+    if(fps<48&&qStep<2){
+      qStep++;
+      if(qStep===1){if(R.getPixelRatio()>1.25)R.setPixelRatio(1);else setShadowSize(1024)}
+      else setShadowSize(1024);
+    }
+  }
+  R.render(S,CAM);
+}
+/* ---------- przyciski menu ---------- */
+$('bstart').onclick=()=>menuConfirm();
+$('brest').onclick=()=>{audioInit();startEvent()};
+$('brepl').onclick=()=>{audioInit();startReplay()};
+$('bmenu').onclick=()=>{COMBO=null;MATCH=null;comboDone=false;
+  state='menu';buildMenu();overlay('menu');previewStadium()};
+/* ---------- start ---------- */
+addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight,false);
+  CAM.aspect=innerWidth/innerHeight;CAM.updateProjectionMatrix()});
+buildMenu();
+buildOpts();
+buildStadium(LEVELS[sel-1]);
+_LVc=Object.assign({},LEVELS[sel-1]);
+P=newPlayer();
+placeAtStart(LV());
+P.ph='idle';
+AV=buildAthlete(KITS[0],LEVELS[sel-1].id);S.add(AV.grp);
+AV.grp.position.set(P.x,0,P.z);
+overlay('menu');
+menuCamera(performance.now());
+requestAnimationFrame(frame);
+/* ============================================================================
+   Część 2/3 — ZREALIZOWANE (rozbudowa bez zmiany interfejsu):
+     · pełne serie: 3 próby + rywale AI z kolejnością startową i tabelą na żywo,
+     · wielobój: 9 startów + punkty wg tabel (PTAB/evPoints) + rekord w hoplaO3,
+     · strefa odbicia: pomiar co do cm (P.tkCm) + sędzia z chorągiewką przy belce,
+     · wiatr losowany na próbę (bieg i zasięg) + mżawka na części poziomów,
+     · rozgrywka 2 graczy na zmianę z tabelą punktów meczu (MATCH),
+     · rywale AI do 8 torów w finałach + osobowości (start/even/finish),
+     · powtórka ostatniej próby z kamery telewizyjnej (klawisz V / przycisk 📺).
+   TODO-CODEX (szlif grafiki, dźwięku i błędów):
+     · animacja tłumu na trybunach (falowanie, kartoniady) i wstęgi na bandach,
+     · numery torów i nazwiska zawodników na płycie bieżni + tablica z czasami live,
+     · siatka klatki młociarza z realnym przeplotem + lina od dłoni do kuli,
+     · gięcie tyczki (skinning) i lepsza animacja skoku o tyczce,
+     · kurz/piasek przy lądowaniu, ślady na tartanie, motion blur pocisku,
+     · cieniowanie: SSAO/bloom (EffectComposer) na mocniejszych laptopach,
+     · dźwięki kroków, oddechu, świstu oszczepu i stali przy płotkach,
+     · obsługa dotyku dla „pauzy"/menu oraz tłumaczenia EN (i18n/ jak w resztę repo).
+   ============================================================================ */
+</script></body></html>
