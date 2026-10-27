@@ -33,6 +33,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
 #sub{position:absolute;left:0;right:0;top:44%;text-align:center;font-size:clamp(13px,2.2vw,23px);font-weight:700;opacity:.95;white-space:pre-line}
 #hint{position:absolute;left:0;right:0;bottom:44px;text-align:center;font-size:clamp(11px,1.7vw,16px);font-weight:600;opacity:.85;padding:0 12px}
 #fps{position:absolute;right:12px;bottom:12px;font-size:11px;opacity:.55;font-weight:600}
+#p2h{left:50%;top:12px;transform:translateX(-50%);font-size:14px;color:#ffd23f}
+#sum{margin:0;min-height:1.2em}
 #tp{position:fixed;left:0;right:0;bottom:0;height:34vh;pointer-events:none;z-index:4}
 #tp button{position:absolute;pointer-events:auto;border:1px solid #ffffff33;background:#0b0f16b3;color:#fff;font-family:inherit;font-weight:900;border-radius:50%;backdrop-filter:blur(3px)}
 #tl,#tr{width:84px;height:84px;font-size:34px;bottom:16px}
@@ -74,6 +76,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
   <div class="box" id="big">0.00 s</div>
   <div class="box" id="det"></div>
   <div class="box" id="riv" hidden></div>
+  <div class="box" id="p2h" hidden>GRACZ 1</div>
   <div class="box" id="bar"><small id="barl">PRĘDKOŚĆ</small><i><b></b></i></div>
   <div class="box" id="mk" hidden><small id="mkl">KĄT</small><i><u></u><b></b></i><em id="mkv"></em></div>
   <div id="alt"><span id="al1">◀</span><span id="al2">▶</span></div>
@@ -87,13 +90,16 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05070b;color:#fff;fon
   <h1 id="mt">HOPLA OLIMPIADA 3D</h1>
   <p class="tag" id="ms">Wybierz konkurencję i wystartuj</p>
   <div id="grid"></div>
+  <p class="tag" id="sum"></p>
   <div id="opts">
     <div class="orow" id="ocam"><span>KAMERA</span><button class="opt" data-c="0">🎥 Auto</button><button class="opt" data-c="1">🏃 Śledząca</button><button class="opt" data-c="2">📺 Boczna</button></div>
     <div class="orow" id="oas"><span>ASYSTA</span><button class="opt" data-h="0">Wyłączona</button><button class="opt" data-h="1">😊 Dla dzieci</button></div>
+    <div class="orow" id="op2"><span>TRYB</span><button class="opt" data-p="0">👤 1 gracz</button><button class="opt" data-p="1">👥 2 graczy</button></div>
   </div>
   <div id="res" hidden></div>
   <div id="mbtn">
     <button id="bstart">▶ Start</button>
+    <button id="brep" class="gh" hidden>🎬 Powtórka</button>
     <button id="brest" class="gh" hidden>🔁 Jeszcze raz</button>
     <button id="bmenu" class="gh" hidden>🏟️ Wybór konkurencji</button>
   </div>
