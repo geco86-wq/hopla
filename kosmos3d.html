@@ -1,0 +1,1190 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0820">
+<title>Hopla Kosmos 3D — lot przez pole asteroid</title>
+<style>
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:none;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:3;font-weight:650}
+#mtop{left:12px;top:12px;min-width:196px}
+#mtop .nm{display:block;font-size:16px;font-weight:800;letter-spacing:.02em;line-height:1.15}
+#mtop .lv{display:block;font-size:11px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;opacity:.55;margin-top:3px}
+#score{right:12px;top:12px;text-align:right;min-width:150px}
+#score b{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;display:block;line-height:1.05}
+#score .sub{font-size:11px;font-weight:700;opacity:.6;letter-spacing:.1em;text-transform:uppercase}
+#bars{left:12px;bottom:64px;width:min(240px,46vw)}
+#bars .k{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;opacity:.6;margin-bottom:4px}
+#hullbar{height:9px;border-radius:5px;background:rgba(0,0,0,.55);overflow:hidden;
+  border:1px solid rgba(255,255,255,.14)}
+#hullbar>b{display:block;height:100%;width:100%;border-radius:4px;
+  background:linear-gradient(90deg,#ff8a3d,#ffd23f);transition:width .18s ease}
+#fuelbar{height:7px;border-radius:5px;background:rgba(0,0,0,.55);overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);margin-top:6px}
+#fuelbar>b{display:block;height:100%;width:100%;border-radius:4px;
+  background:linear-gradient(90deg,#14607f,#2aa3d6);transition:width .12s linear}
+#speed{right:12px;bottom:66px;text-align:right;font-variant-numeric:tabular-nums;min-width:140px}
+#speed b{font-size:24px;font-weight:800;display:block;line-height:1.05}
+#speed .sub{font-size:10px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+#target{left:50%;bottom:78px;transform:translateX(-50%);text-align:center;font-size:13px;
+  opacity:.85;font-weight:600;white-space:nowrap}
+#target.hi{color:#ffd23f;opacity:1}
+/* #target musi być pozycjonowany bezwzględnie wewnątrz #hud */
+#target{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);text-align:center;
+  font-size:13px;opacity:.85;font-weight:600;white-space:nowrap}
+#warn{position:fixed;left:0;right:0;top:44%;text-align:center;font-size:clamp(20px,3.6vw,38px);
+  font-weight:900;color:#ff8a3d;letter-spacing:.08em;opacity:0;transition:opacity .18s;z-index:3;
+  text-shadow:0 4px 26px #000,0 2px 4px #000;pointer-events:none}
+#warn.on{opacity:1}
+/* ---------- dotyk / pad ---------- */
+#pad{position:fixed;inset:auto 0 0 0;height:40vh;pointer-events:none;z-index:4}
+#pad button{position:absolute;pointer-events:auto;border-radius:50%;font-family:inherit;
+  font-weight:800;color:#eef2f8;border:1px solid rgba(255,255,255,.2);
+  background:rgba(14,12,40,.62);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  transition:transform .06s ease,background .12s ease;display:flex;align-items:center;
+  justify-content:center;font-size:15px;letter-spacing:.06em}
+#pad button:active,#pad button.on{background:rgba(255,138,61,.34);border-color:rgba(255,138,61,.8);
+  transform:scale(.95)}
+#pl{left:14px;bottom:18px;width:78px;height:78px;font-size:26px}
+#pr{right:14px;bottom:18px;width:78px;height:78px;font-size:26px}
+#pa{right:104px;bottom:96px;width:72px;height:72px;background:rgba(255,210,63,.16);
+  border-color:rgba(255,210,63,.62);color:#ffd23f}
+#pb{left:104px;bottom:96px;width:60px;height:60px;font-size:13px}
+@media(max-width:640px){
+  #mtop{min-width:150px;padding:7px 10px}#mtop .nm{font-size:13px}
+  #score b{font-size:20px}#score{min-width:112px;padding:7px 10px}
+  #speed b{font-size:18px}#speed{min-width:104px}
+  #bars{width:52vw;bottom:110px}#speed{bottom:150px}#target{bottom:132px;font-size:11px}
+  #pl,#pr{width:66px;height:66px;font-size:22px}#pa{width:62px;height:62px;right:90px}
+}
+/* ---------- przycisk powrotu ---------- */
+#back{position:fixed;left:12px;bottom:10px;z-index:6;pointer-events:auto;
+  background:rgba(14,12,40,.7);color:#eef2f8;border:1px solid rgba(255,255,255,.2);
+  border-radius:11px;padding:9px 13px;font-size:14px;font-weight:700;font-family:inherit;
+  cursor:pointer;backdrop-filter:blur(7px)}
+#back:active{transform:scale(.97)}
+#back:focus-visible,#menu button:focus-visible,.lv:focus-visible{outline:3px solid #2aa3d6;outline-offset:2px}
+/* ---------- menu ---------- */
+#menu{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:10px;padding:18px;overflow:auto;
+  background:radial-gradient(120% 90% at 50% 8%,rgba(28,22,64,.94),rgba(6,4,16,.98) 72%)}
+#menu h1{margin:0;font-size:clamp(26px,5.6vw,50px);letter-spacing:.10em;font-weight:900;
+  color:#ffe8b8;text-align:center;line-height:1.05;
+  text-shadow:0 6px 34px rgba(255,138,61,.28),0 3px 10px #000}
+#menu h1 em{font-style:normal;color:#ff8a3d}
+#menu .tag{margin:0;opacity:.72;font-size:clamp(12px,1.9vw,16px);font-weight:600;text-align:center;
+  max-width:44rem;line-height:1.5}
+#worlds{display:flex;flex-direction:column;gap:9px;align-items:center;margin-top:4px;width:100%}
+.world{width:min(660px,94vw)}
+.world h2{margin:0 0 5px;font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
+  opacity:.55;display:flex;gap:8px;align-items:center}
+.world h2 i{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.22),transparent);
+  font-style:normal}
+#grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.lv{position:relative;text-align:left;background:rgba(255,255,255,.055);color:#eef2f8;
+  border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:8px 10px;font-family:inherit;
+  cursor:pointer;transition:background .12s,border-color .12s,transform .08s}
+.lv:hover{background:rgba(255,255,255,.1)}
+.lv:active{transform:scale(.985)}
+.lv b{display:block;font-size:12px;font-weight:800;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;padding-right:30px}
+.lv small{display:block;font-size:10px;opacity:.55;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;margin-top:2px}
+.lv .bs{position:absolute;right:8px;top:7px;font-size:10px;font-weight:800;color:#ffd23f;
+  font-variant-numeric:tabular-nums}
+.lv.lock{opacity:.42;cursor:not-allowed}
+.lv.lock::after{content:"\1F512";position:absolute;right:8px;bottom:7px;font-size:11px;opacity:.7}
+.lv.done{border-color:rgba(255,210,63,.45);background:rgba(255,210,63,.09)}
+.lv.sel{outline:2px solid #ff8a3d;outline-offset:1px}
+#opts{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.orow{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+.orow>span{font-size:10px;font-weight:800;letter-spacing:.14em;opacity:.5;min-width:80px;
+  text-align:right;text-transform:uppercase}
+.opt{background:rgba(255,255,255,.075);color:#eef2f8;border:1px solid rgba(255,255,255,.15);
+  border-radius:9px;padding:6px 12px;font-weight:750;cursor:pointer;font-family:inherit;font-size:12px}
+.opt[aria-pressed="true"]{outline:2px solid #ff8a3d;background:rgba(255,138,61,.2)}
+#res{max-width:min(600px,94vw);background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;font-weight:600;
+  font-size:clamp(12px,1.9vw,15px);line-height:1.6;white-space:pre-line;
+  font-variant-numeric:tabular-nums;text-align:center}
+#res b{color:#ffd23f}
+#mbtn{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:2px}
+#mbtn button{background:linear-gradient(180deg,#ffa863,#ff8a3d);color:#1a1024;border:0;
+  border-radius:11px;padding:12px 24px;font-size:16px;font-weight:850;font-family:inherit;
+  cursor:pointer;letter-spacing:.03em;box-shadow:0 8px 24px rgba(255,138,61,.28)}
+#mbtn button.gh{background:rgba(255,255,255,.09);color:#eef2f8;
+  border:1px solid rgba(255,255,255,.18);box-shadow:none}
+#mbtn button:active{transform:scale(.97)}
+#mh{opacity:.55;font-size:clamp(10px,1.6vw,13px);font-weight:600;text-align:center;
+  max-width:min(760px,94vw);margin:4px 0 0;line-height:1.6}
+</style></head><body>
+<canvas id="gl"></canvas>
+
+<div id="hud" class="h3d-ui">
+  <div class="h3d-box" id="mtop">
+    <span class="nm" id="mname">Pas Asteroid</span>
+    <span class="lv" id="mlev">Poziom 1 · Świat 1</span>
+  </div>
+  <div class="h3d-box" id="score">
+    <span class="sub">Energia</span>
+    <b id="sc">0</b>
+    <span class="sub" id="sco">z 0 komór</span>
+  </div>
+  <div class="h3d-box" id="speed">
+    <span class="sub">Prędkość</span>
+    <b id="spd">0</b>
+    <span class="sub">m/s</span>
+  </div>
+  <div class="h3d-box" id="bars">
+    <div class="k"><span>Kadłub</span><span id="hullp">100%</span></div>
+    <div id="hullbar"><b></b></div>
+    <div class="k" style="margin-top:7px"><span>Dopalacz</span><span id="fuelp">100%</span></div>
+    <div id="fuelbar"><b></b></div>
+  </div>
+  <div id="target"></div>
+</div>
+<div id="warn"></div>
+
+<div id="pad">
+  <button id="pl" aria-label="lewo">&#9664;</button>
+  <button id="pr" aria-label="prawo">&#9654;</button>
+  <button id="pa" aria-label="ciąg">CIĄG</button>
+  <button id="pb" aria-label="hamowanie">HAMUJ</button>
+</div>
+<button id="back" onclick="location.href='index.html'">&#8592; Hopla</button>
+
+<div id="menu">
+  <h1>HOPLA <em>KOSMOS</em> 3D</h1>
+  <p class="tag">Lot statkiem przez pole asteroid i stacje orbitalne. Zbieraj energię, omijaj skały,
+    przyspieszaj w korytarzach.</p>
+  <div id="worlds"></div>
+  <div id="opts">
+    <div class="orow" id="ocam"><span>Kamera</span></div>
+    <div class="orow" id="octl"><span>Sterowanie</span></div>
+  </div>
+  <div id="res" hidden></div>
+  <div id="mbtn">
+    <button id="bstart">Start lotu</button>
+    <button id="brest" class="gh" hidden>Jeszcze raz</button>
+    <button id="bmenu" class="gh" hidden>Wybór sektora</button>
+  </div>
+  <p id="mh">Sterowanie: strzałki lub A/D — ster · W/↑ — ciąg · S/↓ — hamowanie · Shift — dopalacz ·
+    Spacja — start i pauza · pad: lewy drążek / A / RB · na telefonie: przyciski ekranowe lub pochylenie.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="hopla3d.js"></script>
+<script>
+/* ============================================================================
+   HOPLA KOSMOS 3D — lot statkiem przez pole asteroid i stacje orbitalne
+   Three.js r128 + wspólny moduł hopla3d.js (rdzeń graficzny Hopla)
+   ----------------------------------------------------------------------------
+   Część 1/3 (ten plik): rdzeń działającego rozwiązania —
+     · prawdziwe 3D: statek, pole asteroid, stacje, mgławice w tle
+     · cząstki silnika (iskry + smuga), zbieranie energii, kolizje
+     · 9 poziomów w 3 światach, odblokowywanie, postęp w localStorage (hoplaKO)
+     · sterowanie: klawiatura + pad + dotyk + pochylenie telefonu
+   TODO-CODEX: szlif grafiki (LOD asteroid, więcej mgławic, dopracowanie stacji),
+     balans poziomów, dźwięk silnika i trafień, powtórki.
+   ============================================================================ */
+'use strict';
+const $ = id => document.getElementById(id);
+const H3D = window.Hopla3D;
+if (!H3D || !H3D.ok) {
+  document.body.innerHTML = '<div style="padding:24px;font:600 16px system-ui;color:#fff">' +
+    'Nie udało się wczytać grafiki 3D. Sprawdź połączenie i odśwież stronę.</div>';
+  throw new Error('Hopla3D niedostępny');
+}
+const TAU = Math.PI * 2;
+const clamp = H3D.clamp, lerp = H3D.lerp, damp = H3D.damp, rand = H3D.rand;
+const TOUCH = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+
+/* ---------- postęp gracza (localStorage: hoplaKO) ---------- */
+const PROG = H3D.progress('hoplaKO', 9);
+let cur = clamp(Math.round(PROG.data.unlocked), 1, 9), sel = cur;
+
+/* ============================================================================
+   3 ŚWIATY × 3 SEKTORY = 9 POZIOMÓW
+   ============================================================================ */
+const WORLDS = [
+  {
+    name: 'Pas Wewnętrzny', sky: 'kosmos', lights: 'kosmos',
+    nebula: 0x4a3a86, accent: 0x2aa3d6, rock: 0xb7b0be,
+    fogNear: 180, fogFar: 900, sunDir: [0.35, 0.45, -0.82]
+  },
+  {
+    name: 'Mgławica Koralowa', sky: 'kosmosMgla', lights: 'kosmos',
+    nebula: 0x8a2f52, accent: 0xff8a3d, rock: 0xc4b0ae,
+    fogNear: 150, fogFar: 780, sunDir: [0.55, 0.3, -0.78]
+  },
+  {
+    name: 'Zewnętrzny Rubież', sky: 'kosmos', lights: 'kosmos',
+    nebula: 0x2a6280, accent: 0xffd23f, rock: 0xa9b6c4,
+    fogNear: 200, fogFar: 1000, sunDir: [-0.4, 0.55, -0.72]
+  }
+];
+/* LV: nazwa, długość trasy, gęstość asteroid, liczba komór energii, bramy-stacje,
+      wymagana energia do zaliczenia, prędkość startowa */
+const LEVELS = [
+  { name: 'Próba silników', len: 1500, rocks: 46, cells: 20, gates: 1, need: 8, v0: 42, w: 0 },
+  { name: 'Rój odłamków', len: 1750, rocks: 62, cells: 24, gates: 1, need: 12, v0: 46, w: 0 },
+  { name: 'Wąski korytarz', len: 2000, rocks: 78, cells: 26, gates: 2, need: 14, v0: 50, w: 0 },
+  { name: 'Mgła koralowa', len: 2150, rocks: 84, cells: 28, gates: 2, need: 16, v0: 52, w: 1 },
+  { name: 'Stacja Nadir', len: 2350, rocks: 98, cells: 30, gates: 3, need: 18, v0: 55, w: 1 },
+  { name: 'Nurt plazmy', len: 2500, rocks: 112, cells: 32, gates: 3, need: 21, v0: 58, w: 1 },
+  { name: 'Zewnętrzna grań', len: 2700, rocks: 126, cells: 34, gates: 3, need: 24, v0: 62, w: 2 },
+  { name: 'Trasa komet', len: 2900, rocks: 142, cells: 36, gates: 4, need: 27, v0: 65, w: 2 },
+  { name: 'Brama Rubieży', len: 3100, rocks: 160, cells: 40, gates: 4, need: 30, v0: 68, w: 2 }
+];
+const LV = () => LEVELS[cur - 1];
+
+/* ---------- sterowanie ---------- */
+const IN = H3D.input({
+  map: {
+    KeyA: 'left', KeyD: 'right', ArrowLeft: 'left', ArrowRight: 'right',
+    KeyW: 'up', KeyS: 'down', ArrowUp: 'up', ArrowDown: 'down',
+    ShiftLeft: 'boost', ShiftRight: 'boost',
+    Space: 'action', Enter: 'action', KeyP: 'pause', Escape: 'pause',
+    KeyR: 'restart', KeyC: 'camera'
+  }
+});
+if (TOUCH) {
+  IN.bindTouch($('pl'), 'left'); IN.bindTouch($('pr'), 'right');
+  IN.bindTouch($('pa'), 'up'); IN.bindTouch($('pb'), 'down');
+} else {
+  $('pad').hidden = true;
+}
+
+/* ---------- renderer / scena / kamera ---------- */
+const R = H3D.createRenderer($('gl'), { exposure: 1.0, maxPixelRatio: 2 });
+const S = new THREE.Scene();
+const CAM = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.2, 2600);
+const sky = H3D.createSky(S, 'kosmos');
+const LGT = H3D.createLights(S, { hemiSky: 0x3b4a75, hemiGround: 0x0a0a12, hemiInt: 0.42,
+  sun: 0xdfe9ff, sunInt: 1.5, sunDir: [0.35, 0.45, -0.82], shadows: true,
+  shadowSize: 1024, shadowExtent: 34, shadowFar: 220, sunDist: 90, ambient: 0.05 });
+const POST = H3D.addPostFX(R, S, CAM, { strength: 1.05 });
+const H = H3D.hud();
+const FX = H3D.createFX();
+const CHASE = H3D.createChase(CAM, { dist: 11.5, height: 4.0, look: 26, lag: 5.2, lagLook: 6.4,
+  fovBase: 62, fovGain: 16 });
+R.hopla.fpsEl = $('h3d-fps');
+
+/* ============================================================================
+   STATEK — smukły kadłub, skrzydła, dwa silniki ze świecącymi dyszami
+   (sylwetka autorska, bez nawiązań do znanych marek)
+   ============================================================================ */
+const tm = (c, r, m, e, ei) => new THREE.MeshStandardMaterial({
+  color: H3D.srgb(c), roughness: r != null ? r : 0.55, metalness: m != null ? m : 0.45,
+  emissive: e != null ? H3D.srgb(e) : 0x000000, emissiveIntensity: ei || 0
+});
+const ship = new THREE.Group();
+const shipParts = {};
+(function buildShip() {
+  const hullMat = tm(0xb9c4d4, 0.42, 0.62);
+  const darkMat = tm(0x242a3a, 0.55, 0.5);
+  const accentMat = tm(0xff8a3d, 0.35, 0.25, 0xff8a3d, 0.55);
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(0x0f2233), roughness: 0.08, metalness: 0.9,
+    emissive: H3D.srgb(0x2aa3d6), emissiveIntensity: 0.42
+  });
+  shipParts.mats = [hullMat, darkMat, accentMat, glassMat];
+
+  /* kadłub: ostry dziób + korpus + ogon */
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.62, 3.1, 14), hullMat);
+  nose.rotation.x = -Math.PI / 2; nose.position.z = -2.55; ship.add(nose);
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.82, 3.0, 14), hullMat);
+  body.rotation.x = Math.PI / 2; body.position.z = -0.1; ship.add(body);
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.55, 1.0, 14), darkMat);
+  tail.rotation.x = Math.PI / 2; tail.position.z = 1.85; ship.add(tail);
+  /* kokpit */
+  const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.52, 16, 12), glassMat);
+  canopy.scale.set(1, 0.62, 1.55); canopy.position.set(0, 0.42, -1.15); ship.add(canopy);
+  /* pas pomarańczowy — akcent palety Hopla */
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.1, 2.6), accentMat);
+  stripe.position.set(0.74, 0.06, -0.2); ship.add(stripe);
+  const stripe2 = stripe.clone(); stripe2.position.x = -0.74; ship.add(stripe2);
+  /* skrzydła + stateczniki */
+  const wingGeo = new THREE.BoxGeometry(2.5, 0.11, 1.25);
+  const wingL = new THREE.Mesh(wingGeo, hullMat); wingL.position.set(-1.5, -0.06, 0.55); wingL.rotation.z = 0.1; wingL.rotation.y = 0.19; ship.add(wingL);
+  const wingR = new THREE.Mesh(wingGeo, hullMat); wingR.position.set(1.5, -0.06, 0.55); wingR.rotation.z = -0.1; wingR.rotation.y = -0.19; ship.add(wingR);
+  const finL = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.95, 1.0), darkMat);
+  finL.position.set(-0.55, 0.52, 1.35); finL.rotation.z = 0.22; ship.add(finL);
+  const finR = finL.clone(); finR.position.x = 0.55; finR.rotation.z = -0.22; ship.add(finR);
+  /* końcówki skrzydeł z emisją */
+  const tipGeo = new THREE.BoxGeometry(0.14, 0.2, 0.9);
+  const tipL = new THREE.Mesh(tipGeo, accentMat); tipL.position.set(-2.72, 0.04, 0.72); ship.add(tipL);
+  const tipR = new THREE.Mesh(tipGeo, accentMat); tipR.position.set(2.72, 0.04, 0.72); ship.add(tipR);
+  /* silniki */
+  const engGeo = new THREE.CylinderGeometry(0.30, 0.36, 1.15, 12);
+  const nozzleMat = tm(0x1a1e28, 0.4, 0.8);
+  const flames = [];
+  [-0.62, 0.62].forEach(x => {
+    const eng = new THREE.Mesh(engGeo, nozzleMat);
+    eng.rotation.x = Math.PI / 2; eng.position.set(x, -0.02, 2.35); ship.add(eng);
+    const glow = H3D.glowSprite(0x7fd0ff, 1.5, 0.85);
+    glow.position.set(x, -0.02, 2.95); ship.add(glow);
+    const flame = new THREE.Mesh(
+      new THREE.ConeGeometry(0.26, 1.8, 10, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: H3D.srgb(0x8fdcff), transparent: true, opacity: 0.72,
+        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false
+      })
+    );
+    flame.rotation.x = Math.PI / 2; flame.position.set(x, -0.02, 3.7); ship.add(flame);
+    flames.push(flame);
+  });
+  shipParts.flames = flames;
+  shipParts.engines = [new THREE.Vector3(-0.62, -0.02, 2.9), new THREE.Vector3(0.62, -0.02, 2.9)];
+
+  ship.traverse(o => { if (o.isMesh && o.material !== glassMat) o.castShadow = true; });
+  S.add(ship);
+})();
+
+/* ============================================================================
+   POLE ASTEROID — jedna geometria bazowa + InstancedMesh (jeden draw call)
+   ============================================================================ */
+const rock = { mesh: null, list: [], dummy: new THREE.Object3D(), geo: null };
+function rockGeometry(seed) {
+  const g = new THREE.IcosahedronGeometry(1, 1);
+  const rnd = H3D.mulberry(seed);
+  const p = g.attributes.position;
+  const v = new THREE.Vector3();
+  /* kilka "garbów" o losowych kierunkach — bryła wygląda jak obtoczony głaz,
+     a nie jak zbiór kolców (kluczowe dla "konsolowego" realizmu) */
+  const lumps = [];
+  for (let i = 0; i < 5; i++) {
+    lumps.push({
+      d: new THREE.Vector3(rnd() * 2 - 1, rnd() * 2 - 1, rnd() * 2 - 1).normalize(),
+      a: 0.10 + rnd() * 0.30,
+      s: 1.4 + rnd() * 2.4
+    });
+  }
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i).normalize();
+    let r = 0.86;
+    for (let k = 0; k < lumps.length; k++) {
+      const dot = v.dot(lumps[k].d);
+      r += lumps[k].a * Math.max(0, Math.pow(dot, 3)) * lumps[k].s * 0.5;
+    }
+    r += (rnd() - 0.5) * 0.05;                 /* drobne nierówności */
+    v.multiplyScalar(r);
+    p.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeVertexNormals();
+  g.computeBoundingSphere();
+  return g;
+}
+function buildRockField(count, world) {
+  if (rock.mesh) {
+    S.remove(rock.mesh);
+    if (rock.mesh.material) rock.mesh.material.dispose();
+  }
+  rock.list.length = 0;
+  if (!rock.geo) rock.geo = rockGeometry(1337);
+  const mat = new THREE.MeshStandardMaterial({
+    /* kosmos oświetla głównie jedna lampa — rozjaśniamy tint, żeby głazy
+       miały czytelną bryłę, a nie były czarnymi plamami */
+    color: H3D.srgb(H3D.shade(world.rock, 0.42)), roughness: 0.9, metalness: 0.04,
+    map: H3D.textures.rock()
+  });
+  const inst = new THREE.InstancedMesh(rock.geo, mat, count);
+  inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  inst.frustumCulled = false;
+  S.add(inst);
+  rock.mesh = inst;
+  for (let i = 0; i < count; i++) {
+    rock.list.push({ x: 0, y: 0, z: 0, r: 1, spin: 0, ax: 0, ay: 0, rot: 0, live: false });
+  }
+}
+
+/* ============================================================================
+   MGŁAWICE W TLE — wielkie additive sprite'y dają głębię bez kosztu geometrii
+   ============================================================================ */
+const nebulaGroup = new THREE.Group();
+S.add(nebulaGroup);
+function buildNebulae(world) {
+  while (nebulaGroup.children.length) {
+    const c = nebulaGroup.children.pop();
+    c.material.dispose();
+  }
+  const cols = [world.nebula, H3D.shade(world.nebula, -0.35), world.accent];
+  for (let i = 0; i < 9; i++) {
+    const sp = H3D.glowSprite(cols[i % 3], 1, 0.16 + Math.random() * 0.14);
+    const a = (i / 9) * TAU + rand(-0.4, 0.4);
+    const dist = rand(620, 1150);
+    sp.position.set(Math.cos(a) * dist, rand(-260, 300), Math.sin(a) * dist);
+    sp.scale.setScalar(rand(420, 880));
+    nebulaGroup.add(sp);
+  }
+}
+
+/* ============================================================================
+   STACJE-BRAMY — pierścień z 4 pylonami; przelot środkiem daje bonus
+   ============================================================================ */
+const gates = [];
+function makeGate(radius, accent) {
+  const g = new THREE.Group();
+  const metal = tm(0x3a4152, 0.5, 0.7);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, radius * 0.055, 10, 40), metal);
+  g.add(ring);
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.72, radius * 0.028, 8, 34), metal);
+  g.add(ring2);
+  const glowMat = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(accent), emissive: H3D.srgb(accent), emissiveIntensity: 1.6,
+    roughness: 0.4, metalness: 0.2
+  });
+  /* pylony + świecące segmenty */
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * TAU;
+    const pyl = new THREE.Mesh(new THREE.BoxGeometry(radius * 0.10, radius * 0.42, radius * 0.12), metal);
+    pyl.position.set(Math.cos(a) * radius * 1.06, Math.sin(a) * radius * 1.06, 0);
+    pyl.rotation.z = a;
+    g.add(pyl);
+    const lamp = new THREE.Mesh(new THREE.BoxGeometry(radius * 0.055, radius * 0.11, radius * 0.06), glowMat);
+    lamp.position.set(Math.cos(a) * radius * 0.999, Math.sin(a) * radius * 0.999, 0);
+    lamp.rotation.z = a;
+    g.add(lamp);
+  }
+  /* rdzeń z anteną */
+  const core = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.07, radius * 0.09, radius * 0.5, 10), metal);
+  core.rotation.x = Math.PI / 2; core.position.z = -radius * 0.2; g.add(core);
+  const halo = H3D.glowSprite(accent, radius * 3.4, 0.30);
+  g.add(halo);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  g.userData = { radius: radius, passed: false, spin: rand(-0.35, 0.35), glow: glowMat, halo: halo };
+  return g;
+}
+
+/* ============================================================================
+   KOMORY ENERGII — świecące ośmiościany z poświatą
+   ============================================================================ */
+const cells = [];
+const cellGeo = new THREE.OctahedronGeometry(0.85, 0);
+function makeCells(count, accent) {
+  cells.forEach(c => { S.remove(c.grp); c.grp.traverse(o => { if (o.isMesh) o.material.dispose(); }); });
+  cells.length = 0;
+  const coreMat = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(accent), emissive: H3D.srgb(accent), emissiveIntensity: 1.5,
+    roughness: 0.25, metalness: 0.35
+  });
+  const cageMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff, emissive: H3D.srgb(accent), emissiveIntensity: 0.35,
+    roughness: 0.3, metalness: 0.6, wireframe: true, transparent: true, opacity: 0.5
+  });
+  for (let i = 0; i < count; i++) {
+    const grp = new THREE.Group();
+    const core = new THREE.Mesh(cellGeo, coreMat); grp.add(core);
+    const cage = new THREE.Mesh(cellGeo, cageMat); cage.scale.setScalar(1.45); grp.add(cage);
+    const halo = H3D.glowSprite(accent, 4.2, 0.55); grp.add(halo);
+    grp.visible = false;
+    S.add(grp);
+    cells.push({ grp: grp, core: core, halo: halo, x: 0, y: 0, z: 0, live: false, ph: Math.random() * TAU });
+  }
+}
+
+/* ============================================================================
+   STAN GRY
+   ============================================================================ */
+const G = {
+  state: 'menu',        // menu | play | pause | over | done
+  t: 0, dist: 0, len: 0,
+  energy: 0, need: 0, banked: 0,
+  hull: 100, boost: 100,
+  v: 0, vmax: 0, x: 0, y: 0, vx: 0, vy: 0,
+  camMode: 0, hits: 0, best: false, med: 0,
+  started: false
+};
+const CORRIDOR = 30;       /* półszerokość korytarza (x) */
+const CORRIDOR_Y = 16;     /* półwysokość (y) */
+
+/* ---------- budowa sektora ---------- */
+function buildLevel(n) {
+  const L = LEVELS[n - 1], W = WORLDS[L.w];
+  cur = n;
+  /* niebo, światło, mgławice */
+  sky.apply(W.sky);
+  sky.fog.near = W.fogNear; sky.fog.far = W.fogFar;
+  sky.setSunDir(new THREE.Vector3().fromArray(W.sunDir));
+  LGT.apply({ hemiSky: 0x3b4a75, hemiGround: 0x0a0a12, hemiInt: 0.42,
+    sun: 0xdfe9ff, sunInt: 1.5, sunDir: W.sunDir, shadows: true, ambient: 0.05 });
+  LGT.dir.fromArray(W.sunDir).normalize();
+  buildNebulae(W);
+  buildRockField(L.rocks, W);
+  makeCells(L.cells, W.accent);
+  /* bramy: rozłożone równo na trasie */
+  gates.forEach(g => S.remove(g));
+  gates.length = 0;
+  for (let i = 0; i < L.gates; i++) {
+    const gg = makeGate(11 + i * 0.6, W.accent);
+    const z = -(L.len * (i + 1)) / (L.gates + 1);
+    gg.position.set(0, 0, z);
+    gg.userData.z = z;
+    S.add(gg);
+    gates.push(gg);
+  }
+  /* rozstaw asteroid deterministycznie: warstwowo wzdłuż trasy, z wolnymi
+     "oknami" na przelot (inaczej sektor byłby nieprzejezdny) */
+  const rnd = H3D.mulberry(n * 7919 + 13);
+  const gateZ = gates.map(g => g.userData.z);
+  const nearGate = z => gateZ.some(gz => Math.abs(z - gz) < 34);
+  const segments = Math.max(6, Math.round(L.rocks / 6));
+  rock.list.forEach((a, i) => {
+    a.live = true;
+    const seg = i % segments;
+    /* równy rozkład po całej długości + dither, żeby nie było "ścian" */
+    const f = (seg + 0.5) / segments;
+    a.z = -170 - f * (L.len - 300) - rnd() * (L.len / segments) * 0.7;
+    if (nearGate(a.z)) a.z -= 52;
+    a.r = 1.6 + rnd() * 4.4;
+    /* połowa skał to "wrota" — po bokach korytarza, środek wolny */
+    if (i % 2 === 0) {
+      const side = rnd() < 0.5 ? -1 : 1;
+      a.x = side * (9 + rnd() * (CORRIDOR - 11));
+      a.y = (rnd() - 0.5) * CORRIDOR_Y * 1.3;
+    } else {
+      a.x = (rnd() - 0.5) * CORRIDOR * 1.9;
+      a.y = (rnd() < 0.5 ? -1 : 1) * (7 + rnd() * (CORRIDOR_Y - 8));
+    }
+    /* strefa startowa: pierwsze 260 m trzymamy wolną oś korytarza */
+    if (a.z > -330 && Math.abs(a.x) < 11 && Math.abs(a.y) < 9) {
+      a.x += (a.x < 0 ? -1 : 1) * (11 + rnd() * 9);
+    }
+    a.rot = rnd() * TAU; a.spin = (0.1 + rnd() * 0.5) * (rnd() < 0.5 ? -1 : 1);
+    a.ax = rnd() * TAU; a.ay = rnd() * TAU;
+  });
+  /* komory: lekki wachlarz w korytarzu — przyjemny "slalom", ale zawsze
+     w zasięgu steru (amplituda ~1/3 szerokości korytarza) */
+  const cr = H3D.mulberry(n * 3571 + 7);
+  cells.forEach((c, i) => {
+    c.live = true;
+    c.grp.visible = true;
+    const f = (i + 1) / (cells.length + 1);
+    c.z = -(70 + f * (L.len - 160));
+    const sway = Math.sin(f * Math.PI * 2.6 + n * 0.8) * CORRIDOR * 0.38;
+    c.x = sway + (cr() - 0.5) * 4;
+    c.y = Math.sin(f * Math.PI * 1.7 + n * 0.7) * CORRIDOR_Y * 0.42;
+    c.ph = cr() * TAU;
+    c.grp.position.set(c.x, c.y, c.z);
+  });
+  /* reset statku */
+  G.len = L.len; G.dist = 0; G.t = 0;
+  G.energy = 0; G.need = L.need; G.banked = 0;
+  G.hull = 100; G.boost = 100; G.hits = 0; G.best = false;
+  G.v = L.v0; G.vmax = L.v0 * 1.62;
+  G.x = 0; G.y = 0; G.vx = 0; G.vy = 0;
+  ship.position.set(0, 0, 0); ship.rotation.set(0, 0, 0);
+  CHASE.teleport(new THREE.Vector3(0, 4, 12), new THREE.Vector3(0, 0, -20));
+  LGT.follow(0, 0, -6);
+  FX.reset();
+  PART.clear();
+  updateHUD(true);
+}
+
+/* ============================================================================
+   KOLIZJE — asteroidy (kadłub), komory energii, bramy
+   ============================================================================ */
+function checkCollisions() {
+  const px = ship.position.x, py = ship.position.y, pz = ship.position.z;
+  const pr = 1.9;
+  for (let i = 0; i < rock.list.length; i++) {
+    const a = rock.list[i];
+    if (!a.live) continue;
+    const dz = a.z - pz;
+    if (dz > 42 || dz < -42) continue;
+    const dx = a.x - px, dy = a.y - py;
+    const rr = a.r * 0.88 + pr;
+    if (dx * dx + dy * dy + dz * dz < rr * rr) damage(a);
+  }
+  for (let i = 0; i < cells.length; i++) {
+    const c = cells[i];
+    if (!c.live) continue;
+    const dz = c.z - pz;
+    if (dz > 30 || dz < -30) continue;
+    const dx = c.x - px, dy = c.grp.position.y - py;
+    if (dx * dx + dy * dy + dz * dz < 30) {
+      c.live = false; c.grp.visible = false;
+      G.energy++;
+      tmpV.set(c.x, c.grp.position.y, c.z);
+      hitSparks.burst(tmpV, 9, { speed: 10, life: 0.45, size: 0.09 });
+      G.boost = clamp(G.boost + 7, 0, 100);
+      if (G.energy % 5 === 0) H.msg('+' + G.energy + ' energii', 'Dopalacz doładowany', 750);
+    }
+  }
+  for (let i = 0; i < gates.length; i++) {
+    const g = gates[i];
+    if (g.userData.passed) continue;
+    if (pz <= g.position.z) {
+      g.userData.passed = true;
+      const r2 = px * px + py * py;
+      const rad = g.userData.radius;
+      if (r2 < rad * rad * 0.55) {
+        G.energy += 2; G.boost = 100;
+        H.msg('Brama zaliczona', 'Premia: 2 komory energii', 1200);
+        FX.shake(0.35, 0.3);
+      } else {
+        H.msg('Minąłeś bramę', 'Lepiej celuj w środek', 900);
+      }
+    }
+  }
+}
+
+let dmgCool = 0;
+function damage(a) {
+  if (dmgCool > 0) return;
+  dmgCool = 0.55;                        /* krótka nietykalność po uderzeniu */
+  G.hits++;
+  G.hull = clamp(G.hull - (7 + a.r * 1.6), 0, 100);
+  G.v = Math.max(18, G.v * 0.62);
+  G.vx += (ship.position.x - a.x) * 1.4;
+  G.vy += (ship.position.y - a.y) * 1.4;
+  tmpV.copy(ship.position);
+  hitSparks.burst(tmpV, 18, { speed: 13, life: 0.55, size: 0.12 });
+  FX.shake(0.95, 0.42);
+  FX.hitstop(0.06);
+  if (G.hull <= 0) fail();
+}
+
+/* ---------- zakończenie: meta / rozbicie ---------- */
+function finishRun() {
+  if (G.state !== 'play') return;
+  G.state = 'done';
+  const L = LV();
+  const ok = G.energy >= G.need;
+  const pct = Math.round(100 * G.energy / Math.max(1, L.cells));
+  const medal = pct >= 100 ? 3 : (pct >= 80 ? 2 : (ok ? 1 : 0));
+  G.med = medal;
+  let rec = false;
+  if (ok) rec = PROG.setBest(cur, G.energy);
+  if (ok && cur < 9) PROG.unlock(cur + 1);
+  const mName = ['Brak medalu', 'Brąz', 'Srebro', 'Złoto'][medal];
+  H.msg(ok ? 'Sektor zaliczony' : 'Zbyt mało energii', mName, 0);
+  const lines = [];
+  lines.push('Energia: <b>' + G.energy + '</b> z ' + L.cells + ' komór (wymagane ' + G.need + ')');
+  lines.push('Kadłub: <b>' + Math.round(G.hull) + '%</b> · Trafienia: <b>' + G.hits + '</b>');
+  lines.push('Dystans: <b>' + Math.round(G.dist) + ' m</b> · Czas: <b>' + H3D.fmtTime(G.t) + '</b>');
+  if (rec) lines.push('Nowy rekord sektora!');
+  if (ok && cur < 9) lines.push('Odblokowano sektor ' + (cur + 1) + '.');
+  if (!ok) lines.push('Zbierz więcej komór energii i spróbuj ponownie.');
+  showResult(lines.join('\n'), ok);
+  if (ok) { FX.slowmo(0.4, 1.6); PART.confetti(ship.position, 60, { speed: 9, life: 1.4 }); }
+}
+
+function fail() {
+  if (G.state !== 'play') return;
+  G.state = 'over';
+  G.hull = 0;
+  tmpV.copy(ship.position);
+  hitSparks.burst(tmpV, 40, { speed: 18, life: 0.9, size: 0.16 });
+  FX.shake(1.5, 0.9);
+  FX.hitstop(0.14);
+  H.msg('Kadłub zniszczony', '', 0);
+  const lines = [];
+  lines.push('Uderzenia: <b>' + G.hits + '</b> · Energia: <b>' + G.energy + '</b>');
+  lines.push('Dystans: <b>' + Math.round(G.dist) + ' m</b> z ' + G.len + ' m');
+  lines.push('Spróbuj ostrożniej — asteroidy zwalniają statek.');
+  showResult(lines.join('\n'), false);
+}
+
+/* ---------- cząstki: iskry silnika + iskry trafień ---------- */
+const PART = H3D.particles(S);
+const engineSparks = PART.pool({
+  count: 190, color: 0x7fd0ff, gravity: 0, drag: 0.7, align: true,
+  geo: new THREE.BoxGeometry(0.05, 0.05, 0.42)
+});
+const hitSparks = PART.pool({
+  count: 150, color: 0xff8a3d, gravity: 2.2, drag: 1.1, align: true,
+  geo: new THREE.BoxGeometry(0.06, 0.06, 0.34)
+});
+
+/* --- PYŁ PRZESTRZENI: drobiny płynące w stronę kamery — wrażenie prędkości ---
+   Własne Points (nie chmura z modułu), bo ruch zależy od prędkości statku. */
+const STREAK = { n: 480, pos: null, geo: null, pts: null, box: new THREE.Vector3(150, 80, 320) };
+(function buildStreaks() {
+  const n = STREAK.n, b = STREAK.box;
+  const arr = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    arr[i * 3] = rand(-b.x / 2, b.x / 2);
+    arr[i * 3 + 1] = rand(-b.y / 2, b.y / 2);
+    arr[i * 3 + 2] = rand(-b.z / 2, b.z / 2);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 0.5, map: H3D.textures.dot(), color: H3D.srgb(0xd6e2f5),
+    transparent: true, opacity: 0.5, depthWrite: false,
+    blending: THREE.AdditiveBlending, sizeAttenuation: true
+  });
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false;
+  S.add(pts);
+  STREAK.pos = arr; STREAK.geo = geo; STREAK.pts = pts;
+})();
+function streakTick(dt) {
+  const p = STREAK.pos, b = STREAK.box, n = STREAK.n;
+  const sx = ship.position.x, sy = ship.position.y, sz = ship.position.z;
+  const dz = G.v * dt * 0.85;
+  for (let i = 0; i < n; i++) {
+    const i3 = i * 3;
+    p[i3 + 2] += dz;
+    /* zawijanie wokół statku — pył jest zawsze wokół gracza */
+    if (p[i3 + 2] - sz > b.z / 2) {
+      p[i3 + 2] -= b.z;
+      p[i3] = sx + rand(-b.x / 2, b.x / 2);
+      p[i3 + 1] = sy + rand(-b.y / 2, b.y / 2);
+    } else if (p[i3 + 2] - sz < -b.z / 2) {
+      p[i3 + 2] += b.z;
+    }
+    if (p[i3] - sx > b.x / 2) p[i3] -= b.x; else if (p[i3] - sx < -b.x / 2) p[i3] += b.x;
+    if (p[i3 + 1] - sy > b.y / 2) p[i3 + 1] -= b.y; else if (p[i3 + 1] - sy < -b.y / 2) p[i3 + 1] += b.y;
+  }
+  STREAK.geo.attributes.position.needsUpdate = true;
+  /* rozmiar drobin rośnie z prędkością; przy dopalaczu są wyraźniejsze smugi */
+  STREAK.pts.material.size = 0.34 + 0.5 * (G.v / Math.max(1, G.vmax));
+  STREAK.pts.material.opacity = 0.30 + 0.35 * (G.v / Math.max(1, G.vmax));
+}
+
+/* ============================================================================
+   STEROWANIE: mapowanie wejść (klawiatura / pad / dotyk / pochylenie)
+   ============================================================================ */
+let tiltOn = false;
+async function tryTilt() {
+  if (!TOUCH) return;
+  const ok = await IN.enableTilt();
+  tiltOn = !!ok;
+  if (tiltOn) { H.msg('Pochylenie aktywne', 'Przechyl telefon w lewo lub w prawo', 1500); }
+}
+
+/* ============================================================================
+   FIZYKA LOTU — prosty, przewidywalny model: ciąg + bezwładność + ster
+   ============================================================================ */
+const tmpV = new THREE.Vector3();
+function updateFlight(dt) {
+  IN.poll();
+  /* wejście: klawiatura/pad mają priorytet nad pochyleniem */
+  let ax = IN.ax.x, ay = IN.ax.y;
+  if (tiltOn && Math.abs(ax) < 0.05 && Math.abs(ay) < 0.05) { ax = IN.tilt.x; ay = -IN.tilt.y; }
+  const thrust = IN.held.up ? 1 : 0;
+  const brake = IN.held.down ? 1 : 0;
+  const boosting = !!IN.held.boost && G.boost > 2;
+
+  /* ciąg: dopalacz + naturalne przyspieszanie do vmax */
+  const targetV = G.vmax * (boosting ? 1.42 : 1) * (1 + thrust * 0.06);
+  const accel = boosting ? 46 : (thrust ? 26 : 11);
+  G.v += (targetV - G.v) * clamp(accel * dt / Math.max(1, G.vmax), 0, 1);
+  if (brake) G.v -= 34 * dt;
+  G.v = clamp(G.v, 14, G.vmax * 1.5);
+  G.boost = clamp(G.boost + (boosting ? -32 : 12) * dt, 0, 100);
+
+  /* ster: przyspieszenie boczne z tłumieniem (płynne, "ciężkie" prowadzenie) */
+  const steerAcc = 34 + G.v * 0.22;
+  G.vx += ax * steerAcc * dt;
+  G.vy += ay * steerAcc * 0.7 * dt;
+  G.vx *= Math.max(0, 1 - 3.1 * dt);
+  G.vy *= Math.max(0, 1 - 3.1 * dt);
+  G.x += G.vx * dt; G.y += G.vy * dt;
+  /* bandy korytarza — miękkie odbicie, bez "przyklejania" */
+  const limX = CORRIDOR - 2.2, limY = CORRIDOR_Y - 1.6;
+  if (G.x > limX) { G.x = limX; G.vx = -Math.abs(G.vx) * 0.45; }
+  if (G.x < -limX) { G.x = -limX; G.vx = Math.abs(G.vx) * 0.45; }
+  if (G.y > limY) { G.y = limY; G.vy = -Math.abs(G.vy) * 0.45; }
+  if (G.y < -limY) { G.y = -limY; G.vy = Math.abs(G.vy) * 0.45; }
+
+  /* ruch do przodu (świat stoi, statek leci w -Z) */
+  const dz = G.v * dt;
+  G.dist += dz;
+  ship.position.z -= dz;
+  ship.position.x = damp(ship.position.x, G.x, 12, dt);
+  ship.position.y = damp(ship.position.y, G.y, 12, dt);
+  /* przechył i pochylenie wynikające ze sterowania */
+  const roll = clamp(-G.vx * 0.022, -0.5, 0.5);
+  const pitch = clamp(G.vy * 0.016, -0.28, 0.28);
+  ship.rotation.z = damp(ship.rotation.z, roll, 9, dt);
+  ship.rotation.x = damp(ship.rotation.x, pitch, 9, dt);
+  ship.rotation.y = damp(ship.rotation.y, ax * -0.10, 8, dt);
+  ship.updateMatrixWorld();
+
+  /* obracające się asteroidy, falujące komory, pulsujące bramy */
+  for (let i = 0; i < rock.list.length; i++) {
+    const a = rock.list[i];
+    if (a.live) a.rot += a.spin * dt;
+  }
+  for (let i = 0; i < cells.length; i++) {
+    const c = cells[i];
+    if (!c.live) continue;
+    c.grp.rotation.y += dt * 1.4;
+    c.grp.rotation.x = Math.sin(G.t * 1.7 + c.ph) * 0.3;
+    c.grp.position.y = c.y + Math.sin(G.t * 2.1 + c.ph) * 0.7;
+  }
+  for (let i = 0; i < gates.length; i++) {
+    const g = gates[i];
+    g.rotation.z += g.userData.spin * dt;
+    g.userData.glow.emissiveIntensity = 1.3 + Math.sin(G.t * 3 + i) * 0.45;
+    g.userData.halo.material.opacity = 0.22 + Math.sin(G.t * 2 + i) * 0.08;
+  }
+
+  /* iskry z dysz — proporcjonalnie do ciągu */
+  const rate = boosting ? 26 : (thrust ? 16 : 8);
+  if (Math.random() < rate * dt) {
+    for (let k = 0; k < shipParts.engines.length; k++) {
+      tmpV.copy(shipParts.engines[k]).applyMatrix4(ship.matrixWorld);
+      engineSparks.spawn(
+        tmpV.x + rand(-0.1, 0.1), tmpV.y + rand(-0.1, 0.1), tmpV.z,
+        rand(-1.4, 1.4), rand(-1.4, 1.4), rand(6, 16) + G.v * 0.2,
+        rand(0.16, 0.34), rand(0.05, 0.1)
+      );
+    }
+  }
+  /* płomień dysz pulsuje z ciągiem */
+  const fl = boosting ? 1.75 : (thrust ? 1.35 : 0.95);
+  shipParts.flames.forEach(f => {
+    f.scale.set(1, fl * (0.9 + Math.random() * 0.2), 1);
+    f.material.opacity = boosting ? 0.9 : 0.66;
+  });
+}
+
+/* ============================================================================
+   HUD — aktualizacja co klatkę (tanie: tylko gdy wartość się zmienia)
+   ============================================================================ */
+const hudCache = { sc: -1, hull: -1, boost: -1, spd: -1, tgt: '' };
+const E_sc = $('sc'), E_sco = $('sco'), E_hull = $('hullbar').firstElementChild,
+  E_fuel = $('fuelbar').firstElementChild, E_hullp = $('hullp'), E_fuelp = $('fuelp'),
+  E_spd = $('spd'), E_tgt = $('target'), E_warn = $('warn');
+
+function updateHUD(force) {
+  const L = LV();
+  if (force) {
+    $('mname').textContent = L.name;
+    $('mlev').textContent = 'Poziom ' + cur + ' · Świat ' + (L.w + 1) + ' · ' + WORLDS[L.w].name;
+    hudCache.sc = -1; hudCache.hull = -1; hudCache.boost = -1; hudCache.spd = -1; hudCache.tgt = '';
+  }
+  if (hudCache.sc !== G.energy) {
+    hudCache.sc = G.energy;
+    E_sc.textContent = G.energy;
+    E_sco.textContent = 'z ' + L.cells + ' komór · cel ' + G.need;
+    E_sc.style.color = G.energy >= G.need ? '#ffd23f' : '#eef2f8';
+  }
+  const hull = Math.round(G.hull), boost = Math.round(G.boost);
+  if (hudCache.hull !== hull) {
+    hudCache.hull = hull;
+    E_hull.style.width = hull + '%';
+    E_hull.style.background = hull > 55 ? 'linear-gradient(90deg,#5cc985,#ffd23f)' :
+      (hull > 25 ? 'linear-gradient(90deg,#ffd23f,#ff8a3d)' : 'linear-gradient(90deg,#e5533f,#ff8a3d)');
+    E_hullp.textContent = hull + '%';
+  }
+  if (hudCache.boost !== boost) {
+    hudCache.boost = boost;
+    E_fuel.style.width = boost + '%';
+    E_fuelp.textContent = boost + '%';
+  }
+  const spd = Math.round(G.v);
+  if (hudCache.spd !== spd) { hudCache.spd = spd; E_spd.textContent = spd; }
+  const left = Math.max(0, Math.round(G.len - G.dist));
+  const tgt = (G.state === 'play' || G.state === 'pause') ? ('Meta za ' + left + ' m') : '';
+  if (hudCache.tgt !== tgt) {
+    hudCache.tgt = tgt; E_tgt.textContent = tgt;
+    E_tgt.classList.toggle('hi', left < 260);
+  }
+  /* ostrzeżenie o skale tuż przed dziobem — czytelne, bez paniki */
+  let near = 1e9;
+  if (G.state === 'play') {
+    for (let i = 0; i < rock.list.length; i++) {
+      const a = rock.list[i];
+      if (!a.live) continue;
+      const dz = a.z - ship.position.z;
+      if (dz < 0 || dz > 70) continue;
+      const dx = a.x - ship.position.x, dy = a.y - ship.position.y;
+      const d = Math.sqrt(dx * dx + dy * dy + dz * dz) - a.r;
+      if (d < near) near = d;
+    }
+  }
+  const warnOn = near < 6.5;
+  E_warn.classList.toggle('on', warnOn);
+  if (warnOn) E_warn.textContent = 'UWAGA: SKAŁA';
+}
+
+/* ============================================================================
+   MENU — 3 światy × 3 sektory, odblokowywanie, rekordy
+   ============================================================================ */
+function buildMenu() {
+  const wrap = $('worlds');
+  wrap.innerHTML = '';
+  for (let w = 0; w < WORLDS.length; w++) {
+    const d = document.createElement('div');
+    d.className = 'world';
+    const h = document.createElement('h2');
+    h.innerHTML = 'Świat ' + (w + 1) + ' · ' + WORLDS[w].name + '<i></i>';
+    d.appendChild(h);
+    const grid = document.createElement('div');
+    grid.id = w === 0 ? 'grid' : 'grid' + (w + 1);
+    for (let k = 0; k < 3; k++) {
+      const n = w * 3 + k + 1;
+      const L = LEVELS[n - 1];
+      const b = document.createElement('button');
+      b.className = 'lv';
+      b.dataset.n = n;
+      const best = PROG.best(n);
+      const locked = !PROG.isUnlocked(n);
+      const done = best != null && best >= L.need;
+      if (locked) b.classList.add('lock');
+      if (done) b.classList.add('done');
+      if (n === sel) b.classList.add('sel');
+      b.innerHTML = '<b>' + n + '. ' + L.name + '</b>' +
+        '<small>' + L.len + ' m · ' + L.cells + ' komór</small>' +
+        (best != null ? '<span class="bs">' + best + '</span>' : '');
+      b.setAttribute('aria-label', 'Sektor ' + n + ': ' + L.name + (locked ? ' (zablokowany)' : ''));
+      b.addEventListener('click', () => {
+        if (locked) { H.msg('Sektor zablokowany', 'Ukończ poprzedni sektor', 1100); return; }
+        sel = n;
+        buildMenu();
+        buildLevel(n);
+        previewCam();
+      });
+      b.addEventListener('dblclick', () => { if (!locked) { sel = n; startGame(); } });
+      grid.appendChild(b);
+    }
+    d.appendChild(grid);
+    wrap.appendChild(d);
+  }
+}
+
+/* opcje: kamera i sterowanie */
+let ctls = { cam: 'auto', tilt: TOUCH };
+function buildOpts() {
+  const camRow = $('ocam');
+  camRow.querySelectorAll('.opt').forEach(e => e.remove());
+  [['auto', 'Auto'], ['close', 'Blisko'], ['wide', 'Szeroko']].forEach(pair => {
+    const v = pair[0], label = pair[1];
+    const b = document.createElement('button');
+    b.className = 'opt'; b.textContent = label;
+    b.setAttribute('aria-pressed', ctls.cam === v ? 'true' : 'false');
+    b.addEventListener('click', () => { ctls.cam = v; applyCamMode(); buildOpts(); });
+    camRow.appendChild(b);
+  });
+  const ctlRow = $('octl');
+  ctlRow.querySelectorAll('.opt,.lbl').forEach(e => e.remove());
+  if (TOUCH) {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = tiltOn ? 'Przyciski + pochylenie' : 'Przyciski ekranowe';
+    b.setAttribute('aria-pressed', tiltOn ? 'true' : 'false');
+    b.addEventListener('click', async () => {
+      if (tiltOn) { tiltOn = false; buildOpts(); return; }
+      await tryTilt();
+      buildOpts();
+    });
+    ctlRow.appendChild(b);
+  } else {
+    const s = document.createElement('span');
+    s.className = 'lbl';
+    s.style.cssText = 'font-size:12px;opacity:.7;font-weight:600';
+    s.textContent = 'Klawiatura · pad USB/Bluetooth';
+    ctlRow.appendChild(s);
+  }
+}
+function applyCamMode() {
+  const c = CHASE.cfg;
+  if (ctls.cam === 'close') { c.dist = 8.5; c.height = 3.0; c.look = 22; }
+  else if (ctls.cam === 'wide') { c.dist = 15; c.height = 5.8; c.look = 30; }
+  else { c.dist = 11.5; c.height = 4.0; c.look = 26; }
+}
+
+/* ---------- ekran wyniku ---------- */
+function showResult(html, ok) {
+  const r = $('res');
+  r.hidden = false;
+  r.innerHTML = html;
+  $('bstart').hidden = true;
+  $('brest').hidden = false;
+  $('bmenu').hidden = false;
+  $('menu').hidden = false;
+  $('hud').style.display = 'none';
+  $('menu').querySelector('h1').innerHTML = ok
+    ? 'SEKTOR <em>' + cur + '</em> ZALICZONY' : 'LOT <em>PRZERWANY</em>';
+}
+
+/* ============================================================================
+   PRZEJŚCIA STANÓW
+   ============================================================================ */
+function hideResult() {
+  $('res').hidden = true;
+  $('bstart').hidden = false;
+  $('brest').hidden = true;
+  $('bmenu').hidden = true;
+  $('brest').textContent = 'Jeszcze raz';
+  $('menu').querySelector('h1').innerHTML = 'HOPLA <em>KOSMOS</em> 3D';
+}
+function previewCam() {
+  G.state = 'menu';
+  $('menu').hidden = false;
+  $('hud').style.display = 'none';
+  hideResult();
+  buildMenu();
+  ship.rotation.set(0, 0, 0);
+}
+function startGame() {
+  $('menu').hidden = true;
+  $('hud').style.display = '';
+  $('res').hidden = true;
+  buildLevel(sel);
+  G.state = 'play';
+  H.clear();
+  H.msg('Sektor ' + cur, LV().name + ' · zbierz ' + G.need + ' komór energii', 1900);
+  IN.reset();
+  IN.calibrateTilt();
+  applyCamMode();
+  H.hint(TOUCH ? 'Przyciski: ◀ ▶ ster · CIĄG · HAMUJ' :
+    'Strzałki / A,D — ster · W,↑ ciąg · S,↓ hamuj · Shift dopalacz · Esc pauza · R restart');
+}
+function togglePause() {
+  if (G.state === 'play') {
+    G.state = 'pause';
+    $('menu').hidden = false;
+    hideResult();
+    $('bstart').hidden = true;
+    $('brest').hidden = false;
+    $('bmenu').hidden = false;
+    $('res').hidden = false;
+    $('res').innerHTML = 'Pauza\nEnergia: <b>' + G.energy + '</b> / ' + G.need +
+      ' · Kadłub: <b>' + Math.round(G.hull) + '%</b>\nMeta za <b>' +
+      Math.max(0, Math.round(G.len - G.dist)) + ' m</b>';
+    $('brest').textContent = 'Wróć do lotu';
+    $('menu').querySelector('h1').innerHTML = 'PAUZA';
+    $('hud').style.display = 'none';
+  } else if (G.state === 'pause') {
+    G.state = 'play';
+    $('menu').hidden = true;
+    $('hud').style.display = '';
+    $('brest').textContent = 'Jeszcze raz';
+    H.msg('', '', 0);
+  }
+}
+
+/* ---------- przyciski i skróty ---------- */
+$('bstart').addEventListener('click', () => { startGame(); });
+$('brest').addEventListener('click', () => {
+  if (G.state === 'pause') { togglePause(); return; }
+  startGame();
+});
+$('bmenu').addEventListener('click', () => { previewCam(); });
+addEventListener('keydown', e => {
+  if (e.code === 'Escape' || e.code === 'KeyP') {
+    if (G.state === 'play' || G.state === 'pause') { e.preventDefault(); togglePause(); }
+    return;
+  }
+  if (G.state === 'menu' || G.state === 'done' || G.state === 'over') {
+    if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); startGame(); return; }
+    if (G.state === 'menu') {
+      if (e.code === 'ArrowRight' && sel % 3 !== 0) sel++;
+      else if (e.code === 'ArrowLeft' && sel % 3 !== 1) sel--;
+      else if (e.code === 'ArrowDown' && sel <= 6) sel += 3;
+      else if (e.code === 'ArrowUp' && sel > 3) sel -= 3;
+      else return;
+      sel = clamp(sel, 1, PROG.data.unlocked);
+      buildMenu(); buildLevel(sel);
+    }
+    return;
+  }
+  if (G.state === 'play' && e.code === 'KeyR') startGame();
+});
+
+/* ============================================================================
+   PĘTLA GRY
+   ============================================================================ */
+let last = performance.now(), menuT = 0;
+const fwd = new THREE.Vector3(0, 0, -1);
+function frame(now) {
+  requestAnimationFrame(frame);
+  const rdt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dt = FX.update(rdt);
+  menuT += rdt;
+  IN.poll();
+
+  if (G.state === 'play') {
+    if (dt > 0) {
+      G.t += dt;
+      updateFlight(dt);
+      checkCollisions();
+      dmgCool = Math.max(0, dmgCool - dt);
+      if (G.dist >= G.len) finishRun();
+      /* kamera: płynne śledzenie + FOV rosnące z prędkością */
+      CHASE.follow(ship.position, fwd, (G.v / G.vmax - 0.55) * 1.35, dt);
+      LGT.follow(ship.position.x, ship.position.y, ship.position.z - 8);
+    }
+    updateHUD(false);
+  } else if (G.state === 'menu') {
+    /* prezentacja sektora: orbita wokół statku */
+    H3D.orbitCamera(CAM, new THREE.Vector3(0, 0.6, 0), menuT * 0.18, 13, 3.0, 0.4);
+    CHASE.setFov(56, rdt);
+    ship.rotation.y = Math.sin(menuT * 0.4) * 0.35;
+    ship.rotation.z = Math.sin(menuT * 0.3) * 0.08;
+    for (let i = 0; i < cells.length; i++) {
+      if (cells[i].live) cells[i].grp.rotation.y += rdt * 1.2;
+    }
+    for (let i = 0; i < gates.length; i++) gates[i].rotation.z += rdt * 0.2;
+  } else if (G.state === 'done' || G.state === 'over') {
+    /* kamera odjeżdża — kadr na statek i pole asteroid */
+    tmpV.copy(ship.position).add(new THREE.Vector3(4, 5, 16));
+    CHASE.place(tmpV, ship.position, rdt);
+    ship.rotation.z = damp(ship.rotation.z, G.state === 'over' ? 0.9 : 0, 1.6, rdt);
+    if (G.state === 'done' && Math.random() < rdt * 3) {
+      PART.confetti(ship.position, 14, { speed: 7, life: 1.6 });
+    }
+  }
+
+  PART.update(rdt, ship.position);
+  if (G.state === 'play') streakTick(rdt);
+  H.tick(rdt);
+
+  /* asteroidy: jedna aktualizacja macierzy instancji na klatkę */
+  if (rock.mesh) {
+    const d = rock.dummy;
+    for (let i = 0; i < rock.list.length; i++) {
+      const a = rock.list[i];
+      if (!a.live) { d.position.set(0, -9999, 0); d.scale.setScalar(0.0001); }
+      else {
+        d.position.set(a.x, a.y, a.z);
+        d.rotation.set(a.ax, a.ay, a.rot);
+        d.scale.setScalar(a.r);
+      }
+      d.updateMatrix();
+      rock.mesh.setMatrixAt(i, d.matrix);
+    }
+    rock.mesh.instanceMatrix.needsUpdate = true;
+  }
+
+  POST.render(rdt);
+  if (POST.mode !== 'composer') R.render(S, CAM);
+}
+
+/* ============================================================================
+   START
+   ============================================================================ */
+addEventListener('resize', () => {
+  R.setSize(innerWidth, innerHeight, false);
+  CAM.aspect = innerWidth / innerHeight;
+  CAM.updateProjectionMatrix();
+  if (POST.setSize) POST.setSize(innerWidth, innerHeight);
+});
+buildMenu();
+buildOpts();
+applyCamMode();
+buildLevel(sel);
+previewCam();
+if (TOUCH) H.hint('Przyciski ◀ ▶ · CIĄG · HAMUJ — wybierz sektor i dotknij Start');
+else H.hint('Wybierz sektor (klik lub strzałki) i naciśnij Enter');
+requestAnimationFrame(frame);
+
+/* TODO-KIMI: więcej typów przeszkód (pola minowe, korytarze stacyjne, tunele
+   z przyspieszeniem), tryb „na czas", ranking lokalny, więcej sektorów. */
+/* TODO-CODEX: dopracować mgławice (warstwy billboardów), LOD asteroid
+   (mniej trójkątów w dali), tekstury stacji, dźwięk silnika i trafień,
+   powtórka lotu z kamery TV. */
+</script>
+</body></html>
