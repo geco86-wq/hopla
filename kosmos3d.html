@@ -13,7 +13,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
 #hud{position:fixed;inset:0;pointer-events:none;z-index:3;font-weight:650}
 #mtop{left:12px;top:12px;min-width:196px}
 #mtop .nm{display:block;font-size:16px;font-weight:800;letter-spacing:.02em;line-height:1.15}
-#mtop .lv{display:block;font-size:11px;font-weight:700;letter-spacing:.16em;
+#mtop .level-label{display:block;font-size:11px;font-weight:700;letter-spacing:.16em;
   text-transform:uppercase;opacity:.55;margin-top:3px}
 #score{right:12px;top:12px;text-align:right;min-width:150px}
 #score b{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;display:block;line-height:1.05}
@@ -60,7 +60,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
   #mtop{min-width:150px;padding:7px 10px}#mtop .nm{font-size:13px}
   #score b{font-size:20px}#score{min-width:112px;padding:7px 10px}
   #speed b{font-size:18px}#speed{min-width:104px}
-  #bars{width:52vw;bottom:110px}#speed{bottom:150px}#target{bottom:132px;font-size:11px}
+  #bars{width:44vw;bottom:188px}#speed{bottom:150px}#target{bottom:132px;font-size:11px}
   #pl,#pr{width:66px;height:66px;font-size:22px}#pa{width:62px;height:62px;right:90px}
 }
 /* ---------- przycisk powrotu ---------- */
@@ -72,7 +72,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
 #back:focus-visible,#menu button:focus-visible,.lv:focus-visible{outline:3px solid #2aa3d6;outline-offset:2px}
 /* ---------- menu ---------- */
 #menu{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:10px;padding:18px;overflow:auto;
+  justify-content:safe center;gap:10px;padding:18px;overflow:auto;
   background:radial-gradient(120% 90% at 50% 8%,rgba(28,22,64,.94),rgba(6,4,16,.98) 72%)}
 #menu h1{margin:0;font-size:clamp(26px,5.6vw,50px);letter-spacing:.10em;font-weight:900;
   color:#ffe8b8;text-align:center;line-height:1.05;
@@ -86,7 +86,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
   opacity:.55;display:flex;gap:8px;align-items:center}
 .world h2 i{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.22),transparent);
   font-style:normal}
-#grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .lv{position:relative;text-align:left;background:rgba(255,255,255,.055);color:#eef2f8;
   border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:8px 10px;font-family:inherit;
   cursor:pointer;transition:background .12s,border-color .12s,transform .08s}
@@ -99,7 +99,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
 .lv .bs{position:absolute;right:8px;top:7px;font-size:10px;font-weight:800;color:#ffd23f;
   font-variant-numeric:tabular-nums}
 .lv.lock{opacity:.42;cursor:not-allowed}
-.lv.lock::after{content:"\1F512";position:absolute;right:8px;bottom:7px;font-size:11px;opacity:.7}
+.lv.lock::after{content:"—";position:absolute;right:8px;bottom:7px;font-size:11px;opacity:.7}
 .lv.done{border-color:rgba(255,210,63,.45);background:rgba(255,210,63,.09)}
 .lv.sel{outline:2px solid #ff8a3d;outline-offset:1px}
 #opts{display:flex;flex-direction:column;gap:6px;margin-top:2px}
@@ -123,18 +123,51 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
 #mbtn button:active{transform:scale(.97)}
 #mh{opacity:.55;font-size:clamp(10px,1.6vw,13px);font-weight:600;text-align:center;
   max-width:min(760px,94vw);margin:4px 0 0;line-height:1.6}
-</style></head><body>
+/* Ekrany wyników i pauzy zostawiają miejsce na czytelne działania. */
+#menu>*{flex-shrink:0}
+#menu.summary #worlds,#menu.summary #opts,#menu.summary .tag{display:none}
+#back{z-index:10;top:12px;bottom:auto;left:50%;right:auto;transform:translateX(-50%)}
+#back:active{transform:translateX(-50%) scale(.97)}
+#pause{position:fixed;top:108px;right:12px;z-index:5;border:1px solid #ffffff38;
+ border-radius:9px;background:#111527cc;color:#eef2f8;padding:9px 13px;font:700 12px system-ui;cursor:pointer}
+#pause:focus-visible,#pad button:focus-visible{outline:3px solid #2aa3d6;outline-offset:3px}
+@media(max-width:640px){
+ #menu{padding:58px 12px 16px;gap:8px}#menu h1{font-size:26px}
+ #back{padding:6px 10px;font-size:12px}#mh{font-size:11px}
+ .world{width:100%}.lv{min-width:0}.lv b{padding-right:0;font-size:11px}
+ .lv .bs{position:static;display:block}.lv small{font-size:9px}
+ #pause{top:100px;padding:8px 10px}#score{min-width:0;max-width:42vw}
+}
+@media(pointer:coarse){#h3d-hint{display:none}#h3d-fps{bottom:2px}}
+#pboost{left:50%;bottom:26px;transform:translateX(-50%);width:92px;height:62px;font-size:11px}
+#pad #pboost.on{transform:translateX(-50%) scale(.95)}
+@media(pointer:coarse){#bars{bottom:192px}#speed{bottom:192px}#target{bottom:244px}}
+/* Cztery kierunki pod lewym kciukiem; napęd pod prawym. */
+#pad #pl{left:8px;right:auto;bottom:57px;width:56px;height:56px}
+#pad #pr{left:126px;right:auto;bottom:57px;width:56px;height:56px}
+#pad #pa{left:67px;right:auto;bottom:112px;width:56px;height:56px;font-size:11px}
+#pad #pb{left:67px;right:auto;bottom:4px;width:56px;height:56px;font-size:11px}
+#pad #pboost{left:auto;right:14px;bottom:22px;transform:none;width:88px;height:76px;font-size:11px}
+#pad #pbrake{right:28px;bottom:114px;width:60px;height:56px;font-size:10px}
+#pad #pboost.on{transform:scale(.95)}
+body:not(.is-menu) #back{top:108px;left:12px;right:auto;transform:none;font-size:12px;padding:8px 11px}
+body:not(.is-menu) #back:active{transform:scale(.97)}
+@media(max-width:640px){body:not(.is-menu) #back{top:100px}}
+@media(max-width:640px){#mtop{max-width:48vw;min-width:0}#mtop .level-label{font-size:9px;letter-spacing:.07em;line-height:1.4}#target{white-space:normal;max-width:90vw}}
+body.touch #bars,body.touch #speed{bottom:192px}
+body.touch #target{bottom:310px}
+</style></head><body class="is-menu">
 <canvas id="gl"></canvas>
 
 <div id="hud" class="h3d-ui">
   <div class="h3d-box" id="mtop">
     <span class="nm" id="mname">Pas Asteroid</span>
-    <span class="lv" id="mlev">Poziom 1 · Świat 1</span>
+    <span class="level-label" id="mlev">Poziom 1 · Świat 1</span>
   </div>
   <div class="h3d-box" id="score">
     <span class="sub">Energia</span>
     <b id="sc">0</b>
-    <span class="sub" id="sco">z 0 komór</span>
+    <span class="sub" id="sco">z 0 ogniw</span>
   </div>
   <div class="h3d-box" id="speed">
     <span class="sub">Prędkość</span>
@@ -154,9 +187,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
 <div id="pad">
   <button id="pl" aria-label="lewo">&#9664;</button>
   <button id="pr" aria-label="prawo">&#9654;</button>
-  <button id="pa" aria-label="ciąg">CIĄG</button>
-  <button id="pb" aria-label="hamowanie">HAMUJ</button>
+  <button id="pa" aria-label="w górę">GÓRA</button>
+  <button id="pb" aria-label="w dół">DÓŁ</button>
+  <button id="pbrake" aria-label="hamowanie">HAMUJ</button>
+  <button id="pboost" aria-label="dopalacz">DOPALACZ</button>
 </div>
+<button id="pause" hidden>Pauza</button>
 <button id="back" onclick="location.href='index.html'">&#8592; Hopla</button>
 
 <div id="menu">
@@ -171,11 +207,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#05030d;color:#eef2f8;
   <div id="res" hidden></div>
   <div id="mbtn">
     <button id="bstart">Start lotu</button>
+    <button id="bnext" hidden>Następny poziom</button>
     <button id="brest" class="gh" hidden>Jeszcze raz</button>
     <button id="bmenu" class="gh" hidden>Wybór sektora</button>
   </div>
-  <p id="mh">Sterowanie: strzałki lub A/D — ster · W/↑ — ciąg · S/↓ — hamowanie · Shift — dopalacz ·
-    Spacja — start i pauza · pad: lewy drążek / A / RB · na telefonie: przyciski ekranowe lub pochylenie.</p>
+  <p id="mh">Sterowanie: strzałki lub WASD — cztery kierunki · B — hamowanie · Shift — dopalacz ·
+    Spacja — start i pauza · pad: lewy drążek / A / RB / LT · na telefonie: cztery kierunki, dopalacz lub pochylenie.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -204,6 +241,7 @@ if (!H3D || !H3D.ok) {
 const TAU = Math.PI * 2;
 const clamp = H3D.clamp, lerp = H3D.lerp, damp = H3D.damp, rand = H3D.rand;
 const TOUCH = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+document.body.classList.toggle('touch', TOUCH);
 
 /* ---------- postęp gracza (localStorage: hoplaKO) ---------- */
 const PROG = H3D.progress('hoplaKO', 9);
@@ -224,12 +262,12 @@ const WORLDS = [
     fogNear: 150, fogFar: 780, sunDir: [0.55, 0.3, -0.78]
   },
   {
-    name: 'Zewnętrzny Rubież', sky: 'kosmos', lights: 'kosmos',
+    name: 'Zewnętrzna Rubież', sky: 'kosmos', lights: 'kosmos',
     nebula: 0x2a6280, accent: 0xffd23f, rock: 0xa9b6c4,
     fogNear: 200, fogFar: 1000, sunDir: [-0.4, 0.55, -0.72]
   }
 ];
-/* LV: nazwa, długość trasy, gęstość asteroid, liczba komór energii, bramy-stacje,
+/* LV: nazwa, długość trasy, gęstość asteroid, liczba ogniw energii, bramy-stacje,
       wymagana energia do zaliczenia, prędkość startowa */
 const LEVELS = [
   { name: 'Próba silników', len: 1500, rocks: 46, cells: 20, gates: 1, need: 8, v0: 42, w: 0 },
@@ -251,12 +289,12 @@ const IN = H3D.input({
     KeyW: 'up', KeyS: 'down', ArrowUp: 'up', ArrowDown: 'down',
     ShiftLeft: 'boost', ShiftRight: 'boost',
     Space: 'action', Enter: 'action', KeyP: 'pause', Escape: 'pause',
-    KeyR: 'restart', KeyC: 'camera'
+    KeyR: 'restart', KeyC: 'camera', KeyB: 'brake'
   }
 });
 if (TOUCH) {
   IN.bindTouch($('pl'), 'left'); IN.bindTouch($('pr'), 'right');
-  IN.bindTouch($('pa'), 'up'); IN.bindTouch($('pb'), 'down');
+  IN.bindTouch($('pa'), 'up'); IN.bindTouch($('pb'), 'down'); IN.bindTouch($('pboost'), 'boost'); IN.bindTouch($('pbrake'), 'brake');
 } else {
   $('pad').hidden = true;
 }
@@ -384,6 +422,7 @@ function rockGeometry(seed) {
 function buildRockField(count, world) {
   if (rock.mesh) {
     S.remove(rock.mesh);
+    if (rock.mesh.dispose) rock.mesh.dispose();
     if (rock.mesh.material) rock.mesh.material.dispose();
   }
   rock.list.length = 0;
@@ -429,6 +468,11 @@ function buildNebulae(world) {
    STACJE-BRAMY — pierścień z 4 pylonami; przelot środkiem daje bonus
    ============================================================================ */
 const gates = [];
+function disposeObjects(group) {
+  const geometries = new Set(), materials = new Set();
+  group.traverse(o => { if (o.geometry) geometries.add(o.geometry); if (o.material) materials.add(o.material); });
+  geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose());
+}
 function makeGate(radius, accent) {
   const g = new THREE.Group();
   const metal = tm(0x3a4152, 0.5, 0.7);
@@ -452,9 +496,9 @@ function makeGate(radius, accent) {
     lamp.rotation.z = a;
     g.add(lamp);
   }
-  /* rdzeń z anteną */
+  /* Antena jest odsunięta od wolnego środka bramy. */
   const core = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.07, radius * 0.09, radius * 0.5, 10), metal);
-  core.rotation.x = Math.PI / 2; core.position.z = -radius * 0.2; g.add(core);
+  core.rotation.x = Math.PI / 2; core.position.set(radius * 1.18, 0, -radius * 0.2); g.add(core);
   const halo = H3D.glowSprite(accent, radius * 3.4, 0.30);
   g.add(halo);
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
@@ -468,7 +512,9 @@ function makeGate(radius, accent) {
 const cells = [];
 const cellGeo = new THREE.OctahedronGeometry(0.85, 0);
 function makeCells(count, accent) {
-  cells.forEach(c => { S.remove(c.grp); c.grp.traverse(o => { if (o.isMesh) o.material.dispose(); }); });
+  const oldMaterials = new Set();
+  cells.forEach(c => { S.remove(c.grp); c.grp.traverse(o => { if (o.material) oldMaterials.add(o.material); }); });
+  oldMaterials.forEach(m => m.dispose());
   cells.length = 0;
   const coreMat = new THREE.MeshStandardMaterial({
     color: H3D.srgb(accent), emissive: H3D.srgb(accent), emissiveIntensity: 1.5,
@@ -519,7 +565,7 @@ function buildLevel(n) {
   buildRockField(L.rocks, W);
   makeCells(L.cells, W.accent);
   /* bramy: rozłożone równo na trasie */
-  gates.forEach(g => S.remove(g));
+  gates.forEach(g => { S.remove(g); disposeObjects(g); });
   gates.length = 0;
   for (let i = 0; i < L.gates; i++) {
     const gg = makeGate(11 + i * 0.6, W.accent);
@@ -559,7 +605,7 @@ function buildLevel(n) {
     a.rot = rnd() * TAU; a.spin = (0.1 + rnd() * 0.5) * (rnd() < 0.5 ? -1 : 1);
     a.ax = rnd() * TAU; a.ay = rnd() * TAU;
   });
-  /* komory: lekki wachlarz w korytarzu — przyjemny "slalom", ale zawsze
+  /* ogniwa: lekki wachlarz w korytarzu — przyjemny "slalom", ale zawsze
      w zasięgu steru (amplituda ~1/3 szerokości korytarza) */
   const cr = H3D.mulberry(n * 3571 + 7);
   cells.forEach((c, i) => {
@@ -573,7 +619,15 @@ function buildLevel(n) {
     c.ph = cr() * TAU;
     c.grp.position.set(c.x, c.y, c.z);
   });
+  rock.list.forEach(a => {
+    for (const c of cells) {
+      const dx = a.x - c.x, dy = a.y - c.y, dz = a.z - c.z;
+      const safe = a.r * rock.geo.boundingSphere.radius + 6;
+      if (dx*dx + dy*dy + dz*dz < safe*safe) a.y = (c.y >= 0 ? -1 : 1) * (CORRIDOR_Y + a.r);
+    }
+  });
   /* reset statku */
+  dmgCool = 0;
   G.len = L.len; G.dist = 0; G.t = 0;
   G.energy = 0; G.need = L.need; G.banked = 0;
   G.hull = 100; G.boost = 100; G.hits = 0; G.best = false;
@@ -588,7 +642,7 @@ function buildLevel(n) {
 }
 
 /* ============================================================================
-   KOLIZJE — asteroidy (kadłub), komory energii, bramy
+   KOLIZJE — asteroidy (kadłub), ogniwa energii, bramy
    ============================================================================ */
 function checkCollisions() {
   const px = ship.position.x, py = ship.position.y, pz = ship.position.z;
@@ -599,7 +653,7 @@ function checkCollisions() {
     const dz = a.z - pz;
     if (dz > 42 || dz < -42) continue;
     const dx = a.x - px, dy = a.y - py;
-    const rr = a.r * 0.88 + pr;
+    const rr = a.r * rock.geo.boundingSphere.radius + pr;
     if (dx * dx + dy * dy + dz * dz < rr * rr) damage(a);
   }
   for (let i = 0; i < cells.length; i++) {
@@ -626,7 +680,7 @@ function checkCollisions() {
       const rad = g.userData.radius;
       if (r2 < rad * rad * 0.55) {
         G.energy += 2; G.boost = 100;
-        H.msg('Brama zaliczona', 'Premia: 2 komory energii', 1200);
+        H.msg('Brama zaliczona', 'Premia: 2 ogniwa energii', 1200);
         FX.shake(0.35, 0.3);
       } else {
         H.msg('Minąłeś bramę', 'Lepiej celuj w środek', 900);
@@ -666,12 +720,12 @@ function finishRun() {
   const mName = ['Brak medalu', 'Brąz', 'Srebro', 'Złoto'][medal];
   H.msg(ok ? 'Sektor zaliczony' : 'Zbyt mało energii', mName, 0);
   const lines = [];
-  lines.push('Energia: <b>' + G.energy + '</b> z ' + L.cells + ' komór (wymagane ' + G.need + ')');
+  lines.push('Energia: <b>' + G.energy + '</b> z ' + L.cells + ' ogniw (wymagane ' + G.need + ')');
   lines.push('Kadłub: <b>' + Math.round(G.hull) + '%</b> · Trafienia: <b>' + G.hits + '</b>');
   lines.push('Dystans: <b>' + Math.round(G.dist) + ' m</b> · Czas: <b>' + H3D.fmtTime(G.t) + '</b>');
   if (rec) lines.push('Nowy rekord sektora!');
   if (ok && cur < 9) lines.push('Odblokowano sektor ' + (cur + 1) + '.');
-  if (!ok) lines.push('Zbierz więcej komór energii i spróbuj ponownie.');
+  if (!ok) lines.push('Zbierz więcej ogniw energii i spróbuj ponownie.');
   showResult(lines.join('\n'), ok);
   if (ok) { FX.slowmo(0.4, 1.6); PART.confetti(ship.position, 60, { speed: 9, life: 1.4 }); }
 }
@@ -757,7 +811,9 @@ let tiltOn = false;
 async function tryTilt() {
   if (!TOUCH) return;
   const ok = await IN.enableTilt();
-  tiltOn = !!ok;
+  tiltOn = !!ok || IN.tilt.enabled;
+  IN.calibrateTilt();
+  if (!tiltOn) H.msg('Pochylenie niedostępne', 'Użyj przycisków ekranowych', 1800);
   if (tiltOn) { H.msg('Pochylenie aktywne', 'Przechyl telefon w lewo lub w prawo', 1500); }
 }
 
@@ -766,12 +822,11 @@ async function tryTilt() {
    ============================================================================ */
 const tmpV = new THREE.Vector3();
 function updateFlight(dt) {
-  IN.poll();
   /* wejście: klawiatura/pad mają priorytet nad pochyleniem */
   let ax = IN.ax.x, ay = IN.ax.y;
-  if (tiltOn && Math.abs(ax) < 0.05 && Math.abs(ay) < 0.05) { ax = IN.tilt.x; ay = -IN.tilt.y; }
-  const thrust = IN.held.up ? 1 : 0;
-  const brake = IN.held.down ? 1 : 0;
+  if (tiltOn && Math.abs(ax) < 0.05 && Math.abs(ay) < 0.05) { ax = IN.tilt.x; ay = IN.tilt.y; }
+  const thrust = IN.held.boost ? 1 : 0;
+  const brake = IN.held.brake ? 1 : 0;
   const boosting = !!IN.held.boost && G.boost > 2;
 
   /* ciąg: dopalacz + naturalne przyspieszanie do vmax */
@@ -810,7 +865,7 @@ function updateFlight(dt) {
   ship.rotation.y = damp(ship.rotation.y, ax * -0.10, 8, dt);
   ship.updateMatrixWorld();
 
-  /* obracające się asteroidy, falujące komory, pulsujące bramy */
+  /* obracające się asteroidy, falujące ogniwa, pulsujące bramy */
   for (let i = 0; i < rock.list.length; i++) {
     const a = rock.list[i];
     if (a.live) a.rot += a.spin * dt;
@@ -867,7 +922,7 @@ function updateHUD(force) {
   if (hudCache.sc !== G.energy) {
     hudCache.sc = G.energy;
     E_sc.textContent = G.energy;
-    E_sco.textContent = 'z ' + L.cells + ' komór · cel ' + G.need;
+    E_sco.textContent = 'z ' + L.cells + ' ogniw · cel ' + G.need;
     E_sc.style.color = G.energy >= G.need ? '#ffd23f' : '#eef2f8';
   }
   const hull = Math.round(G.hull), boost = Math.round(G.boost);
@@ -898,7 +953,7 @@ function updateHUD(force) {
       const a = rock.list[i];
       if (!a.live) continue;
       const dz = a.z - ship.position.z;
-      if (dz < 0 || dz > 70) continue;
+      if (dz > 0 || dz < -70) continue;
       const dx = a.x - ship.position.x, dy = a.y - ship.position.y;
       const d = Math.sqrt(dx * dx + dy * dy + dz * dz) - a.r;
       if (d < near) near = d;
@@ -922,7 +977,7 @@ function buildMenu() {
     h.innerHTML = 'Świat ' + (w + 1) + ' · ' + WORLDS[w].name + '<i></i>';
     d.appendChild(h);
     const grid = document.createElement('div');
-    grid.id = w === 0 ? 'grid' : 'grid' + (w + 1);
+    grid.className = 'grid';
     for (let k = 0; k < 3; k++) {
       const n = w * 3 + k + 1;
       const L = LEVELS[n - 1];
@@ -936,7 +991,7 @@ function buildMenu() {
       if (done) b.classList.add('done');
       if (n === sel) b.classList.add('sel');
       b.innerHTML = '<b>' + n + '. ' + L.name + '</b>' +
-        '<small>' + L.len + ' m · ' + L.cells + ' komór</small>' +
+        '<small>' + L.len + ' m · ' + L.cells + ' ogniw</small>' +
         (best != null ? '<span class="bs">' + best + '</span>' : '');
       b.setAttribute('aria-label', 'Sektor ' + n + ': ' + L.name + (locked ? ' (zablokowany)' : ''));
       b.addEventListener('click', () => {
@@ -955,7 +1010,7 @@ function buildMenu() {
 }
 
 /* opcje: kamera i sterowanie */
-let ctls = { cam: 'auto', tilt: TOUCH };
+let ctls = { cam: ['auto','close','wide'].includes(PROG.cfg('camera')) ? PROG.cfg('camera') : 'auto' };
 function buildOpts() {
   const camRow = $('ocam');
   camRow.querySelectorAll('.opt').forEach(e => e.remove());
@@ -964,7 +1019,7 @@ function buildOpts() {
     const b = document.createElement('button');
     b.className = 'opt'; b.textContent = label;
     b.setAttribute('aria-pressed', ctls.cam === v ? 'true' : 'false');
-    b.addEventListener('click', () => { ctls.cam = v; applyCamMode(); buildOpts(); });
+    b.addEventListener('click', () => { ctls.cam = v; PROG.cfg('camera', ctls.cam); applyCamMode(); buildOpts(); });
     camRow.appendChild(b);
   });
   const ctlRow = $('octl');
@@ -972,7 +1027,7 @@ function buildOpts() {
   if (TOUCH) {
     const b = document.createElement('button');
     b.className = 'opt';
-    b.textContent = tiltOn ? 'Przyciski + pochylenie' : 'Przyciski ekranowe';
+    b.textContent = tiltOn ? 'Wyłącz pochylenie' : 'Włącz pochylenie';
     b.setAttribute('aria-pressed', tiltOn ? 'true' : 'false');
     b.addEventListener('click', async () => {
       if (tiltOn) { tiltOn = false; buildOpts(); return; }
@@ -997,6 +1052,10 @@ function applyCamMode() {
 
 /* ---------- ekran wyniku ---------- */
 function showResult(html, ok) {
+  $('menu').classList.add('summary');
+  $('bnext').hidden = !(ok && cur < 9);
+  buildMenu();
+  H.clear();
   const r = $('res');
   r.hidden = false;
   r.innerHTML = html;
@@ -1006,13 +1065,15 @@ function showResult(html, ok) {
   $('menu').hidden = false;
   $('hud').style.display = 'none';
   $('menu').querySelector('h1').innerHTML = ok
-    ? 'SEKTOR <em>' + cur + '</em> ZALICZONY' : 'LOT <em>PRZERWANY</em>';
+    ? 'SEKTOR <em>' + cur + '</em> ZALICZONY' : (G.state === 'over' ? 'LOT <em>PRZERWANY</em>' : 'SEKTOR <em>NIEZALICZONY</em>');
 }
 
 /* ============================================================================
    PRZEJŚCIA STANÓW
    ============================================================================ */
 function hideResult() {
+  $('menu').classList.remove('summary');
+  $('bnext').hidden = true;
   $('res').hidden = true;
   $('bstart').hidden = false;
   $('brest').hidden = true;
@@ -1026,7 +1087,8 @@ function previewCam() {
   $('hud').style.display = 'none';
   hideResult();
   buildMenu();
-  ship.rotation.set(0, 0, 0);
+  ship.position.set(0, 0, 0); ship.rotation.set(0, 0, 0);
+  H.clear();
 }
 function startGame() {
   $('menu').hidden = true;
@@ -1035,18 +1097,19 @@ function startGame() {
   buildLevel(sel);
   G.state = 'play';
   H.clear();
-  H.msg('Sektor ' + cur, LV().name + ' · zbierz ' + G.need + ' komór energii', 1900);
+  H.msg('Sektor ' + cur, LV().name + ' · zbierz ' + G.need + ' ogniw energii', 1900);
   IN.reset();
   IN.calibrateTilt();
   applyCamMode();
-  H.hint(TOUCH ? 'Przyciski: ◀ ▶ ster · CIĄG · HAMUJ' :
-    'Strzałki / A,D — ster · W,↑ ciąg · S,↓ hamuj · Shift dopalacz · Esc pauza · R restart');
+  H.hint(TOUCH ? 'Cztery kierunki — ster · DOPALACZ — przyspieszenie · Pauza — menu' :
+    'Strzałki / WASD — cztery kierunki · B hamuj · Shift dopalacz · Esc pauza · R restart');
 }
 function togglePause() {
   if (G.state === 'play') {
     G.state = 'pause';
     $('menu').hidden = false;
     hideResult();
+    $('menu').classList.add('summary');
     $('bstart').hidden = true;
     $('brest').hidden = false;
     $('bmenu').hidden = false;
@@ -1063,6 +1126,7 @@ function togglePause() {
     $('hud').style.display = '';
     $('brest').textContent = 'Jeszcze raz';
     H.msg('', '', 0);
+    IN.reset();
   }
 }
 
@@ -1073,26 +1137,42 @@ $('brest').addEventListener('click', () => {
   startGame();
 });
 $('bmenu').addEventListener('click', () => { previewCam(); });
-addEventListener('keydown', e => {
-  if (e.code === 'Escape' || e.code === 'KeyP') {
-    if (G.state === 'play' || G.state === 'pause') { e.preventDefault(); togglePause(); }
-    return;
-  }
-  if (G.state === 'menu' || G.state === 'done' || G.state === 'over') {
-    if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); startGame(); return; }
-    if (G.state === 'menu') {
-      if (e.code === 'ArrowRight' && sel % 3 !== 0) sel++;
-      else if (e.code === 'ArrowLeft' && sel % 3 !== 1) sel--;
-      else if (e.code === 'ArrowDown' && sel <= 6) sel += 3;
-      else if (e.code === 'ArrowUp' && sel > 3) sel -= 3;
-      else return;
-      sel = clamp(sel, 1, PROG.data.unlocked);
-      buildMenu(); buildLevel(sel);
-    }
-    return;
-  }
-  if (G.state === 'play' && e.code === 'KeyR') startGame();
+$('pause').addEventListener('click', togglePause);
+$('bnext').addEventListener('click', () => {
+  if (cur < 9 && PROG.isUnlocked(cur + 1)) { sel = cur + 1; startGame(); }
 });
+addEventListener('blur', () => { if (G.state === 'play') togglePause(); });
+addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'play') togglePause(); });
+function menuInput() {
+  if (IN.tap('pause')) { togglePause(); return; }
+  if (G.state === 'pause') { if (IN.tap('action')) togglePause(); return; }
+  if (G.state === 'play') {
+    if (IN.tap('restart')) { startGame(); return; }
+    if (IN.tap('camera')) {
+      const modes = ['auto','close','wide'];
+      ctls.cam = modes[(modes.indexOf(ctls.cam) + 1) % modes.length];
+      PROG.cfg('camera', ctls.cam); buildOpts();
+      applyCamMode();
+    }
+    if (IN.tap('action')) togglePause();
+    return;
+  }
+  if (IN.tap('action')) {
+    if (G.state === 'done' || G.state === 'over') {
+      if (!$('bnext').hidden) { $('bnext').click(); return; }
+    }
+    startGame(); return;
+  }
+  if (G.state !== 'menu') return;
+  let n = sel;
+  if (IN.tap('right') && n % 3 !== 0) n++;
+  if (IN.tap('left') && n % 3 !== 1) n--;
+  if (IN.tap('down') && n <= 6) n += 3;
+  if (IN.tap('up') && n > 3) n -= 3;
+  n = clamp(n, 1, PROG.data.unlocked);
+  if (n !== sel) { sel = n; buildLevel(sel); previewCam(); }
+}
+
 
 /* ============================================================================
    PĘTLA GRY
@@ -1105,6 +1185,10 @@ function frame(now) {
   const dt = FX.update(rdt);
   menuT += rdt;
   IN.poll();
+  menuInput();
+  document.body.classList.toggle('is-menu', G.state !== 'play');
+  $('pause').hidden = G.state !== 'play';
+  $('pad').hidden = !TOUCH || G.state !== 'play';
 
   if (G.state === 'play') {
     if (dt > 0) {
@@ -1133,7 +1217,7 @@ function frame(now) {
     tmpV.copy(ship.position).add(new THREE.Vector3(4, 5, 16));
     CHASE.place(tmpV, ship.position, rdt);
     ship.rotation.z = damp(ship.rotation.z, G.state === 'over' ? 0.9 : 0, 1.6, rdt);
-    if (G.state === 'done' && Math.random() < rdt * 3) {
+    if (G.state === 'done' && G.energy >= G.need && Math.random() < rdt * 3) {
       PART.confetti(ship.position, 14, { speed: 7, life: 1.6 });
     }
   }
@@ -1159,8 +1243,12 @@ function frame(now) {
     rock.mesh.instanceMatrix.needsUpdate = true;
   }
 
+  sky.mesh.position.copy(CAM.position);
+  nebulaGroup.position.copy(CAM.position);
+  FX.apply(CAM);
   POST.render(rdt);
   if (POST.mode !== 'composer') R.render(S, CAM);
+  FX.restore(CAM);
 }
 
 /* ============================================================================
@@ -1177,7 +1265,7 @@ buildOpts();
 applyCamMode();
 buildLevel(sel);
 previewCam();
-if (TOUCH) H.hint('Przyciski ◀ ▶ · CIĄG · HAMUJ — wybierz sektor i dotknij Start');
+if (TOUCH) H.hint('Cztery kierunki · DOPALACZ — wybierz sektor i dotknij Start');
 else H.hint('Wybierz sektor (klik lub strzałki) i naciśnij Enter');
 requestAnimationFrame(frame);
 

@@ -106,19 +106,22 @@
       }
     } catch (e) { /* tryb prywatny — gramy bez zapisu */ }
     data.unlocked = clamp(Math.round(+data.unlocked || 1), 1, max);
-    if (!data.best || typeof data.best !== 'object') data.best = {};
-    if (!data.cfg || typeof data.cfg !== 'object') data.cfg = {};
+    if (!data.best || typeof data.best !== 'object' || Array.isArray(data.best)) data.best = {};
+    for (const n in data.best) if (!Number.isFinite(data.best[n])) delete data.best[n];
+    if (!data.cfg || typeof data.cfg !== 'object' || Array.isArray(data.cfg)) data.cfg = {};
     const api = {
       key: key, data: data,
       save() { try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) { } },
-      isUnlocked(n) { return n <= data.unlocked; },
+      isUnlocked(n) { return Number.isInteger(n) && n >= 1 && n <= data.unlocked; },
       unlock(n) {
+        if (!Number.isFinite(n)) return false;
         n = clamp(Math.round(n), 1, max);
         if (n > data.unlocked) { data.unlocked = n; api.save(); return true; }
         return false;
       },
       best(n) { const b = data.best[n]; return (b == null ? null : b); },
       setBest(n, v) {
+        if (!Number.isFinite(v)) return false;
         const prev = data.best[n];
         if (prev == null || v > prev) { data.best[n] = v; api.save(); return true; }
         return false;
@@ -168,9 +171,9 @@
   .h3d-postfx{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
   .h3d-postfx .vig{position:absolute;inset:0;
     background:radial-gradient(ellipse at 50% 47%,transparent 40%,rgba(0,0,0,.28) 76%,rgba(0,0,0,.62) 100%)}
-  .h3d-postfx .grain{position:absolute;inset:-30%;opacity:.05;mix-blend-mode:overlay;
+  .h3d-postfx .grain{position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.55'/></svg>");
-    animation:h3d-grain 1.2s steps(4,end) infinite;will-change:transform}
+    background-repeat:repeat}
   @keyframes h3d-grain{
     0%{transform:translate3d(0,0,0)}25%{transform:translate3d(-1.5%,1%,0)}
     50%{transform:translate3d(1%,-1.5%,0)}75%{transform:translate3d(-1%,-1%,0)}
@@ -213,7 +216,8 @@
      tickQuality wywołujemy raz na klatkę animacji (renderer.render lub composer.render) */
   function tickQuality(R) {
     const q = R && R.hopla;
-    if (!q || q.paused) return;
+    if (!q) return;
+    if (q.paused || document.hidden) { q.t0 = null; q.n = 0; return; }
     const now = (global.performance && global.performance.now) ? global.performance.now() : Date.now();
     if (q.t0 == null) { q.t0 = now; q.n = 0; return; }
     q.n++;
@@ -223,13 +227,13 @@
       if (q.fpsEl) q.fpsEl.textContent = Math.round(q.fps) + ' FPS';
       if (q.onFps) q.onFps(q.fps);
       /* <48 fps → schodzimy z jakością (najpierw pixelRatio, potem cień) */
-      if (q.fps < 48 && q.level < 2) {
+      if (q.fps < 48 && q.level < 3) {
         q.level++;
         if (q.level === 1) {
           if (R.getPixelRatio() > 1.25) R.setPixelRatio(1.25); else setShadowSize(1024);
         } else {
-          if (R.getPixelRatio() > 1) R.setPixelRatio(1);
-          setShadowSize(1024);
+          R.setPixelRatio(q.level === 3 ? 0.85 : Math.min(1, R.getPixelRatio()));
+          setShadowSize(q.level === 3 ? 512 : 1024);
         }
         if (q.onDrop) q.onDrop(q.level, q.fps);
       }
@@ -242,7 +246,7 @@
       canvas: canvas, antialias: opts.antialias !== false,
       powerPreference: 'high-performance', alpha: false, stencil: false
     });
-    R.setPixelRatio(Math.min(opts.maxPixelRatio || 2, global.devicePixelRatio || 1));
+    R.setPixelRatio(Math.min(2, opts.maxPixelRatio || 2, global.devicePixelRatio || 1));
     R.setSize(global.innerWidth || 800, global.innerHeight || 600, false);
     R.outputEncoding = THREE.sRGBEncoding;
     R.toneMapping = THREE.ACESFilmicToneMapping;
@@ -436,7 +440,7 @@
   };
 
   function createLights(scene, preset) {
-    const P = Object.assign({}, LIGHT_PRESETS.dzien, preset || {});
+    const P = Object.assign({}, LIGHT_PRESETS.dzien, typeof preset === 'string' ? (LIGHT_PRESETS[preset] || {}) : (preset || {}));
     const hemi = new THREE.HemisphereLight(P.hemiSky, P.hemiGround, P.hemiInt);
     scene.add(hemi);
 
@@ -478,7 +482,11 @@
         dir.fromArray(Q.sunDir || [0.4, 0.8, 0.35]).normalize();
         return api;
       },
-      dispose() { scene.remove(hemi); scene.remove(amb); scene.remove(sun); scene.remove(sun.target); }
+      dispose() {
+        scene.remove(hemi, amb, sun, sun.target);
+        const i = shadowLights.indexOf(sun); if (i >= 0) shadowLights.splice(i, 1);
+        if (sun.shadow.map) sun.shadow.map.dispose();
+      }
     };
     return api;
   }
@@ -542,9 +550,12 @@
         grade.renderToScreen = true;
         composer.addPass(grade);
 
+        let pixelRatio = R.getPixelRatio();
         const orig = composer.render.bind(composer);
         composer.render = function (dt) {
           tickQuality(R);
+          if (pixelRatio !== R.getPixelRatio()) { pixelRatio = R.getPixelRatio(); composer.setPixelRatio(pixelRatio); }
+          if (bloom) bloom.enabled = R.hopla.level < 3;
           grade.uniforms.time.value += (dt || 0.016) * 6.0;
           orig(dt);
         };
@@ -553,15 +564,23 @@
         api.mode = 'composer';
         api.composer = composer;
         api.bloom = bloom;
-        api.setSize = function (w, h) { composer.setSize(w, h); if (bloom) bloom.setSize(w, h); };
+        api.setSize = function (w, h) { composer.setSize(w, h); };
         api.setStrength = function (v) {
           api.strength = v;
           if (bloom) bloom.strength = 0.55 * v;
           grade.uniforms.vig.value = 0.5 * v;
           grade.uniforms.grain.value = 0.05 * v;
         };
-        api.render = function (dt) { if (api.enabled) composer.render(dt); else R.render(scene, camera); };
-        api.dispose = function () { R.hopla.composed = false; };
+        api.setEnabled = function (b) { api.enabled = !!b; };
+        api.render = function (dt) {
+          if (api.enabled) composer.render(dt);
+          else { tickQuality(R); R.render(scene, camera); }
+        };
+        api.dispose = function () {
+          R.hopla.composed = false;
+          composer.renderTarget1.dispose(); composer.renderTarget2.dispose();
+          composer.passes.forEach(p => { if (p.dispose) p.dispose(); else if (p.material) p.material.dispose(); });
+        };
         return api;
       } catch (e) {
         /* composer jest, ale coś nie zagrało — lecimy na fallbacku CSS */
@@ -574,6 +593,13 @@
     const ov = document.createElement('div');
     ov.className = 'h3d-postfx';
     ov.innerHTML = '<i class="vig"></i><i class="grain"></i>';
+    const noise = document.createElement('canvas'); noise.width = noise.height = 96;
+    const ng = noise.getContext('2d'), pixels = ng.createImageData(96, 96);
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      const v = Math.random() * 255; pixels.data[i] = pixels.data[i+1] = pixels.data[i+2] = v; pixels.data[i+3] = 255;
+    }
+    ng.putImageData(pixels, 0, 0);
+    ov.querySelector('.grain').style.backgroundImage = 'url(' + noise.toDataURL() + ')';
     document.body.appendChild(ov);
     api.overlay = ov;
     api.render = function () { /* nic — obraz idzie prosto z renderera */ };
@@ -587,6 +613,7 @@
     api.setEnabled = function (b) { api.enabled = !!b; ov.style.display = b ? '' : 'none'; };
     api.dispose = function () { if (ov.parentNode) ov.parentNode.removeChild(ov); };
     api.setEnabled(true);
+    api.setStrength(strength);
     return api;
   }
 /* ==========================================================================
@@ -840,8 +867,9 @@
       baseHipY: 0.95, mats: mats,
       animate(mode, t, k) { poseHumanoid(h, mode, t, k); return h; },
       dispose() {
-        mats.forEach(m => m.dispose());
-        grp.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
+        const materials = new Set(mats);
+        grp.traverse(o => { if (o.isMesh) { o.geometry.dispose(); materials.add(o.material); } });
+        materials.forEach(m => m.dispose());
       }
     };
     return h;
@@ -852,6 +880,7 @@
            'land' | 'fall' | 'wave' | 'cheer' | 'sit'
      t: czas w sekundach (faza cyklu) · k: { speed, lean, rate }
      ========================================================================== */
+  const footInverse = new THREE.Matrix4(), footL = new THREE.Vector3(), footR = new THREE.Vector3();
   function poseHumanoid(h, mode, t, k) {
     if (!h) return;
     k = k || {};
@@ -983,6 +1012,18 @@
       L.kn.rotation.x = 0.05; R.kn.rotation.x = 0.05;
       h.neck.rotation.x = 0.02 + b * 0.3;
     }
+    if (sk) {
+      /* Wiązania podążają za butami także przy pochyleniu miednicy w locie.
+         Utrzymujemy najniższą nartę na poziomie korzenia postaci. */
+      h.grp.updateMatrixWorld(true);
+      footInverse.copy(h.grp.matrixWorld).invert();
+      footL.set(0, -0.478, 0.055).applyMatrix4(L.kn.matrixWorld).applyMatrix4(footInverse);
+      footR.set(0, -0.478, 0.055).applyMatrix4(R.kn.matrixWorld).applyMatrix4(footInverse);
+      const offset = 0.06 - Math.min(footL.y, footR.y);
+      h.hip.position.y += offset;
+      sk.L.position.copy(footL); sk.R.position.copy(footR);
+      sk.L.position.y += offset - 0.04; sk.R.position.y += offset - 0.04;
+    }
   }
 
   /* ==========================================================================
@@ -1030,9 +1071,9 @@
             const i3 = i * 3;
             p[i3] += vel[i3] * dt; p[i3 + 1] += vel[i3 + 1] * dt; p[i3 + 2] += vel[i3 + 2] * dt;
             /* zawijanie chmury wokół obserwatora — nieskończony śnieg/kurz */
-            const dx = p[i3] - fx; if (dx > area.x / 2) p[i3] -= area.x; else if (dx < -area.x / 2) p[i3] += area.x;
-            const dy = p[i3 + 1] - fy; if (dy > area.y / 2) p[i3 + 1] -= area.y; else if (dy < -area.y / 2) p[i3 + 1] += area.y;
-            const dz = p[i3 + 2] - fz; if (dz > area.z / 2) p[i3 + 2] -= area.z; else if (dz < -area.z / 2) p[i3 + 2] += area.z;
+            p[i3] -= Math.floor((p[i3] - fx + area.x / 2) / area.x) * area.x;
+            p[i3 + 1] -= Math.floor((p[i3 + 1] - fy + area.y / 2) / area.y) * area.y;
+            p[i3 + 2] -= Math.floor((p[i3 + 2] - fz + area.z / 2) / area.z) * area.z;
           }
           geo.attributes.position.needsUpdate = true;
         },
@@ -1135,7 +1176,7 @@
           P.pos[i3 + 2] += P.vel[i3 + 2] * dt;
           /* pozycja dummy musi być czysta — align/rotacja ustawiane od zera każdej klatki */
           dummy.position.set(P.pos[i3], P.pos[i3 + 1], P.pos[i3 + 2]);
-          const sc = Math.max(0.0001, P.size[i] * (0.35 + 0.65 * f));
+          const sc = Math.max(0.0001, P.size[i] * 10 * (0.35 + 0.65 * f));
           if (P.align) {
             dummy.rotation.set(0, 0, 0);
             dummy.lookAt(P.pos[i3] + P.vel[i3], P.pos[i3 + 1] + P.vel[i3 + 1], P.pos[i3 + 2] + P.vel[i3 + 2]);
@@ -1156,7 +1197,7 @@
         for (let i = 0; i < cap; i++) { mesh.setMatrixAt(i, dummy.matrix); P.hidden[i] = 1; }
         mesh.instanceMatrix.needsUpdate = true;
       };
-      P.dispose = function () { scene.remove(mesh); if (!o.mat) mat.dispose(); if (!o.geo) geo.dispose(); };
+      P.dispose = function () { scene.remove(mesh); if (mesh.dispose) mesh.dispose(); mat.dispose(); geo.dispose(); };
       sys.pools.push(P);
       return P;
     }
@@ -1343,7 +1384,7 @@ let sparkPool = null, confettiPools = null;
     KeyC: 'camera', KeyR: 'restart'
   };
   /* klawiszy, których nie chcemy przewijać/przełączać w przeglądarce */
-  const PREVENT = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, Space: 1, Tab: 1 };
+  const PREVENT = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, Space: 1, Enter: 1 };
 
   function input(opts) {
     opts = opts || {};
@@ -1351,6 +1392,7 @@ let sparkPool = null, confettiPools = null;
     const keys = Object.create(null);       /* surowe kody klawiszy */
     const virtual = Object.create(null);    /* przyciski dotykowe */
     const taps = Object.create(null);       /* licznik naciśnięć do zużycia */
+    const tapTime = Object.create(null);
     const held = Object.create(null);
     const padPrev = Object.create(null);
     const padHeld = Object.create(null);
@@ -1359,9 +1401,10 @@ let sparkPool = null, confettiPools = null;
     let padActive = false;
     const tilt = { ok: false, x: 0, y: 0, base: null, enabled: false, invertX: false, invertY: false };
 
-    function press(action) { taps[action] = Math.min(3, (taps[action] || 0) + 1); }
+    function press(action) { taps[action] = 1; tapTime[action] = performance.now(); }
 
     function onKeyDown(e) {
+      if ((e.code === 'Enter' || e.code === 'Space') && e.target && e.target.closest && e.target.closest('button,a')) return;
       if (PREVENT[e.code]) e.preventDefault();
       if (!e.repeat && map[e.code]) press(map[e.code]);
       keys[e.code] = true;
@@ -1370,17 +1413,25 @@ let sparkPool = null, confettiPools = null;
     function onBlur() {
       for (const k in keys) keys[k] = false;
       for (const k in virtual) virtual[k] = false;
+      for (const k in taps) taps[k] = 0;
+      for (const k in held) held[k] = false;
+      ax.x = ax.y = 0;
     }
     addEventListener('keydown', onKeyDown, { passive: false });
     addEventListener('keyup', onKeyUp);
     addEventListener('blur', onBlur);
 
     function readPad() {
-      if (!navigator.getGamepads) return;
-      const pads = navigator.getGamepads();
+      let pads = [];
+      try { pads = navigator.getGamepads ? navigator.getGamepads() : []; } catch (e) { }
       let gp = null;
       for (let i = 0; i < pads.length; i++) { if (pads[i] && pads[i].connected) { gp = pads[i]; break; } }
-      if (!gp) { padActive = false; return; }
+      if (!gp) {
+        padActive = false; padAx.x = padAx.y = 0;
+        for (const k in padHeld) padHeld[k] = false;
+        for (const k in padPrev) padPrev[k] = false;
+        return;
+      }
       padActive = true;
       const ax0 = gp.axes[0] || 0, ax1 = gp.axes[1] || 0;
       const dz = 0.22;
@@ -1395,15 +1446,20 @@ let sparkPool = null, confettiPools = null;
       padHeld.down = btn(13) || stickY < -dz;
       padHeld.action = btn(0) || btn(1);
       padHeld.boost = btn(7) || btn(5);
+      padHeld.brake = btn(6);
       padHeld.pause = btn(9);
       padHeld.camera = btn(3);
       padHeld.restart = btn(8);
       padAx.x = stickX; padAx.y = stickY;
 
+      padAx.x = btn(14) ? -1 : btn(15) ? 1 : stickX;
+      padAx.y = btn(12) ? 1 : btn(13) ? -1 : stickY;
       const edge = (name, val) => {
         if (val && !padPrev[name]) press(name);
         padPrev[name] = val;
       };
+      edge('left', padHeld.left); edge('right', padHeld.right);
+      edge('up', padHeld.up); edge('down', padHeld.down);
       edge('action', btn(0) || btn(1));
       edge('pause', btn(9));
       edge('camera', btn(3));
@@ -1422,10 +1478,12 @@ function poll() {
       held.left = !!out.left; held.right = !!out.right;
       held.up = !!out.up; held.down = !!out.down;
       held.action = !!out.action; held.boost = !!out.boost;
+      held.brake = !!out.brake;
       held.pause = !!out.pause; held.camera = !!out.camera; held.restart = !!out.restart;
 
-      let x = (held.right ? 1 : 0) - (held.left ? 1 : 0);
-      let y = (held.up ? 1 : 0) - (held.down ? 1 : 0);
+      const keyHeld = a => Object.keys(keys).some(code => keys[code] && map[code] === a) || virtual[a];
+      let x = (keyHeld('right') ? 1 : 0) - (keyHeld('left') ? 1 : 0);
+      let y = (keyHeld('up') ? 1 : 0) - (keyHeld('down') ? 1 : 0);
       if (padActive) {
         if (Math.abs(padAx.x) > Math.abs(x)) x = padAx.x;
         if (Math.abs(padAx.y) > Math.abs(y)) y = padAx.y;
@@ -1449,7 +1507,7 @@ function poll() {
       el.addEventListener('pointerdown', down);
       el.addEventListener('pointerup', up);
       el.addEventListener('pointercancel', up);
-      el.addEventListener('pointerleave', up);
+      el.addEventListener('lostpointercapture', up);
       el.addEventListener('contextmenu', e => e.preventDefault());
     }
 
@@ -1477,7 +1535,7 @@ function poll() {
         return new Promise(res => setTimeout(() => res(tilt.ok), 500));
       };
       if (typeof D.requestPermission === 'function') {
-        return D.requestPermission().then(s => (s === 'granted' ? attach() : false)).catch(() => false);
+        return D.requestPermission().then(s => { if (s === 'granted') return attach(); tilt.enabled = false; return false; }).catch(() => { tilt.enabled = false; return false; });
       }
       return attach();
     }
@@ -1487,13 +1545,15 @@ function poll() {
       poll: poll, bindTouch: bindTouch, enableTilt: enableTilt,
       calibrateTilt() { tilt.base = null; },
       /* zużywa jedno naciśnięcie (np. skok, start, pauza) */
-      tap(action) { if (taps[action] > 0) { taps[action]--; return true; } return false; },
+      tap(action) { const fresh = taps[action] > 0 && performance.now() - tapTime[action] < 300; taps[action] = 0; return fresh; },
       /* podgląd bez zużywania */
       peek(action) { return !!taps[action]; },
       reset() {
         for (const k in keys) keys[k] = false;
         for (const k in virtual) virtual[k] = false;
         for (const k in taps) taps[k] = 0;
+        for (const k in held) held[k] = false;
+        ax.x = ax.y = 0;
       },
       dispose() {
         removeEventListener('keydown', onKeyDown);
@@ -1539,10 +1599,11 @@ function poll() {
       },
       /* ustawienie kamery "na sztywno" (np. powtórka, wynik) */
       place(pos, target, dt, fov) {
-        if (!init) { camera.position.copy(pos); init = true; camera.lookAt(target); }
+        if (!init) { camera.position.copy(pos); lookAt.copy(target); init = true; camera.lookAt(lookAt); }
         else {
           camera.position.lerp(pos, 1 - Math.exp(-8 * (dt || 0.016)));
-          camera.lookAt(target);
+          lookAt.lerp(target, 1 - Math.exp(-cfg.lagLook * (dt || 0.016)));
+          camera.lookAt(lookAt);
         }
         if (fov) api.setFov(fov, dt);
       },

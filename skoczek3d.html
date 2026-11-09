@@ -34,7 +34,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a1220;color:#eef2f8;
   font-variant-numeric:tabular-nums;min-width:132px}
 #wind b{display:block;font-size:14px;font-weight:800;color:#8fe6ff;margin-top:1px}
 #wind .g{font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
-#state{left:50%;bottom:120px;transform:translateX(-50%);text-align:center;font-size:12px;
+#state{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);text-align:center;font-size:12px;
   font-weight:700;opacity:.92;white-space:nowrap;max-width:80vw;overflow:hidden;
   text-overflow:ellipsis}
 #state.hi{color:#ffd23f}
@@ -77,7 +77,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a1220;color:#eef2f8;
 #pr{right:14px;bottom:20px;width:80px;height:80px;font-size:26px}
 #pa{left:50%;bottom:24px;transform:translateX(-50%);width:88px;height:88px;
   background:rgba(255,210,63,.16);border-color:rgba(255,210,63,.62);color:#ffd23f;font-size:22px}
-#pad #pa:active{transform:translateX(-50%) scale(.95)}
+#pad #pa:active,#pad #pa.on{transform:translateX(-50%) scale(.95)}
 @media(max-width:640px){
   #ev{min-width:0;max-width:52vw;padding:7px 10px}#ev .nm{font-size:13px}
   #ev .lvv{font-size:9px;letter-spacing:.1em}
@@ -100,7 +100,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a1220;color:#eef2f8;
 #back:focus-visible,#menu button:focus-visible,.lv:focus-visible{outline:3px solid #8fe6ff;
   outline-offset:2px}
 #menu{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:10px;padding:18px;overflow:auto;
+  justify-content:safe center;gap:10px;padding:18px;overflow:auto;
   background:radial-gradient(120% 90% at 50% 6%,rgba(22,42,66,.95),rgba(6,12,22,.98) 72%)}
 #menu h1{margin:0;font-size:clamp(26px,5.4vw,50px);letter-spacing:.09em;font-weight:900;
   color:#e8f4ff;text-align:center;line-height:1.05;
@@ -127,7 +127,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a1220;color:#eef2f8;
 .lv .bs{position:absolute;right:8px;top:7px;font-size:10px;font-weight:800;color:#ffd23f;
   font-variant-numeric:tabular-nums}
 .lv.lock{opacity:.42;cursor:not-allowed}
-.lv.lock::after{content:"\1F512";position:absolute;right:8px;bottom:7px;font-size:11px;opacity:.7}
+.lv.lock::after{content:"—";position:absolute;right:8px;bottom:7px;font-size:11px;opacity:.7}
 .lv.done{border-color:rgba(255,210,63,.45);background:rgba(255,210,63,.09)}
 .lv.sel{outline:2px solid #8fe6ff;outline-offset:1px}
 #opts{display:flex;flex-direction:column;gap:6px}
@@ -154,7 +154,32 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a1220;color:#eef2f8;
 /* #h3d-hint przenosimy na sam dół, nad pasek stanu (nie koliduje z HUD) */
   #h3d-hint{bottom:2px;top:auto;font-size:11px;opacity:.6;z-index:2}
   @media(max-width:640px){#h3d-hint{display:none}}
-</style></head><body>
+/* Ekrany wyników i pauzy zostawiają miejsce na czytelne działania. */
+#menu>*{flex-shrink:0}
+#menu.summary #worlds,#menu.summary #opts,#menu.summary .tag{display:none}
+#back{z-index:10;top:12px;bottom:auto;left:50%;right:auto;transform:translateX(-50%)}
+#back:active{transform:translateX(-50%) scale(.97)}
+#pause{position:fixed;top:108px;right:12px;z-index:5;border:1px solid #ffffff38;
+ border-radius:9px;background:#111527cc;color:#eef2f8;padding:9px 13px;font:700 12px system-ui;cursor:pointer}
+#pause:focus-visible,#pad button:focus-visible{outline:3px solid #2aa3d6;outline-offset:3px}
+@media(max-width:640px){
+ #menu{padding:58px 12px 16px;gap:8px}#menu h1{font-size:26px}
+ #back{padding:6px 10px;font-size:12px}#mh{font-size:11px}
+ .world{width:100%}.lv{min-width:0}.lv b{padding-right:0;font-size:11px}
+ .lv .bs{position:static;display:block}.lv small{font-size:9px}
+ #pause{top:100px;padding:8px 10px}#score{min-width:0;max-width:42vw}
+}
+@media(pointer:coarse){#h3d-hint{display:none}#h3d-fps{bottom:2px}}
+body:not(.is-menu) #back{top:108px;left:12px;right:auto;transform:none;font-size:12px;padding:8px 11px}
+body:not(.is-menu) #back:active{transform:scale(.97)}
+@media(max-width:640px){body:not(.is-menu) #back{top:100px}}
+body.touch #speed{bottom:192px;width:44vw}
+body.touch #marks{bottom:140px;width:44vw}
+body.touch #wind{bottom:192px}
+body.touch #state{bottom:250px}
+body.touch #angle{bottom:134px}
+body.touch #takeoff{bottom:290px}
+</style></head><body class="is-menu">
 <canvas id="gl"></canvas>
 
 <div id="hud" class="h3d-ui">
@@ -197,6 +222,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a1220;color:#eef2f8;
   <button id="pr" aria-label="prawo">&#9654;</button>
   <button id="pa" aria-label="akcja">A</button>
 </div>
+<button id="pause" hidden>Pauza</button>
 <button id="back" onclick="location.href='index.html'">&#8592; Hopla</button>
 
 <div id="menu">
@@ -211,10 +237,11 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a1220;color:#eef2f8;
   <div id="res" hidden></div>
   <div id="mbtn">
     <button id="bstart">Start skoku</button>
+    <button id="bnext" hidden>Następny poziom</button>
     <button id="brest" class="gh" hidden>Jeszcze raz</button>
     <button id="bmenu" class="gh" hidden>Wybór skoczni</button>
   </div>
-  <p id="mh">Sterowanie: Spacja / Enter / A (pad: A) — wybicie i lądowanie · ◀ ▶ lub A/D — pozycja
+  <p id="mh">Sterowanie: Spacja / Enter / A (pad: A) — wybicie i lądowanie · ◀ ▶ lub J/L — pozycja
     nart w locie · Esc / P — pauza · R — restart. Na telefonie: przyciski ekranowe.</p>
 </div>
 
@@ -246,6 +273,7 @@ const TAU = Math.PI * 2;
 const DEG = Math.PI / 180;
 const clamp = H3D.clamp, lerp = H3D.lerp, damp = H3D.damp, rand = H3D.rand;
 const TOUCH = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+document.body.classList.toggle('touch', TOUCH);
 const fmt1 = v => (Math.round(v * 10) / 10).toFixed(1).replace('.', ',');
 const fmt2 = v => (Math.round(v * 100) / 100).toFixed(2).replace('.', ',');
 
@@ -285,7 +313,7 @@ const LEVELS = [
   { name: 'Wielka Grań', hs: 138, k: 125, tower: 40, inrun: 29, need: 0.72, wind: 1.6, w: 1 },
   { name: 'Turnia Północna', hs: 152, k: 140, tower: 45, inrun: 29.5, need: 0.74, wind: 1.8, w: 2 },
   { name: 'Lot Lodowy', hs: 168, k: 155, tower: 50, inrun: 30, need: 0.76, wind: 2.0, w: 2 },
-  { name: 'Wielki Turnia', hs: 185, k: 170, tower: 56, inrun: 30.5, need: 0.78, wind: 2.2, w: 2 }
+  { name: 'Wielka Turnia', hs: 185, k: 170, tower: 56, inrun: 30.5, need: 0.78, wind: 2.2, w: 2 }
 ];
 const LV = () => LEVELS[cur - 1];
 
@@ -418,7 +446,7 @@ function snowMat(tint, rough) {
   const m = new THREE.MeshStandardMaterial({
     color: H3D.srgb(tint != null ? tint : 0xffffff),
     roughness: rough != null ? rough : 0.86, metalness: 0.02,
-    map: t
+    map: t.clone()
   });
   m.map.repeat.set(6, 26);
   hillParts.mats.push(m);
@@ -469,7 +497,7 @@ function buildLanding() {
   /* zeskok ma lekko chłodniejszy, bardziej "zbity" śnieg niż polana —
      dzięki temu widać, gdzie kończy się skocznia, a gdzie zaczyna teren */
   const m = snowMat(0xdae8f6, 0.82);
-  m.map = H3D.textures.snow(); m.map.repeat.set(4, 1);
+  m.map.repeat.set(4, 1);
   const mesh = new THREE.Mesh(g, m);
   mesh.receiveShadow = true;
   hill.add(mesh);
@@ -598,7 +626,7 @@ function buildInrun() {
     const len = Math.sqrt((z1 - z0) * (z1 - z0) + (y1 - y0) * (y1 - y0));
     const br = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, len), braceMat);
     br.position.set(w - 0.4, (y0 + y1) / 2, (z0 + z1) / 2);
-    br.rotation.x = Math.atan2(y1 - y0, z1 - z0);
+    br.rotation.x = -Math.atan2(y1 - y0, z1 - z0);
     grp.add(br);
     const br2 = br.clone(); br2.position.x = -(w - 0.4); grp.add(br2);
   }
@@ -678,7 +706,7 @@ function buildTakeoffAndOutrun() {
     const ww = HILL.halfW(d);
     const strip = new THREE.Mesh(new THREE.BoxGeometry(ww * 2, 0.05, 0.55), mm);
     strip.position.set(0, HILL.hillY(d) + 0.03, d);
-    strip.rotation.x = -HILL.slopeAt(d);
+    strip.rotation.x = HILL.slopeAt(d);
     hill.add(strip);
   });
 
@@ -712,10 +740,10 @@ function buildMountains(world) {
      były "cyrklowymi" stożkami), ciemniejsze u podstawy, śnieżne szczyty. */
   const rockM = new THREE.MeshStandardMaterial({
     color: H3D.srgb(H3D.shade(world.rock, 0.05)), roughness: 0.96,
-    metalness: 0.02, flatShading: true
+    metalness: 0.02, flatShading: false
   });
   const peakM = new THREE.MeshStandardMaterial({
-    color: H3D.srgb(0xfafcff), roughness: 0.7, metalness: 0.02, flatShading: true
+    color: H3D.srgb(0xfafcff), roughness: 0.7, metalness: 0.02, flatShading: false
   });
   hillParts.mats.push(rockM, peakM);
   const rnd = H3D.mulberry(4242);
@@ -723,21 +751,28 @@ function buildMountains(world) {
     const a = (i / 26) * TAU + (rnd() - 0.5) * 0.16;
     const dist = 1500 + rnd() * 700;
     const h = 320 + rnd() * 520;
-    const r = h * (0.62 + rnd() * 0.5);
+    const r = h * (0.85 + rnd() * 0.7);
     const grpM = new THREE.Group();
     /* trzy stożki obok siebie = grzbiet, nie samotny stożek */
     for (let k = 0; k < 3; k++) {
       const kk = 0.52 + k * 0.24;
       const cone = new THREE.Mesh(
-        new THREE.ConeGeometry(r * kk, h * (0.75 + k * 0.14), 5 + (k % 2), 1), rockM);
+        new THREE.ConeGeometry(r * kk, h * (0.75 + k * 0.14), 18, 8), rockM);
+      const vertices = cone.geometry.attributes.position;
+      for (let j = 0; j < vertices.count; j++) {
+        const x = vertices.getX(j), y = vertices.getY(j), z = vertices.getZ(j);
+        const wave = 1 + 0.16 * Math.sin(x * 0.025 + z * 0.018) + 0.09 * Math.cos(z * 0.041 + y * 0.016);
+        vertices.setXYZ(j, x * wave, y + Math.sin(x * 0.02 + z * 0.03) * h * 0.035, z * wave);
+      }
+      cone.geometry.computeVertexNormals();
       cone.position.set((rnd() - 0.5) * r * 0.7, 0, (rnd() - 0.5) * r * 0.55);
       cone.rotation.y = rnd() * TAU;
       grpM.add(cone);
     }
-    grpM.position.set(Math.cos(a) * dist, h / 2 - 240, Math.sin(a) * dist + 300);
+    grpM.position.set(Math.cos(a) * dist, h / 2 + HILL.endY - 100, Math.sin(a) * dist + 300);
     scenery.add(grpM);
     /* czapa śnieżna na głównym wierzchołku */
-    const cap = new THREE.Mesh(new THREE.ConeGeometry(r * 0.40, h * 0.36, 6, 1), peakM);
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(r * 0.40, h * 0.36, 18, 4), peakM);
     cap.position.copy(grpM.position);
     cap.position.y += h * 0.28;
     cap.rotation.y = rnd() * TAU;
@@ -751,14 +786,22 @@ function buildForest(world) {
   const N = 300;
   const trunkMat = new THREE.MeshStandardMaterial({ color: H3D.srgb(0x33261d), roughness: 0.95 });
   const needleMat = new THREE.MeshStandardMaterial({
-    color: H3D.srgb(world.tree), roughness: 0.9, flatShading: true
+    color: H3D.srgb(H3D.shade(world.tree, 0.10)), roughness: 0.95
   });
   hillParts.mats.push(trunkMat, needleMat);
   const TRUNK_H = 4.0, NEEDLE_H = 13.0, NEEDLE_R = 3.4;
   const trunk = new THREE.InstancedMesh(
     new THREE.CylinderGeometry(0.42, 0.62, TRUNK_H, 6), trunkMat, N);
-  const needles = new THREE.InstancedMesh(
-    new THREE.ConeGeometry(NEEDLE_R, NEEDLE_H, 7), needleMat, N);
+  const crown = new THREE.ConeGeometry(NEEDLE_R, NEEDLE_H, 12, 12);
+  const cp = crown.attributes.position;
+  for (let i = 0; i < cp.count; i++) {
+    const x = cp.getX(i), y = cp.getY(i), z = cp.getZ(i);
+    const tier = 0.80 + 0.20 * Math.cos((y / NEEDLE_H + 0.5) * Math.PI * 10);
+    const branch = tier * (1 + 0.06 * Math.sin(x * 4.1 + z * 3.7));
+    cp.setXYZ(i, x * branch, y, z * branch);
+  }
+  crown.computeVertexNormals();
+  const needles = new THREE.InstancedMesh(crown, needleMat, N);
   trunk.castShadow = false; needles.castShadow = false;
   const d = new THREE.Object3D();
   const baseY = (hillParts.groundY != null ? hillParts.groundY : HILL.endY - 3.0);
@@ -768,11 +811,11 @@ function buildForest(world) {
     const z = -170 + rand(0, HILL.endD + 460);
     const side = Math.random() < 0.5 ? -1 : 1;
     /* las rośnie na zboczach góry, min. 26 m od osi skoczni */
-    const x = side * (26 + rand(0, 260));
+    const x = side * (100 + rand(0, 220));
     const yHill = z > 0 ? HILL.hillY(clamp(z, 0, HILL.endD)) : HILL.inrunY(z);
     /* im dalej od osi, tym niżej — zbocze schodzi do polany */
     const flankDrop = Math.min(30, (Math.abs(x) - 26) * 0.16);
-    const groundY = Math.max(baseY, Math.min(yHill - 2.2 - flankDrop, yHill));
+    const groundY = baseY;
     d.position.set(x, groundY + TRUNK_H * s * 0.5, z);
     d.scale.set(s, s, s);
     d.rotation.set(0, rand(0, TAU), 0);
@@ -789,41 +832,46 @@ function buildForest(world) {
 }
 
 function buildCrowd(world) {
-  /* widownia: trybuny wzdłuż zeskoku + kolorowy tłum (osobne meshe, tanio) */
-  const standMat = new THREE.MeshStandardMaterial({
-    color: H3D.srgb(0x2b3340), roughness: 0.85, metalness: 0.15
-  });
-  hillParts.mats.push(standMat);
+  const standMat = stdMat(0x424a53, 0.87, 0.08);
+  const coatMat = stdMat(0xffffff, 0.92, 0);
+  const headMat = stdMat(0x9e928a, 0.9, 0);
   const zA = HILL.hs * 0.34, zB = HILL.hs * 1.02, zc = (zA + zB) / 2;
-  const crowdCols = [0xff8a3d, 0xffd23f, 0x2aa3d6, 0xe8eef7, 0xc9601f, 0x14607f];
-  const perSide = 120;
+  const crowdCols = [0x775642, 0x68634d, 0x3b5868, 0x777e84, 0x4b4f58, 0x334942];
+  const bodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.19, 0.23, 0.65, 10), coatMat, 240);
+  const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.17, 8, 6), headMat, 240);
+  const limbs = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.065, 0.075, 0.56, 7), coatMat, 480);
+  const legs = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.085, 0.075, 0.62, 7), standMat, 480);
+  const dummy = new THREE.Object3D();
+  let index = 0;
   [-1, 1].forEach(side => {
-    /* trzy stopnie trybuny */
-    for (let s = 0; s < 3; s++) {
-      const off = HILL.halfW(zc) + 2.4 + s * 4.0;
-      const step = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.95, zB - zA), standMat);
-      step.position.set(side * off, HILL.hillY(zc) + 0.48 + s * 0.95, zc);
-      scenery.add(step);
-    }
-    /* tłum: kolorowe słupki na stopniach */
-    for (let i = 0; i < perSide; i++) {
-      const t = rand(0, 1);
-      const z = lerp(zA, zB, t);
-      const s = (Math.random() * 3) | 0;
-      const off = HILL.halfW(z) + 2.4 + s * 4.0;
-      const h = 0.62 + Math.random() * 0.18;
-      const c = crowdCols[(Math.random() * crowdCols.length) | 0];
-      const person = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.19, 0.23, h, 5),
-        new THREE.MeshStandardMaterial({ color: H3D.srgb(c), roughness: 0.85 })
-      );
-      hillParts.mats.push(person.material);
-      person.position.set(side * (off + rand(-1.2, 1.2)),
-        HILL.hillY(z) + 0.95 + s * 0.95 + h / 2, z + rand(-0.9, 0.9));
-      person.rotation.y = rand(0, TAU);
-      scenery.add(person);
+    for (let row = 0; row < 3; row++) {
+      const off = HILL.halfW(zc) + 2.8 + row * 3.5;
+      const step = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.8, (zB-zA)/Math.cos(HILL.slopeAt(zc))), standMat);
+      step.position.set(side * off, HILL.hillY(zc) + row * 0.95, zc);
+      step.rotation.x = HILL.slopeAt(zc); scenery.add(step);
+      for (let i = 0; i < 40; i++) {
+        const z = lerp(zA + 1, zB - 1, (i % 20) / 19);
+        const y = HILL.hillY(zc) - (z-zc) * Math.tan(HILL.slopeAt(zc)) + row * 0.95 + 0.4;
+        const x = side * off + (i < 20 ? -0.7 : 0.7);
+        dummy.position.set(x, y + 1.0, z); dummy.rotation.set(0, 0, 0);
+        dummy.scale.set(1, 1, 0.8); dummy.updateMatrix(); bodies.setMatrixAt(index, dummy.matrix);
+        bodies.setColorAt(index, H3D.srgb(crowdCols[index % crowdCols.length]));
+        dummy.position.y = y + 1.51; dummy.scale.setScalar(1); dummy.updateMatrix(); heads.setMatrixAt(index, dummy.matrix);
+        for (let sideIndex = 0; sideIndex < 2; sideIndex++) {
+          const sign = sideIndex ? 1 : -1;
+          dummy.position.set(x + sign * 0.25, y + 0.92, z); dummy.rotation.z = sign * 0.10;
+          dummy.updateMatrix(); limbs.setMatrixAt(index * 2 + sideIndex, dummy.matrix);
+          limbs.setColorAt(index * 2 + sideIndex, H3D.srgb(crowdCols[index % crowdCols.length]));
+          dummy.position.set(x + sign * 0.10, y + 0.32, z); dummy.rotation.z = 0;
+          dummy.updateMatrix(); legs.setMatrixAt(index * 2 + sideIndex, dummy.matrix);
+        }
+        index++;
+      }
     }
   });
+  bodies.frustumCulled = heads.frustumCulled = false;
+  limbs.frustumCulled = legs.frustumCulled = false;
+  scenery.add(bodies, heads, limbs, legs);
   /* wieża sędziowska przy punkcie K */
   const judgeMat = new THREE.MeshStandardMaterial({
     color: H3D.srgb(0x3f4a58), roughness: 0.8, metalness: 0.2
@@ -863,9 +911,8 @@ function buildTerrain(world) {
   geo.computeVertexNormals();
   const m = new THREE.MeshStandardMaterial({
     color: H3D.srgb(0xf6faff), roughness: 0.94, metalness: 0.01,
-    map: H3D.textures.snow()
+    map: H3D.textures.snow().clone()
   });
-  m.map = H3D.textures.snow();
   m.map.repeat.set(70, 70);
   hillParts.mats.push(m);
   const ground = new THREE.Mesh(geo, m);
@@ -878,16 +925,16 @@ function buildTerrain(world) {
 }
 
 function disposeGroup(g) {
-  while (g.children.length) {
-    const c = g.children.pop();
-    if (c.traverse) {
-      c.traverse(o => {
-        if (o.geometry) o.geometry.dispose();
-        if (o.material && hillParts.mats.indexOf(o.material) < 0) o.material.dispose();
-      });
-    }
-  }
-  hillParts.mats.length = 0;
+  const geos = new Set(), mats = new Set(), maps = new Set();
+  g.traverse(o => {
+    if (o.isInstancedMesh && o.dispose) o.dispose();
+    if (o.geometry) geos.add(o.geometry);
+    if (o.material) mats.add(o.material);
+  });
+  geos.forEach(geo => geo.dispose());
+  mats.forEach(mat => { if (mat.map && mat.map !== H3D.textures.snow()) maps.add(mat.map); mat.dispose(); });
+  maps.forEach(map => map.dispose());
+  while (g.children.length) g.remove(g.children[g.children.length - 1]);
 }
 function clearScenery() { disposeGroup(scenery); }
 function clearHill() {
@@ -932,7 +979,7 @@ function inrunVmax(n) { return 21.5 + n * 0.85; }
 function resetJump() {
   const L = LV();
   HILL.set(cur);
-  J.phase = 'idle'; J.t = 0;
+  J.phase = 'idle'; J.t = 0; J.teleAt = -1; J.landT = 0;
   J.x = 0; J.z = -HILL.inLen + 4.0; J.y = HILL.inrunY(J.z) + 0.1;
   J.v = 0; J.vz = 0; J.vy = 0;
   J.angle = 0; J.crouch = 0;
@@ -944,7 +991,7 @@ function resetJump() {
   J.windDir = J.wind >= 0 ? 1 : -1;
   jumper.grp.visible = true;
   jumper.grp.position.set(J.x, J.y, J.z);
-  jumper.grp.rotation.set(0, Math.PI, 0);
+  jumper.grp.rotation.set(HILL.inAngle, 0, 0);
   H3D.poseHumanoid(jumper, 'ski', 0);
   CHASE.teleport(
     new THREE.Vector3(J.x + 7.5, J.y + 3.4, J.z - 7),
@@ -975,7 +1022,7 @@ function tickInrun(dt) {
 
   H3D.poseHumanoid(jumper, crouching ? 'tuck' : 'ski', G.t, { speed: 0.6 });
   jumper.grp.position.set(J.x, J.y, J.z);
-  jumper.grp.rotation.set(0, Math.PI, 0);
+  jumper.grp.rotation.set(HILL.inAngle, 0, 0);
 
   /* okno wybicia: ostatnie 26% najazdu */
   const toGo = -J.z;
@@ -985,7 +1032,8 @@ function tickInrun(dt) {
     showTakeoff(true);
     setTakeoffMark(J.takeWin);
   }
-  if (IN.tap('action') && toGo > 0.4) {
+  if (IN.tap('action') && !J.takeAcc && toGo > 0.4) {
+    if (toGo > win) { H.msg('Przygotuj wybicie', 'Zwolnij A i naciśnij ponownie w złotym oknie', 700); return; }
     const q = J.takeWin;
     J.takeOfs = q;
     if (q >= 0.70 && q <= 0.96) {
@@ -999,12 +1047,10 @@ function tickInrun(dt) {
       J.speedK = 0.55;
       H.msg('Za późno', 'Wybicie na płaskim', 900);
     }
-    launch();
-    return;
+    J.takeAcc = 1;
   }
   if (J.z >= 0) {                       /* minięcie progu bez wybicia */
-    J.speedK = 0.40;
-    H.msg('Bez wybicia', 'Leć — trzymaj kąt', 900);
+    if (!J.takeAcc) { J.speedK = 0.40; H.msg('Bez wybicia', 'Leć — trzymaj kąt', 900); }
     launch();
   }
 }
@@ -1029,9 +1075,10 @@ function launch() {
    J.aoa = kąt natarcia nart względem strumienia (0 = narty w osi lotu).
    Gracz reguluje go ◀ ▶; optimum to lekkie "na brzuchu" (AOA_OPT).
    Kąt widoczny nart = kierunek lotu + AOA, więc wizualnie zawsze wygląda dobrze. */
-const FLIGHT = { g: 9.81, drag0: 0.0042, liftK: 0.055, AOA_OPT: 0.07 };
+const FLIGHT = { g: 9.81, drag0: 0.0042, liftK: 0.0115, AOA_OPT: 0.07 };
 function tickFlight(dt) {
-  const steer = (IN.held.right ? 1 : 0) - (IN.held.left ? 1 : 0);
+  const steer = IN.ax.x;
+  if (IN.tap('action')) J.teleAt = G.t;
   J.aoa = clamp(J.aoa + steer * 0.9 * dt, -0.28, 0.80);
   if (!steer) J.aoa = damp(J.aoa, FLIGHT.AOA_OPT, 1.3, dt);
 
@@ -1039,15 +1086,15 @@ function tickFlight(dt) {
   const dA = J.aoa - FLIGHT.AOA_OPT;
   /* nośność: maksimum przy optymalnym AOA, ostro spada przy przesadzie */
   const liftQ = Math.max(0.04, 1 - 3.4 * dA * dA);
-  const lift = FLIGHT.liftK * v * v * liftQ;
+  const lift = Math.min(FLIGHT.g * 0.85, FLIGHT.liftK * v * v * liftQ);
   /* opór: rośnie z AOA (płaski, "tarcza" nart = dużo oporu) */
   const drag = FLIGHT.drag0 * v * v * (1 + 3.2 * dA * dA);
   const ux = J.vz / v, uy = J.vy / v;
   J.vz -= drag * ux * dt;
   J.vy += (-drag * uy - FLIGHT.g) * dt + lift * dt;
   /* wiatr: dodatni (pod narty) wydłuża lot */
-  J.vz += J.wind * 0.26 * dt;
-  J.vy += J.wind * 0.06 * dt;
+  J.vz += J.wind * 0.14 * dt;
+  J.vy += J.wind * 0.035 * dt;
 
   J.z += J.vz * dt;
   J.y += J.vy * dt;
@@ -1059,7 +1106,7 @@ function tickFlight(dt) {
   const lean = clamp(-dA * 1.5, -1, 1);
   H3D.poseHumanoid(jumper, 'air', G.t, { lean: lean });
   jumper.grp.position.set(J.x, J.y, J.z);
-  jumper.grp.rotation.set(J.angle * 0.62 + 0.30, Math.PI, 0);
+  jumper.grp.rotation.set(-J.angle, 0, 0);
 
   /* lądowanie: dotknięcie zeskoku */
   const ground = J.z > 0 ? HILL.hillY(Math.min(J.z, HILL.endD)) : HILL.takeoffY;
@@ -1080,12 +1127,15 @@ function landing() {
   const dAoa = Math.abs(J.aoa - FLIGHT.AOA_OPT);
   const pathQ = clamp(1 - dPath / 0.5, 0, 1);
   const aoaQ = clamp(1 - dAoa / 0.45, 0, 1);
-  J.tele = IN.tap('action');
+  J.tele = J.teleAt > 0 && G.t - J.teleAt <= 0.35;
   const teleQ = J.tele ? 1 : 0.45;
   const styleQ = clamp(pathQ * 0.45 + aoaQ * 0.25 + teleQ * 0.30, 0, 1);
   J.styleParts = 20 * styleQ;
   /* upadek tylko przy naprawdę twardym przyziemieniu */
-  J.crash = J.vy < -15 || dPath > 0.62;
+  /* Liczy się prędkość uderzenia prostopadła do śniegu, a nie samo opadanie. */
+  const impact = Math.abs(J.vy * Math.cos(slope) + J.vz * Math.sin(slope));
+  J.crash = impact > 17 || dPath > 0.68;
+  J.y = HILL.hillY(J.dist) + 0.02;
   J.style = J.crash ? 0 : J.styleParts;
   J.landedAt = G.t;
 
@@ -1103,7 +1153,7 @@ function landing() {
     J.phase = 'out'; J.vz = Math.max(10, J.vz); J.vy = 0;
     snowSpray.burst(new THREE.Vector3(J.x, J.y, J.z), 22, { speed: 6, life: 0.7, size: 0.11 });
   }
-  jumper.grp.rotation.set(slope * 0.75, Math.PI, 0);
+  jumper.grp.rotation.set(slope, 0, 0);
   showAngle(false);
   J.landT = 0;
 }
@@ -1115,9 +1165,9 @@ function tickOut(dt) {
   J.vz = Math.max(0, J.vz - (J.crash ? 14 : 5.2) * dt);
   J.z += J.vz * dt;
   J.y = HILL.hillY(Math.min(J.z, HILL.endD)) + (J.crash ? 0.35 : 0.02);
-  H3D.poseHumanoid(jumper, J.crash ? 'fall' : (J.landT > 1.1 ? 'idle' : 'land'), G.t);
+  H3D.poseHumanoid(jumper, J.crash ? 'fall' : (J.landT > 1.1 ? 'ski' : (J.tele ? 'telemark' : 'land')), G.t);
   jumper.grp.position.set(J.x, J.y, J.z);
-  jumper.grp.rotation.set(slope * 0.6, Math.PI, 0);
+  jumper.grp.rotation.set(slope, 0, 0);
 
   /* śnieg spod nart przy hamowaniu */
   if (!J.crash && J.vz > 3 && Math.random() < dt * 26) {
@@ -1131,7 +1181,7 @@ function tickOut(dt) {
 function finishJump() {
   if (J.phase === 'done') return;
   J.phase = 'done';
-  jumper.grp.rotation.set(0, Math.PI, 0);
+  jumper.grp.rotation.set(0, 0, 0);
   H3D.poseHumanoid(jumper, J.crash ? 'fall' : 'cheer', 0);
   if (!J.crash) { FX.slowmo(0.5, 1.2); }
   showResultJump();
@@ -1162,11 +1212,12 @@ function updateHUD(force) {
   }
   const sv = Math.round(J.style * 10) / 10;
   if (hudC.s !== sv) { hudC.s = sv; E_styl.textContent = 'Styl ' + fmt1(J.style) + ' / 20'; }
-  const kmh = Math.round(J.v * 3.6);
+  const speed = J.phase === 'flight' ? Math.hypot(J.vz, J.vy) : (J.phase === 'out' || J.phase === 'done' ? J.vz : J.v);
+  const kmh = Math.round(speed * 3.6);
   if (hudC.sp !== kmh) {
     hudC.sp = kmh;
     E_spd.textContent = kmh + ' km/h';
-    E_spdbar.style.width = clamp(J.v / 34, 0, 1) * 100 + '%';
+    E_spdbar.style.width = clamp(speed / 34, 0, 1) * 100 + '%';
   }
   const wv = Math.round(J.wind * 10) / 10;
   if (hudC.w !== wv) {
@@ -1183,7 +1234,7 @@ function updateHUD(force) {
       st = IN.held.action ? 'Kucaj — mniejszy opór' : 'Trzymaj A (kucki) i szykuj wybicie';
       hi = true;
     } else if (J.phase === 'flight') {
-      st = '◀ ▶ reguluj kąt nart — celuj lekko w dół';
+      st = '◀ ▶ kąt nart · A tuż przed śniegiem = telemark';
       hi = true;
     } else if (J.phase === 'out') st = 'A przy przyziemieniu = telemark';
   }
@@ -1214,8 +1265,8 @@ function updateAngleHUD() {
    ============================================================================ */
 function showResultJump() {
   const L = LV();
-  const distPts = J.dist > L.k ? L.k + (J.dist - L.k) * 1.8 : L.k - (L.k - J.dist) * 1.8;
-  const windPts = J.wind * 3.4;                 /* wiatr wznoszący dodaje, spadający odejmuje */
+  const distPts = 60 + (J.dist - L.k) * (L.hs > 170 ? 1.2 : L.hs >= 100 ? 1.8 : 2.4);
+  const windPts = -J.wind * 3.4;                 /* rekompensata: wiatr pod narty odejmuje punkty */
   const total = Math.max(0, distPts + J.style + windPts);
   const need = L.hs * L.need;
   const ok = !J.crash && J.dist >= need;
@@ -1252,7 +1303,7 @@ function showResultJump() {
 function buildLevel(n) {
   const L = LEVELS[n - 1], W = WORLDS[L.w];
   cur = n;
-  clearHill(); clearScenery();
+  clearHill(); clearScenery(); hillParts.mats.length = 0;
   HILL.set(n);
   sky.apply(W.sky);
   sky.fog.near = W.fogNear; sky.fog.far = W.fogFar;
@@ -1308,7 +1359,7 @@ function buildMenu() {
   }
 }
 
-let ctls = { cam: 'auto' };
+let ctls = { cam: ['auto','side','follow'].includes(PROG.cfg('camera')) ? PROG.cfg('camera') : 'auto' };
 function buildOpts() {
   const row = $('ocam');
   row.querySelectorAll('.opt,.lbl').forEach(e => e.remove());
@@ -1316,7 +1367,7 @@ function buildOpts() {
     const b = document.createElement('button');
     b.className = 'opt'; b.textContent = pair[1];
     b.setAttribute('aria-pressed', ctls.cam === pair[0] ? 'true' : 'false');
-    b.addEventListener('click', () => { ctls.cam = pair[0]; buildOpts(); });
+    b.addEventListener('click', () => { ctls.cam = pair[0]; PROG.cfg('camera', ctls.cam); buildOpts(); });
     row.appendChild(b);
   });
   const ctlRow = $('octl');
@@ -1330,6 +1381,10 @@ function buildOpts() {
 
 /* ---------- ekran wyniku / menu ---------- */
 function showResult(html, ok) {
+  $('menu').classList.add('summary');
+  $('bnext').hidden = !(ok && cur < 9);
+  buildMenu();
+  H.clear();
   const r = $('res');
   r.hidden = false; r.innerHTML = html;
   $('bstart').hidden = true;
@@ -1342,6 +1397,8 @@ function showResult(html, ok) {
   G.state = 'done';
 }
 function hideResult() {
+  $('menu').classList.remove('summary');
+  $('bnext').hidden = true;
   $('res').hidden = true;
   $('bstart').hidden = false;
   $('brest').hidden = true;
@@ -1369,6 +1426,7 @@ function startJump() {
   $('hud').style.display = '';
   $('res').hidden = true;
   G.state = 'play';
+  FX.reset(); PART.clear();
   G.t = 0;
   resetJump();
   J.phase = 'idle';
@@ -1384,6 +1442,7 @@ function togglePause() {
     G.state = 'pause';
     $('menu').hidden = false;
     hideResult();
+    $('menu').classList.add('summary');
     $('bstart').hidden = true;
     $('brest').hidden = false;
     $('bmenu').hidden = false;
@@ -1399,6 +1458,9 @@ function togglePause() {
     $('menu').hidden = true;
     $('hud').style.display = '';
     $('brest').textContent = 'Jeszcze raz';
+    IN.reset();
+    showAngle(J.phase === 'flight');
+    showTakeoff(J.phase === 'inrun' && J.takeWin > 0);
   }
 }
 
@@ -1408,26 +1470,40 @@ $('brest').addEventListener('click', () => {
   startJump();
 });
 $('bmenu').addEventListener('click', previewCam);
-addEventListener('keydown', e => {
-  if (e.code === 'Escape' || e.code === 'KeyP') {
-    if (G.state === 'play' || G.state === 'pause') { e.preventDefault(); togglePause(); }
-    return;
-  }
-  if (G.state === 'menu' || G.state === 'done') {
-    if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); startJump(); return; }
-    if (G.state === 'menu') {
-      if (e.code === 'ArrowRight' && sel % 3 !== 0) sel++;
-      else if (e.code === 'ArrowLeft' && sel % 3 !== 1) sel--;
-      else if (e.code === 'ArrowDown' && sel <= 6) sel += 3;
-      else if (e.code === 'ArrowUp' && sel > 3) sel -= 3;
-      else return;
-      sel = clamp(sel, 1, PROG.data.unlocked);
-      buildMenu(); buildLevel(sel); previewCam();
+$('pause').addEventListener('click', togglePause);
+$('bnext').addEventListener('click', () => {
+  if (cur < 9 && PROG.isUnlocked(cur + 1)) { sel = cur + 1; buildLevel(sel); startJump(); }
+});
+addEventListener('blur', () => { if (G.state === 'play') togglePause(); });
+addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'play') togglePause(); });
+function menuInput() {
+  if (IN.tap('pause')) { togglePause(); return; }
+  if (G.state === 'pause') { if (IN.tap('action')) togglePause(); return; }
+  if (G.state === 'play') {
+    if (IN.tap('restart')) { startJump(); return; }
+    if (IN.tap('camera')) {
+      const modes = ['auto','side','follow'];
+      ctls.cam = modes[(modes.indexOf(ctls.cam) + 1) % modes.length];
+      PROG.cfg('camera', ctls.cam); buildOpts();
     }
     return;
   }
-  if (G.state === 'play' && e.code === 'KeyR') startJump();
-});
+  if (IN.tap('action')) {
+    if (G.state === 'done') {
+      if (!$('bnext').hidden) { $('bnext').click(); return; }
+    }
+    startJump(); return;
+  }
+  if (G.state !== 'menu') return;
+  let n = sel;
+  if (IN.tap('right') && n % 3 !== 0) n++;
+  if (IN.tap('left') && n % 3 !== 1) n--;
+  if (IN.tap('down') && n <= 6) n += 3;
+  if (IN.tap('up') && n > 3) n -= 3;
+  n = clamp(n, 1, PROG.data.unlocked);
+  if (n !== sel) { sel = n; buildLevel(sel); previewCam(); }
+}
+
 
 /* ============================================================================
    KAMERA — trzy warianty: auto (przełącza się z fazą), z boku, za skoczkiem
@@ -1444,14 +1520,9 @@ function updateCam(dt) {
   }
   const L = LV();
   if (mode === 'follow') {
-    /* kadr "transmisja TV": kamera stoi z boku przy progu i prowadzi skoczka
-       panoramicznie — widać cały profil skoczni i schodzący zeskok */
     camSmoothZ = damp(camSmoothZ, jp.z, 9, dt);
-    const sideOff = 30 + LV().hs * 0.13;
-    /* kamera trzyma się na wysokości progu, patrzy lekko w dół */
-    const camY = HILL.takeoffY - 5.0;
-    camPos.set(sideOff, camY, Math.max(-HILL.inLen * 0.55, camSmoothZ - 8));
-    camTarget.set(jp.x * 0.6, Math.max(jp.y, HILL.takeoffY - 10) - 1.6, camSmoothZ + 22);
+    camPos.set(jp.x + 3.8, jp.y + 3.4, jp.z - 9 - J.v * 0.06);
+    camTarget.set(jp.x, jp.y + 0.6, jp.z + 13);
     CHASE.place(camPos, camTarget, dt);
     CHASE.setFov(56 + clamp(J.v * 0.45, 0, 10), dt);
   } else {
@@ -1481,9 +1552,13 @@ function frame(now) {
   const dt = FX.update(rdt);
   menuT += rdt;
   IN.poll();
+  menuInput();
+  document.body.classList.toggle('is-menu', G.state !== 'play');
+  $('pause').hidden = G.state !== 'play';
+  $('pad').hidden = !TOUCH || G.state !== 'play';
 
   if (G.state === 'play') {
-    G.t += rdt;
+    G.t += dt;
     if (dt > 0) {
       if (J.phase === 'idle') {
         if (IN.tap('action')) {
@@ -1511,15 +1586,19 @@ function frame(now) {
   } else if (G.state === 'done' || G.state === 'pause') {
     const jp = jumper.grp.position;
     camPos.set(jp.x + 8, jp.y + 4, jp.z - 7);
-    CHASE.place(camPos, new THREE.Vector3(jp.x, jp.y + 1, jp.z), rdt);
+    camTarget.set(jp.x, jp.y + 1, jp.z);
+    CHASE.place(camPos, camTarget, rdt);
   }
 
   /* śnieg w powietrzu podąża za kamerą/skoczkiem; cząstki aktualizują się zawsze */
   PART.update(rdt, jumper.grp.position);
   H.tick(rdt);
 
+  sky.mesh.position.copy(CAM.position);
+  FX.apply(CAM);
   POST.render(rdt);
   if (POST.mode !== 'composer') R.render(S, CAM);
+  FX.restore(CAM);
 }
 
 /* ============================================================================
