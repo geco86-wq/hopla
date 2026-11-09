@@ -21,11 +21,11 @@ document.addEventListener('dblclick',e=>{if(e.target.closest&&e.target.closest('
 <style>
 :root{--sky1:#1b1f5e;--sky2:#3a2a86;--sun:#ffd23f;--grass:#3ccf7a;--pink:#ff5fa2}
 [hidden]{display:none!important}
-html,body{touch-action:manipulation;overscroll-behavior:none;margin:0;height:100%;background:var(--sky1);color:#fff;font-family:"Baloo 2",system-ui,sans-serif;overflow:hidden}
+html,body{touch-action:manipulation pan-y;overscroll-behavior:none;margin:0;height:100%;background:var(--sky1);color:#fff;font-family:"Baloo 2",system-ui,sans-serif;overflow:hidden}
 body.gq::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 52%,rgba(8,6,28,.42) 100%),linear-gradient(180deg,rgba(255,190,120,.06),rgba(40,60,140,.07));mix-blend-mode:normal}
 body.gq.gg::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.07;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>")}
 #c{position:fixed;inset:0;width:100%;height:100%;cursor:none}
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(circle at 50% 30%,var(--sky2),var(--sky1));z-index:5;text-align:center;padding:16px}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;gap:18px;background:radial-gradient(circle at 50% 30%,var(--sky2),var(--sky1));z-index:5;text-align:center;padding:16px}
 h1{font-size:clamp(40px,7vw,100px);margin:0;line-height:1;color:var(--sun);text-shadow:0 6px 0 #c48a00}
 p{margin:0;font-size:clamp(17px,2.2vw,28px);opacity:.9}
 #qr{background:#fff;padding:18px;border-radius:24px}
