@@ -1,0 +1,1628 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0e1a2a">
+<title>Hopla Skoczek 3D — skoki narciarskie</title>
+<style>
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:#0a1220;color:#eef2f8;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:none;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:3;font-weight:650}
+#ev{left:12px;top:12px;min-width:210px;max-width:44vw}
+#ev .nm{display:block;font-size:16px;font-weight:800;line-height:1.15}
+#ev .lvv{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  opacity:.55;margin-top:3px;line-height:1.3}
+#score{right:12px;top:12px;text-align:right;min-width:170px}
+#score b{font-size:clamp(26px,4.4vw,38px);font-weight:800;font-variant-numeric:tabular-nums;
+  display:block;line-height:1;color:#ffd23f}
+#score .sub{font-size:10px;font-weight:700;opacity:.6;letter-spacing:.14em;text-transform:uppercase}
+#score .sm{font-size:12px;font-weight:700;opacity:.82;margin-top:4px;font-variant-numeric:tabular-nums}
+#speed{left:12px;bottom:74px;width:min(230px,44vw)}
+#speed .k{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;opacity:.62;margin-bottom:4px}
+#spdbar{height:8px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden;
+  border:1px solid rgba(255,255,255,.14)}
+#spdbar>b{display:block;height:100%;width:0;border-radius:4px;
+  background:linear-gradient(90deg,#2aa3d6,#8fe6ff);transition:width .1s linear}
+#marks{left:12px;bottom:14px;width:min(230px,44vw)}
+#marks .k{font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.55;margin-bottom:4px}
+#marks .h3d-bar{margin-top:0}
+#wind{right:12px;bottom:14px;text-align:right;font-size:12px;font-weight:700;
+  font-variant-numeric:tabular-nums;min-width:132px}
+#wind b{display:block;font-size:14px;font-weight:800;color:#8fe6ff;margin-top:1px}
+#wind .g{font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+#state{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);text-align:center;font-size:12px;
+  font-weight:700;opacity:.92;white-space:nowrap;max-width:80vw;overflow:hidden;
+  text-overflow:ellipsis}
+#state.hi{color:#ffd23f}
+/* pasek wybicia: okno czasowe A */
+#takeoff{position:fixed;left:50%;bottom:156px;transform:translateX(-50%);width:min(360px,74vw);
+  opacity:0;transition:opacity .15s;z-index:3;pointer-events:none}
+#takeoff.on{opacity:1}
+#takeoff .lbl{text-align:center;font-size:11px;font-weight:800;letter-spacing:.16em;
+  text-transform:uppercase;color:#ffd23f;margin-bottom:4px;text-shadow:0 2px 8px #000}
+#tobar{position:relative;height:16px;border-radius:8px;background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.2);overflow:hidden}
+#tobar u{position:absolute;top:0;bottom:0;background:rgba(255,210,63,.30);
+  border-left:2px solid #ffd23f;border-right:2px solid #ffd23f}
+#tobar b{position:absolute;top:-3px;bottom:-3px;width:4px;left:0;border-radius:2px;
+  background:#8fe6ff;box-shadow:0 0 12px #8fe6ff}
+/* pasek kąta lotu */
+#angle{position:fixed;right:12px;bottom:86px;width:min(190px,42vw);opacity:0;
+  transition:opacity .15s;z-index:3;pointer-events:none}
+#angle.on{opacity:1}
+#angle .lbl{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  opacity:.7;margin-bottom:3px;text-align:right}
+#angle .bar{position:relative;height:12px;border-radius:6px;background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.18);overflow:hidden}
+#angle .bar u{position:absolute;top:0;bottom:0;background:rgba(143,230,255,.28);
+  border-left:2px solid #8fe6ff;border-right:2px solid #8fe6ff}
+#angle .bar b{position:absolute;top:-2px;bottom:-2px;width:3px;left:50%;background:#ffd23f;
+  border-radius:2px;box-shadow:0 0 10px #ffd23f}
+#angle .v{text-align:right;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;
+  margin-top:2px}
+/* ---------- dotyk / pad ---------- */
+#pad{position:fixed;inset:auto 0 0 0;height:38vh;pointer-events:none;z-index:4}
+#pad button{position:absolute;pointer-events:auto;border-radius:50%;font-family:inherit;
+  font-weight:800;color:#eef2f8;border:1px solid rgba(255,255,255,.2);
+  background:rgba(12,22,38,.62);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  transition:transform .06s,background .12s;display:flex;align-items:center;justify-content:center;
+  font-size:14px;letter-spacing:.04em}
+#pad button:active,#pad button.on{background:rgba(255,210,63,.3);border-color:rgba(255,210,63,.8);
+  transform:scale(.95)}
+#pl{left:14px;bottom:20px;width:80px;height:80px;font-size:26px}
+#pr{right:14px;bottom:20px;width:80px;height:80px;font-size:26px}
+#pa{left:50%;bottom:24px;transform:translateX(-50%);width:88px;height:88px;
+  background:rgba(255,210,63,.16);border-color:rgba(255,210,63,.62);color:#ffd23f;font-size:22px}
+#pad #pa:active,#pad #pa.on{transform:translateX(-50%) scale(.95)}
+@media(max-width:640px){
+  #ev{min-width:0;max-width:52vw;padding:7px 10px}#ev .nm{font-size:13px}
+  #ev .lvv{font-size:9px;letter-spacing:.1em}
+  #score{min-width:118px;padding:7px 10px}#score b{font-size:23px}
+  #speed{width:54vw;bottom:70px}#marks{width:54vw;bottom:10px}
+  #wind{bottom:10px;font-size:10px;min-width:96px}#wind b{font-size:12px}
+  #state{bottom:106px;font-size:11px}
+  #takeoff{bottom:140px}#angle{bottom:130px;width:44vw;right:10px}
+  #pl,#pr{width:64px;height:64px;font-size:20px}#pa{width:72px;height:72px;font-size:18px}
+  #h3d-msg{top:14%}
+}
+/* domyślne ukrycie pasków fazy */
+#takeoff,#angle{pointer-events:none}
+/* ---------- powrót / menu ---------- */
+#back{position:fixed;right:12px;bottom:auto;top:112px;z-index:6;pointer-events:auto;
+  background:rgba(12,22,38,.72);color:#eef2f8;border:1px solid rgba(255,255,255,.2);
+  border-radius:9px;padding:6px 11px;font-size:12px;font-weight:700;font-family:inherit;
+  cursor:pointer;backdrop-filter:blur(7px)}
+#back:active{transform:scale(.97)}
+#back:focus-visible,#menu button:focus-visible,.lv:focus-visible{outline:3px solid #8fe6ff;
+  outline-offset:2px}
+#menu{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;
+  justify-content:safe center;gap:10px;padding:18px;overflow:auto;
+  background:radial-gradient(120% 90% at 50% 6%,rgba(22,42,66,.95),rgba(6,12,22,.98) 72%)}
+#menu h1{margin:0;font-size:clamp(26px,5.4vw,50px);letter-spacing:.09em;font-weight:900;
+  color:#e8f4ff;text-align:center;line-height:1.05;
+  text-shadow:0 6px 30px rgba(143,230,255,.24),0 3px 10px #000}
+#menu h1 em{font-style:normal;color:#ffd23f}
+#menu .tag{margin:0;opacity:.74;font-size:clamp(12px,1.9vw,16px);font-weight:600;
+  text-align:center;max-width:46rem;line-height:1.5}
+#worlds{display:flex;flex-direction:column;gap:9px;align-items:center;margin-top:4px;width:100%}
+.world{width:min(680px,94vw)}
+.world h2{margin:0 0 5px;font-size:11px;font-weight:800;letter-spacing:.19em;
+  text-transform:uppercase;opacity:.58;display:flex;gap:8px;align-items:center}
+.world h2 i{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.22),transparent);
+  font-style:normal}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.lv{position:relative;text-align:left;background:rgba(255,255,255,.055);color:#eef2f8;
+  border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:8px 10px;font-family:inherit;
+  cursor:pointer;transition:background .12s,border-color .12s,transform .08s}
+.lv:hover{background:rgba(255,255,255,.1)}
+.lv:active{transform:scale(.985)}
+.lv b{display:block;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;padding-right:34px}
+.lv small{display:block;font-size:10px;opacity:.55;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;margin-top:2px}
+.lv .bs{position:absolute;right:8px;top:7px;font-size:10px;font-weight:800;color:#ffd23f;
+  font-variant-numeric:tabular-nums}
+.lv.lock{opacity:.42;cursor:not-allowed}
+.lv.lock::after{content:"—";position:absolute;right:8px;bottom:7px;font-size:11px;opacity:.7}
+.lv.done{border-color:rgba(255,210,63,.45);background:rgba(255,210,63,.09)}
+.lv.sel{outline:2px solid #8fe6ff;outline-offset:1px}
+#opts{display:flex;flex-direction:column;gap:6px}
+.orow{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+.orow>span{font-size:10px;font-weight:800;letter-spacing:.13em;opacity:.5;min-width:84px;
+  text-align:right;text-transform:uppercase}
+.opt{background:rgba(255,255,255,.075);color:#eef2f8;border:1px solid rgba(255,255,255,.15);
+  border-radius:9px;padding:6px 12px;font-weight:750;cursor:pointer;font-family:inherit;font-size:12px}
+.opt[aria-pressed="true"]{outline:2px solid #8fe6ff;background:rgba(143,230,255,.18)}
+#res{max-width:min(620px,94vw);background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;font-weight:600;
+  font-size:clamp(12px,1.9vw,15px);line-height:1.65;white-space:pre-line;
+  font-variant-numeric:tabular-nums;text-align:center}
+#res b{color:#ffd23f}
+#mbtn{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#mbtn button{background:linear-gradient(180deg,#ffe07a,#ffd23f);color:#141a24;border:0;
+  border-radius:11px;padding:12px 24px;font-size:16px;font-weight:850;font-family:inherit;
+  cursor:pointer;letter-spacing:.03em;box-shadow:0 8px 24px rgba(255,210,63,.24)}
+#mbtn button.gh{background:rgba(255,255,255,.09);color:#eef2f8;
+  border:1px solid rgba(255,255,255,.18);box-shadow:none}
+#mbtn button:active{transform:scale(.97)}
+#mh{opacity:.55;font-size:clamp(10px,1.6vw,13px);font-weight:600;text-align:center;
+  max-width:min(780px,94vw);margin:4px 0 0;line-height:1.6}
+/* #h3d-hint przenosimy na sam dół, nad pasek stanu (nie koliduje z HUD) */
+  #h3d-hint{bottom:2px;top:auto;font-size:11px;opacity:.6;z-index:2}
+  @media(max-width:640px){#h3d-hint{display:none}}
+/* Ekrany wyników i pauzy zostawiają miejsce na czytelne działania. */
+#menu>*{flex-shrink:0}
+#menu.summary #worlds,#menu.summary #opts,#menu.summary .tag{display:none}
+#back{z-index:10;top:12px;bottom:auto;left:50%;right:auto;transform:translateX(-50%)}
+#back:active{transform:translateX(-50%) scale(.97)}
+#pause{position:fixed;top:108px;right:12px;z-index:5;border:1px solid #ffffff38;
+ border-radius:9px;background:#111527cc;color:#eef2f8;padding:9px 13px;font:700 12px system-ui;cursor:pointer}
+#pause:focus-visible,#pad button:focus-visible{outline:3px solid #2aa3d6;outline-offset:3px}
+@media(max-width:640px){
+ #menu{padding:58px 12px 16px;gap:8px}#menu h1{font-size:26px}
+ #back{padding:6px 10px;font-size:12px}#mh{font-size:11px}
+ .world{width:100%}.lv{min-width:0}.lv b{padding-right:0;font-size:11px}
+ .lv .bs{position:static;display:block}.lv small{font-size:9px}
+ #pause{top:100px;padding:8px 10px}#score{min-width:0;max-width:42vw}
+}
+@media(pointer:coarse){#h3d-hint{display:none}#h3d-fps{bottom:2px}}
+body:not(.is-menu) #back{top:108px;left:12px;right:auto;transform:none;font-size:12px;padding:8px 11px}
+body:not(.is-menu) #back:active{transform:scale(.97)}
+@media(max-width:640px){body:not(.is-menu) #back{top:100px}}
+body.touch #speed{bottom:192px;width:44vw}
+body.touch #marks{bottom:140px;width:44vw}
+body.touch #wind{bottom:192px}
+body.touch #state{bottom:250px}
+body.touch #angle{bottom:134px}
+body.touch #takeoff{bottom:290px}
+</style></head><body class="is-menu">
+<canvas id="gl"></canvas>
+
+<div id="hud" class="h3d-ui">
+  <div class="h3d-box" id="ev">
+    <span class="nm" id="evn">Skocznia Mała</span>
+    <span class="lvv" id="evl">Poziom 1 · Świat 1</span>
+  </div>
+  <div class="h3d-box" id="score">
+    <span class="sub">Odległość</span>
+    <b id="dist">0,0 m</b>
+    <span class="sm" id="styl">Styl 0,0</span>
+  </div>
+  <div class="h3d-box" id="speed">
+    <div class="k"><span>Prędkość</span><span id="spdv">0 km/h</span></div>
+    <div id="spdbar"><b></b></div>
+  </div>
+  <div class="h3d-box" id="marks">
+    <div class="k">Strefa progu</div>
+    <div id="mkbar" class="h3d-bar cool"><b id="mkb"></b></div>
+  </div>
+  <div class="h3d-box" id="wind">
+    <span class="g">Wiatr</span>
+    <b id="windv">0,0 m/s</b>
+  </div>
+  <div id="state"></div>
+</div>
+
+<div id="takeoff">
+  <div class="lbl">Wybicie — naciśnij A w złotym oknie</div>
+  <div id="tobar"><u id="tog"></u><b id="tok"></b></div>
+</div>
+<div id="angle">
+  <div class="lbl">Kąt lotu</div>
+  <div class="bar"><u id="angz"></u><b id="angm"></b></div>
+  <div class="v" id="angv">0°</div>
+</div>
+
+<div id="pad">
+  <button id="pl" aria-label="lewo">&#9664;</button>
+  <button id="pr" aria-label="prawo">&#9654;</button>
+  <button id="pa" aria-label="akcja">A</button>
+</div>
+<button id="pause" hidden>Pauza</button>
+<button id="back" onclick="location.href='index.html'">&#8592; Hopla</button>
+
+<div id="menu">
+  <h1>HOPLA <em>SKOCZEK</em> 3D</h1>
+  <p class="tag">Dziewięć skoczni w trzech górach. Wybij się w oknie czasowym, leć na optymalnym
+    kącie i wyląduj telemarkiem.</p>
+  <div id="worlds"></div>
+  <div id="opts">
+    <div class="orow" id="ocam"><span>Kamera</span></div>
+    <div class="orow" id="octl"><span>Sterowanie</span></div>
+  </div>
+  <div id="res" hidden></div>
+  <div id="mbtn">
+    <button id="bstart">Start skoku</button>
+    <button id="bnext" hidden>Następny poziom</button>
+    <button id="brest" class="gh" hidden>Jeszcze raz</button>
+    <button id="bmenu" class="gh" hidden>Wybór skoczni</button>
+  </div>
+  <p id="mh">Sterowanie: Spacja / Enter / A (pad: A) — wybicie i lądowanie · ◀ ▶ lub J/L — pozycja
+    nart w locie · Esc / P — pauza · R — restart. Na telefonie: przyciski ekranowe.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="hopla3d.js"></script>
+<script>
+/* ============================================================================
+   HOPLA SKOCZEK 3D — skoki narciarskie na trzy góry (Three.js r128 + hopla3d.js)
+   ----------------------------------------------------------------------------
+   Część 1/3 (ten plik): rdzeń działającego rozwiązania —
+     · skocznia 3D: rozbieg, próg, zeskok, wypłaszczenie, wybieg, wieża najazdowa
+     · skoczek z brył (hopla3d.makeHumanoid) + pozy: ski / tuck / air / telemark
+     · pętla skoku: okno wybicia, kontrola kąta w locie, wiatr, ocena stylu
+     · góry ze śniegiem, widownia, chorągiewki, mgła i słońce
+     · 9 skoczni w 3 światach, progresja w localStorage (hoplaS3)
+     · sterowanie: klawiatura + pad + dotyk
+   TODO-CODEX: szlif grafiki (siatka zeskoku, bandy, widownia), pogoda
+     (opad śniegu, mgła), dźwięk wiatru i trybuny, powtórki telewizyjne.
+   ============================================================================ */
+'use strict';
+const $ = id => document.getElementById(id);
+const H3D = window.Hopla3D;
+if (!H3D || !H3D.ok) {
+  document.body.innerHTML = '<div style="padding:24px;font:600 16px system-ui;color:#fff">' +
+    'Nie udało się wczytać grafiki 3D. Sprawdź połączenie i odśwież stronę.</div>';
+  throw new Error('Hopla3D niedostępny');
+}
+const TAU = Math.PI * 2;
+const DEG = Math.PI / 180;
+const clamp = H3D.clamp, lerp = H3D.lerp, damp = H3D.damp, rand = H3D.rand;
+const TOUCH = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+document.body.classList.toggle('touch', TOUCH);
+const fmt1 = v => (Math.round(v * 10) / 10).toFixed(1).replace('.', ',');
+const fmt2 = v => (Math.round(v * 100) / 100).toFixed(2).replace('.', ',');
+
+/* ---------- postęp gracza (localStorage: hoplaS3) ---------- */
+const PROG = H3D.progress('hoplaS3', 9);
+let cur = clamp(Math.round(PROG.data.unlocked), 1, 9), sel = cur;
+
+/* ============================================================================
+   3 GÓRY × 3 SKOCZNIE = 9 POZIOMÓW
+   HS = rozmiar skoczni (m), K = punkt konstrukcyjny (m)
+   ============================================================================ */
+const WORLDS = [
+  {
+    name: 'Góry Igielne', sky: 'gory', lights: 'dzien', snow: 0.6,
+    rock: 0x545c66, tree: 0x1b3b2c, crowd: 0.55, fogNear: 420, fogFar: 2300,
+    sunDir: [-0.45, 0.52, 0.55], exposure: 1.02
+  },
+  {
+    name: 'Grań Lodowa', sky: 'zmierzch', lights: 'zmierzch', snow: 0.8,
+    rock: 0x4a5560, tree: 0x18302a, crowd: 0.7, fogNear: 360, fogFar: 2100,
+    sunDir: [0.50, 0.34, 0.62], exposure: 1.06
+  },
+  {
+    name: 'Turnia Północna', sky: 'goryNoc', lights: 'noc', snow: 0.95,
+    rock: 0x3a434e, tree: 0x14281f, crowd: 0.8, fogNear: 320, fogFar: 2000,
+    sunDir: [-0.35, 0.42, 0.6], exposure: 1.16
+  }
+];
+/* nazwa, HS, K, wysokość progu (m), nachylenie najazdu (stopnie),
+   limit odległości zaliczenia (proc. HS), siła wiatru */
+const LEVELS = [
+  { name: 'Skocznia Mała', hs: 62, k: 55, tower: 15, inrun: 26, need: 0.62, wind: 0.5, w: 0 },
+  { name: 'Skocznia Średnia', hs: 78, k: 70, tower: 20, inrun: 27, need: 0.64, wind: 0.8, w: 0 },
+  { name: 'Skocznia Leśna', hs: 94, k: 85, tower: 25, inrun: 27.5, need: 0.66, wind: 1.0, w: 0 },
+  { name: 'Grań Wschodnia', hs: 108, k: 98, tower: 30, inrun: 28, need: 0.68, wind: 1.2, w: 1 },
+  { name: 'Skocznia Rycerska', hs: 122, k: 110, tower: 35, inrun: 28.5, need: 0.70, wind: 1.4, w: 1 },
+  { name: 'Wielka Grań', hs: 138, k: 125, tower: 40, inrun: 29, need: 0.72, wind: 1.6, w: 1 },
+  { name: 'Turnia Północna', hs: 152, k: 140, tower: 45, inrun: 29.5, need: 0.74, wind: 1.8, w: 2 },
+  { name: 'Lot Lodowy', hs: 168, k: 155, tower: 50, inrun: 30, need: 0.76, wind: 2.0, w: 2 },
+  { name: 'Wielka Turnia', hs: 185, k: 170, tower: 56, inrun: 30.5, need: 0.78, wind: 2.2, w: 2 }
+];
+const LV = () => LEVELS[cur - 1];
+
+/* ---------- sterowanie ---------- */
+const IN = H3D.input({
+  map: {
+    KeyA: 'action', Space: 'action', Enter: 'action',
+    ArrowLeft: 'left', ArrowRight: 'right', KeyJ: 'left', KeyL: 'right',
+    ArrowDown: 'left', ArrowUp: 'right', KeyS: 'left', KeyD: 'right',
+    ShiftLeft: 'boost', ShiftRight: 'boost',
+    Escape: 'pause', KeyP: 'pause', KeyR: 'restart', KeyC: 'camera'
+  }
+});
+if (TOUCH) {
+  IN.bindTouch($('pl'), 'left'); IN.bindTouch($('pr'), 'right'); IN.bindTouch($('pa'), 'action');
+} else {
+  $('pad').hidden = true;
+}
+
+/* ---------- renderer / scena / kamera ---------- */
+const R = H3D.createRenderer($('gl'), { exposure: 1.02, maxPixelRatio: 2 });
+const S = new THREE.Scene();
+const CAM = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.5, 4200);
+const sky = H3D.createSky(S, 'gory');
+const LGT = H3D.createLights(S, { hemiSky: 0xb6d4f2, hemiGround: 0x3a4653, hemiInt: 0.52,
+  sun: 0xfff2d8, sunInt: 2.05, sunDir: [-0.45, 0.52, 0.55], shadows: true,
+  shadowSize: 2048, shadowExtent: 60, shadowFar: 520, sunDist: 190, ambient: 0.015 });
+const POST = H3D.addPostFX(R, S, CAM, { strength: 0.9 });
+const H = H3D.hud();
+const FX = H3D.createFX();
+const CHASE = H3D.createChase(CAM, { dist: 9, height: 3.0, look: 14, lag: 6, lagLook: 8,
+  fovBase: 58, fovGain: 12 });
+R.hopla.fpsEl = $('h3d-fps');
+
+/* ---------- cząstki: śnieg w powietrzu + śnieg spod nart --- */
+const PART = H3D.particles(S);
+const snowFall = PART.dust({
+  count: 900, area: new THREE.Vector3(90, 60, 120),
+  color: 0xffffff, opacity: 0.62, size: 0.5, fall: -1.6, drift: 1.6
+});
+/* śnieg ma świecić punktowo — bez cieni i z lekkim rozmyciem */
+const snowSpray = PART.pool({
+  count: 260, color: 0xf2f8ff, gravity: 6.5, drag: 1.9, flutter: true,
+  geo: new THREE.PlaneGeometry(0.11, 0.11),
+  mat: new THREE.MeshBasicMaterial({
+    color: H3D.srgb(0xf4faff), transparent: true, opacity: 0.85,
+    depthWrite: false, side: THREE.DoubleSide, toneMapped: false
+  })
+});
+
+/* ============================================================================
+   PROFIL SKOCZNI — geometria liczona z rozmiaru HS
+   Współrzędne: x = poprzek, y = wysokość, z = wzdłuż (0 = próg, +Z = w dół).
+   Najazd leży nad zeskokiem (ujemne z), wieża najazdowa rośnie ku górze.
+   ============================================================================ */
+const HILL = {
+  n: 1, hs: 62, k: 55, tower: 15, inAngle: 26 * DEG, inLen: 60, takeoffY: 18,
+  slope0: 36 * DEG, slopeK: 33 * DEG, endY: 0, endD: 0, table: null,
+  set(n) {
+    const L = LEVELS[n - 1];
+    this.n = n; this.hs = L.hs; this.k = L.k; this.tower = L.tower;
+    this.inAngle = L.inrun * DEG;
+    /* inLen = poziomy zasięg najazdu — liczony z wysokości wieży i kąta */
+    this.inLen = Math.max(46, (L.tower + 2) / Math.tan(this.inAngle));
+    this.takeoffY = 3.0 + L.tower;
+    this.slope0 = 36 * DEG; this.slopeK = 32 * DEG;
+
+    /* tabela profilu: całkujemy nachylenie od progu w dół.
+       · 0 → K: nachylenie maleje 36° → 32°
+       · K → HS: stałe 32°
+       · HS → wybieg: łagodzenie do ~2° (wypłaszczenie)                     */
+    const total = Math.round(this.hs * 1.9);        /* zasięg zeskoku + wybiegu */
+    const table = new Float32Array(total + 1);
+    let y = this.takeoffY, prevSlope = Math.tan(this.slope0);
+    table[0] = y;
+    for (let d = 1; d <= total; d++) {
+      const f = d / total;
+      let deg;
+      if (d <= this.k) {
+        const t = d / this.k;
+        deg = 36 - (36 - 32) * t;                     /* 36° → 32° */
+      } else if (d <= this.hs) {
+        deg = 32;
+      } else {
+        /* wypłaszczenie: 32° → 2° na długości ~0.5 HS */
+        const t = clamp((d - this.hs) / (this.hs * 0.5), 0, 1);
+        deg = 32 - 30 * (t * t * (3 - 2 * t));
+      }
+      const slope = Math.tan(deg * DEG);
+      y -= slope * 0.5 + prevSlope * 0.5;              /* trapezowe całkowanie */
+      prevSlope = slope;
+      table[d] = y;
+    }
+    this.table = table; this.endD = total; this.endY = y;
+    return this;
+  },
+  /* wysokość zeskoku w funkcji odległości od progu (m) */
+  hillY(d) {
+    if (!this.table) this.set(this.n);
+    if (d <= 0) return this.takeoffY;
+    if (d >= this.endD) return this.endY;
+    const i = Math.floor(d), f = d - i;
+    return this.table[i] + (this.table[i + 1] - this.table[i]) * f;
+  },
+  /* nachylenie zeskoku (radiany, dodatnie w dół) w punkcie d */
+  slopeAt(d) {
+    const h = this.hillY(d), h2 = this.hillY(d + 0.6);
+    return Math.atan2(h - h2, 0.6);
+  },
+  /* wysokość najazdu (z ujemne, 0 = próg) */
+  inrunY(z) {
+    return this.takeoffY - z * Math.tan(this.inAngle);
+  },
+  /* szerokość zeskoku (pół) — rozszerza się w dół, jak w realnej skoczni */
+  halfW(d) {
+    const t = clamp(d / (this.hs * 0.45), 0, 1);
+    return 2.4 + 5.4 * (t * t * (3 - 2 * t));
+  }
+};
+
+/* ============================================================================
+   BUDOWA SKOCZNI — jeden raz na poziom, wszystko w grupie `hill`
+   ============================================================================ */
+const hill = new THREE.Group();
+S.add(hill);
+const hillParts = { mats: [] };
+
+function snowMat(tint, rough) {
+  const t = H3D.textures.snow();
+  const m = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(tint != null ? tint : 0xffffff),
+    roughness: rough != null ? rough : 0.86, metalness: 0.02,
+    map: t.clone()
+  });
+  m.map.repeat.set(6, 26);
+  hillParts.mats.push(m);
+  return m;
+}
+function stdMat(c, rough, metal) {
+  const m = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(c), roughness: rough != null ? rough : 0.7,
+    metalness: metal != null ? metal : 0.08
+  });
+  hillParts.mats.push(m);
+  return m;
+}
+
+/* --- zeskok + masyw góry: pas śniegu prowadzony po profilu, a po bokach
+   solidne zbocza schodzące do polany. Dzięki temu skocznia wygląda jak
+   wbudowana w górę, a nie jak cienka deska na płaskim polu. --- */
+function buildLanding() {
+  const N = 110;
+  const COLS = 7;                     /* -W2, -W1, -w, 0, w, W1, W2 */
+  const pos = [], uv = [], idx = [];
+  const groundY = HILL.endY - 2.5;
+  for (let i = 0; i <= N; i++) {
+    const d = (i / N) * HILL.endD;
+    const y = HILL.hillY(d), w = HILL.halfW(d);
+    /* szerokość zboczy: rośnie w dół trasy, ale nie przesadnie */
+    const w1 = w + 9 + d * 0.10;
+    const w2 = w + 34 + d * 0.22;
+    const ySide = Math.max(groundY, y - 1.6);
+    const xs = [-w2, -w1, -w, 0, w, w1, w2];
+    const ys = [groundY, ySide, y, y, y, ySide, groundY];
+    for (let c = 0; c < COLS; c++) {
+      pos.push(xs[c], ys[c], d);
+      uv.push(c / (COLS - 1), d * 0.05);
+    }
+  }
+  for (let i = 0; i < N; i++) {
+    for (let c = 0; c < COLS - 1; c++) {
+      const a = i * COLS + c, b = a + COLS;
+      idx.push(a, b, a + 1, a + 1, b, b + 1);
+    }
+  }
+    const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  /* zeskok ma lekko chłodniejszy, bardziej "zbity" śnieg niż polana —
+     dzięki temu widać, gdzie kończy się skocznia, a gdzie zaczyna teren */
+  const m = snowMat(0xdae8f6, 0.82);
+  m.map.repeat.set(4, 1);
+  const mesh = new THREE.Mesh(g, m);
+  mesh.receiveShadow = true;
+  hill.add(mesh);
+  hillParts.landing = mesh;
+  return mesh;
+}
+
+/* --- bandy zeskoku: dwie ściany po bokach (ciemne, z akcentem) --- */
+function buildWalls() {
+  const N = 150;
+  /* bandy: ciemny antracyt, ale nie czarny — czytelna krawędź zeskoku */
+  const mat = stdMat(0x4a5566, 0.82, 0.12);
+  const accent = stdMat(0xff8a3d, 0.5, 0.2);
+  const pos = [], idx = [];
+  let v = 0;
+  for (let i = 0; i <= N; i++) {
+    const d = (i / N) * HILL.endD;
+    const y = HILL.hillY(d), w = HILL.halfW(d);
+    /* po dwa wierzchołki na stronę: góra bandy i dół */
+    pos.push(-w, y, d, -w, y - 0.9, d, w, y, d, w, y - 0.9, d);
+  }
+  for (let i = 0; i < N; i++) {
+    const o = i * 4, o2 = o + 4;
+    idx.push(o, o + 1, o2, o + 1, o2 + 1, o2);            /* lewa ściana */
+    idx.push(o2 + 2, o + 3, o + 2, o2 + 2, o2 + 3, o + 3); /* prawa ściana */
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  const walls = new THREE.Mesh(g, mat);
+  walls.receiveShadow = true; walls.castShadow = false;
+  hill.add(walls);
+  hillParts.walls = walls;
+  /* listwy krawędziowe zeskoku — dwa wąskie pasy PO PROFILU, po bokach;
+     prosta belka nie może leżeć na zboczu, bo "wychodzi" nad śnieg */
+  const NL = 90;
+  [-1, 1].forEach(sx => {
+    const lp = [], li = [];
+    for (let i = 0; i <= NL; i++) {
+      const d = (i / NL) * HILL.endD;
+      const y = HILL.hillY(d) + 0.05, w = HILL.halfW(d);
+      const x0 = sx * (w - 0.22), x1 = sx * w;
+      lp.push(x0, y, d, x1, y, d);
+    }
+    for (let i = 0; i < NL; i++) {
+      const a = i * 2;
+      li.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+    }
+    const lg = new THREE.BufferGeometry();
+    lg.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
+    lg.setIndex(li);
+    lg.computeVertexNormals();
+    const strip = new THREE.Mesh(lg, accent);
+    strip.material.side = THREE.DoubleSide;
+    hill.add(strip);
+  });
+  hillParts.lines = [];
+}
+
+/* --- najazd: pochylnia nad zeskokiem, tory nart, bandy i wieża --- */
+function buildInrun() {
+  const L = HILL.inLen, w = 1.5;
+  const y0 = HILL.inrunY(-L), y1 = HILL.inrunY(0);
+  const len = Math.sqrt(L * L + (y1 - y0) * (y1 - y0));
+  const ang = Math.atan2(y1 - y0, L);           /* ujemne = w dół */
+  const grp = new THREE.Group();
+  /* środek płyty (BoxGeometry obraca się wokół własnego środka) */
+  const cz = -L / 2, cy = (y0 + y1) / 2;
+
+  /* płyta najazdu — solidny śnieżny pomost */
+  const deck = new THREE.Mesh(
+    new THREE.BoxGeometry(w * 2, 0.45, len),
+    snowMat(0xe4eefa, 0.6)
+  );
+  deck.position.set(0, cy - 0.22, cz);
+  deck.rotation.x = -ang;
+  deck.receiveShadow = true; deck.castShadow = true;
+  grp.add(deck);
+
+  /* dwa tory nart — ciemne rowki na płycie */
+  const trackMat = stdMat(0x3a4552, 0.55, 0.25);
+  [-0.36, 0.36].forEach(x => {
+    const tr = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.07, len), trackMat);
+    tr.position.set(x, cy + 0.03, cz);
+    tr.rotation.x = -ang;
+    grp.add(tr);
+  });
+
+  /* bandy najazdu: dwie niskie ściany po bokach płyty */
+  const railMat = stdMat(0x93bcdb, 0.45, 0.3);
+  [-1, 1].forEach(sx => {
+    const railShape = new THREE.BoxGeometry(0.12, 0.62, len);
+    const rail = new THREE.Mesh(railShape, railMat);
+    rail.position.set(sx * (w - 0.02), cy + 0.28, cz);
+    rail.rotation.x = -ang;
+    rail.castShadow = true;
+    grp.add(rail);
+  });
+
+  /* wieża najazdowa: kratownica pod najazdem, nogi tylko do poziomu terenu */
+  const towerMat = stdMat(0x46505d, 0.7, 0.28);
+  const groundY = hillParts.groundY != null ? hillParts.groundY : HILL.endY - 3.0;
+  const nLegs = 7;
+  for (let i = 0; i <= nLegs; i++) {
+    const z = -L + (L * i) / nLegs;
+    const yTop = HILL.inrunY(z) - 0.5;
+    const hh = yTop - groundY;
+    if (hh < 1.5) continue;                 /* przy progu nóg nie ma sensu */
+    [-1, 1].forEach(sx => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.22, hh, 7), towerMat);
+      leg.position.set(sx * (w - 0.4), groundY + hh / 2, z);
+      grp.add(leg);
+    });
+    /* poprzeczka kratownicy */
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(w * 2 - 0.5, 0.10, 0.10), towerMat);
+    bar.position.set(0, yTop, z);
+    grp.add(bar);
+  }
+  /* ukośne stężenia w dwóch płaszczyznach — kratownica zamiast "szczudeł" */
+  const braceMat = stdMat(0x3b4451, 0.75, 0.25);
+  for (let i = 0; i < nLegs; i++) {
+    const z0 = -L + (L * i) / nLegs, z1 = -L + (L * (i + 1)) / nLegs;
+    const y0 = HILL.inrunY(z0) - 0.6, y1 = HILL.inrunY(z1) - 0.6;
+    if (y0 - groundY < 2 || y1 - groundY < 2) continue;
+    const len = Math.sqrt((z1 - z0) * (z1 - z0) + (y1 - y0) * (y1 - y0));
+    const br = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, len), braceMat);
+    br.position.set(w - 0.4, (y0 + y1) / 2, (z0 + z1) / 2);
+    br.rotation.x = -Math.atan2(y1 - y0, z1 - z0);
+    grp.add(br);
+    const br2 = br.clone(); br2.position.x = -(w - 0.4); grp.add(br2);
+  }
+  /* pomost startowy: budka START ustawiona WYŻEJ najazdu (nie zasłania kadru),
+     z belką startową nad torem nart */
+  const startDeckY = HILL.inrunY(-L);
+  const hutW = 3.0, hutH = 2.5, hutD = 2.2;
+  const hutMat = stdMat(0x5a6675, 0.75, 0.15);
+  const hut = new THREE.Mesh(new THREE.BoxGeometry(hutW, hutH, hutD), hutMat);
+  hut.position.set(0, startDeckY + hutH / 2 - 0.5, -L - hutD / 2 + 0.4);
+  hut.castShadow = true; hut.receiveShadow = true;
+  grp.add(hut);
+  /* świetlik i pomarańczowy dach — czytelny akcent na szczycie wieży */
+  const win = new THREE.Mesh(new THREE.BoxGeometry(hutW * 0.72, 0.8, 0.08),
+    new THREE.MeshStandardMaterial({
+      color: H3D.srgb(0x8fc6e0), roughness: 0.12, metalness: 0.4,
+      emissive: H3D.srgb(0xffd23f), emissiveIntensity: 0.22
+    }));
+  win.position.set(0, startDeckY + 1.2, -L + 0.42);
+  grp.add(win);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(hutW + 0.6, 0.16, hutD + 0.5),
+    stdMat(0xff8a3d, 0.6, 0.2));
+  roof.position.set(0, startDeckY + hutH / 2, -L - hutD / 2 + 0.4);
+  grp.add(roof);
+  /* belka startowa nad torami — skoczek startuje spod niej */
+  const gate = new THREE.Mesh(new THREE.BoxGeometry(w * 2 - 0.2, 0.10, 0.12),
+    stdMat(0xffd23f, 0.5, 0.3));
+  gate.position.set(0, startDeckY + 0.9, -L + 2.2);
+  grp.add(gate);
+  [-1, 1].forEach(sx => {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 0.1), stdMat(0x8e9bb0, 0.4, 0.6));
+    post.position.set(sx * (w - 0.12), startDeckY + 0.45, -L + 2.2);
+    grp.add(post);
+  });
+
+  hill.add(grp);
+  hillParts.inrun = grp;
+  return { y0: y0, y1: y1, L: L, ang: ang };
+}
+
+/* --- próg (takeoff table) + wybieg --- */
+function buildTakeoffAndOutrun() {
+  const y = HILL.takeoffY, w = HILL.halfW(0);
+  /* stół wybicia: krótka, lekko uniesiona płyta */
+  const tbl = new THREE.Mesh(
+    new THREE.BoxGeometry(w * 2, 0.4, 2.2),
+    snowMat(0xeaf2fb, 0.7)
+  );
+  tbl.position.set(0, y - 0.2, -0.4);
+  tbl.rotation.x = 0.06;
+  tbl.castShadow = true; tbl.receiveShadow = true;
+  hill.add(tbl);
+
+  /* krawędź progu — złoty pas, widoczny z daleka */
+  const edge = new THREE.Mesh(
+    new THREE.BoxGeometry(w * 2 + 0.1, 0.16, 0.28),
+    stdMat(0xffd23f, 0.4, 0.35)
+  );
+  edge.position.set(0, y + 0.02, 0.62);
+  hill.add(edge);
+
+  /* wybieg: szeroka, płaska polana za zeskokiem */
+  const outLen = HILL.endD * 0.9;
+  const outY = HILL.endY;
+  const out = new THREE.Mesh(new THREE.PlaneGeometry(120, outLen, 1, 1), snowMat(0xf6fafd, 0.92));
+  out.rotation.x = -Math.PI / 2;
+  out.position.set(0, outY - 0.02, HILL.endD + outLen / 2 - 6);
+  out.receiveShadow = true;
+  hill.add(out);
+  hillParts.outrun = out;
+
+  /* strefy odległości: K i HS oznaczone pasami na zeskoku */
+  const markMat = stdMat(0x2aa3d6, 0.5, 0.2);
+  const markMat2 = stdMat(0xff8a3d, 0.5, 0.2);
+  [[HILL.k, markMat], [HILL.hs, markMat2]].forEach(pair => {
+    const d = pair[0], mm = pair[1];
+    const ww = HILL.halfW(d);
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(ww * 2, 0.05, 0.55), mm);
+    strip.position.set(0, HILL.hillY(d) + 0.03, d);
+    strip.rotation.x = HILL.slopeAt(d);
+    hill.add(strip);
+  });
+
+  /* chorągiewki wzdłuż band — rytm i skala w kadrze */
+  const flagMat = stdMat(0xff8a3d, 0.6, 0.1);
+  const poleMat = stdMat(0x8e9bb0, 0.4, 0.6);
+  const flagGeo = new THREE.BoxGeometry(0.9, 0.55, 0.04);
+  const poleGeo = new THREE.CylinderGeometry(0.045, 0.045, 2.0, 6);
+  const step = Math.max(8, HILL.hs / 10);
+  for (let d = step; d < HILL.endD - 8; d += step) {
+    [-1, 1].forEach(sx => {
+      const ww = HILL.halfW(d) + 0.7;
+      const yy = HILL.hillY(d);
+      const pole = new THREE.Mesh(poleGeo, poleMat);
+      pole.position.set(sx * ww, yy + 1.0, d);
+      const flag = new THREE.Mesh(flagGeo, flagMat);
+      flag.position.set(sx * (ww + 0.42), yy + 1.62, d);
+      hill.add(pole, flag);
+    });
+  }
+}
+
+/* ============================================================================
+   OTOCZENIE: góry, las, widownia, teren — budowane raz na poziom
+   ============================================================================ */
+const scenery = new THREE.Group();
+S.add(scenery);
+
+function buildMountains(world) {
+  /* Pasmo gór w tle: bryły z kilku stożków o wspólnym wierzchołku (żeby nie
+     były "cyrklowymi" stożkami), ciemniejsze u podstawy, śnieżne szczyty. */
+  const rockM = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(H3D.shade(world.rock, 0.05)), roughness: 0.96,
+    metalness: 0.02, flatShading: false
+  });
+  const peakM = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(0xfafcff), roughness: 0.7, metalness: 0.02, flatShading: false
+  });
+  hillParts.mats.push(rockM, peakM);
+  const rnd = H3D.mulberry(4242);
+  for (let i = 0; i < 26; i++) {
+    const a = (i / 26) * TAU + (rnd() - 0.5) * 0.16;
+    const dist = 1500 + rnd() * 700;
+    const h = 320 + rnd() * 520;
+    const r = h * (0.85 + rnd() * 0.7);
+    const grpM = new THREE.Group();
+    /* trzy stożki obok siebie = grzbiet, nie samotny stożek */
+    for (let k = 0; k < 3; k++) {
+      const kk = 0.52 + k * 0.24;
+      const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(r * kk, h * (0.75 + k * 0.14), 18, 8), rockM);
+      const vertices = cone.geometry.attributes.position;
+      for (let j = 0; j < vertices.count; j++) {
+        const x = vertices.getX(j), y = vertices.getY(j), z = vertices.getZ(j);
+        const wave = 1 + 0.16 * Math.sin(x * 0.025 + z * 0.018) + 0.09 * Math.cos(z * 0.041 + y * 0.016);
+        vertices.setXYZ(j, x * wave, y + Math.sin(x * 0.02 + z * 0.03) * h * 0.035, z * wave);
+      }
+      cone.geometry.computeVertexNormals();
+      cone.position.set((rnd() - 0.5) * r * 0.7, 0, (rnd() - 0.5) * r * 0.55);
+      cone.rotation.y = rnd() * TAU;
+      grpM.add(cone);
+    }
+    grpM.position.set(Math.cos(a) * dist, h / 2 + HILL.endY - 100, Math.sin(a) * dist + 300);
+    scenery.add(grpM);
+    /* czapa śnieżna na głównym wierzchołku */
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(r * 0.40, h * 0.36, 18, 4), peakM);
+    cap.position.copy(grpM.position);
+    cap.position.y += h * 0.28;
+    cap.rotation.y = rnd() * TAU;
+    scenery.add(cap);
+  }
+}
+
+function buildForest(world) {
+  /* świerki: instancjonowane pnie + korony (tanio, a daje głębię).
+     Skala drzew jest realna (świerk 12–22 m) — inaczej las wygląda jak makieta. */
+  const N = 300;
+  const trunkMat = new THREE.MeshStandardMaterial({ color: H3D.srgb(0x33261d), roughness: 0.95 });
+  const needleMat = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(H3D.shade(world.tree, 0.10)), roughness: 0.95
+  });
+  hillParts.mats.push(trunkMat, needleMat);
+  const TRUNK_H = 4.0, NEEDLE_H = 13.0, NEEDLE_R = 3.4;
+  const trunk = new THREE.InstancedMesh(
+    new THREE.CylinderGeometry(0.42, 0.62, TRUNK_H, 6), trunkMat, N);
+  const crown = new THREE.ConeGeometry(NEEDLE_R, NEEDLE_H, 12, 12);
+  const cp = crown.attributes.position;
+  for (let i = 0; i < cp.count; i++) {
+    const x = cp.getX(i), y = cp.getY(i), z = cp.getZ(i);
+    const tier = 0.80 + 0.20 * Math.cos((y / NEEDLE_H + 0.5) * Math.PI * 10);
+    const branch = tier * (1 + 0.06 * Math.sin(x * 4.1 + z * 3.7));
+    cp.setXYZ(i, x * branch, y, z * branch);
+  }
+  crown.computeVertexNormals();
+  const needles = new THREE.InstancedMesh(crown, needleMat, N);
+  trunk.castShadow = false; needles.castShadow = false;
+  const d = new THREE.Object3D();
+  const baseY = (hillParts.groundY != null ? hillParts.groundY : HILL.endY - 3.0);
+  let k = 0;
+  for (let i = 0; i < N; i++) {
+    const s = rand(0.6, 1.3);
+    const z = -170 + rand(0, HILL.endD + 460);
+    const side = Math.random() < 0.5 ? -1 : 1;
+    /* las rośnie na zboczach góry, min. 26 m od osi skoczni */
+    const x = side * (100 + rand(0, 220));
+    const yHill = z > 0 ? HILL.hillY(clamp(z, 0, HILL.endD)) : HILL.inrunY(z);
+    /* im dalej od osi, tym niżej — zbocze schodzi do polany */
+    const flankDrop = Math.min(30, (Math.abs(x) - 26) * 0.16);
+    const groundY = baseY;
+    d.position.set(x, groundY + TRUNK_H * s * 0.5, z);
+    d.scale.set(s, s, s);
+    d.rotation.set(0, rand(0, TAU), 0);
+    d.updateMatrix();
+    trunk.setMatrixAt(k, d.matrix);
+    d.position.y = groundY + (TRUNK_H + NEEDLE_H * 0.5) * s;
+    d.updateMatrix();
+    needles.setMatrixAt(k, d.matrix);
+    k++;
+  }
+  trunk.count = k; needles.count = k;
+  scenery.add(trunk, needles);
+  hillParts.trees = [trunk, needles];
+}
+
+function buildCrowd(world) {
+  const standMat = stdMat(0x424a53, 0.87, 0.08);
+  const coatMat = stdMat(0xffffff, 0.92, 0);
+  const headMat = stdMat(0x9e928a, 0.9, 0);
+  const zA = HILL.hs * 0.34, zB = HILL.hs * 1.02, zc = (zA + zB) / 2;
+  const crowdCols = [0x775642, 0x68634d, 0x3b5868, 0x777e84, 0x4b4f58, 0x334942];
+  const bodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.19, 0.23, 0.65, 10), coatMat, 240);
+  const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.17, 8, 6), headMat, 240);
+  const limbs = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.065, 0.075, 0.56, 7), coatMat, 480);
+  const legs = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.085, 0.075, 0.62, 7), standMat, 480);
+  const dummy = new THREE.Object3D();
+  let index = 0;
+  [-1, 1].forEach(side => {
+    for (let row = 0; row < 3; row++) {
+      const off = HILL.halfW(zc) + 2.8 + row * 3.5;
+      const step = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.8, (zB-zA)/Math.cos(HILL.slopeAt(zc))), standMat);
+      step.position.set(side * off, HILL.hillY(zc) + row * 0.95, zc);
+      step.rotation.x = HILL.slopeAt(zc); scenery.add(step);
+      for (let i = 0; i < 40; i++) {
+        const z = lerp(zA + 1, zB - 1, (i % 20) / 19);
+        const y = HILL.hillY(zc) - (z-zc) * Math.tan(HILL.slopeAt(zc)) + row * 0.95 + 0.4;
+        const x = side * off + (i < 20 ? -0.7 : 0.7);
+        dummy.position.set(x, y + 1.0, z); dummy.rotation.set(0, 0, 0);
+        dummy.scale.set(1, 1, 0.8); dummy.updateMatrix(); bodies.setMatrixAt(index, dummy.matrix);
+        bodies.setColorAt(index, H3D.srgb(crowdCols[index % crowdCols.length]));
+        dummy.position.y = y + 1.51; dummy.scale.setScalar(1); dummy.updateMatrix(); heads.setMatrixAt(index, dummy.matrix);
+        for (let sideIndex = 0; sideIndex < 2; sideIndex++) {
+          const sign = sideIndex ? 1 : -1;
+          dummy.position.set(x + sign * 0.25, y + 0.92, z); dummy.rotation.z = sign * 0.10;
+          dummy.updateMatrix(); limbs.setMatrixAt(index * 2 + sideIndex, dummy.matrix);
+          limbs.setColorAt(index * 2 + sideIndex, H3D.srgb(crowdCols[index % crowdCols.length]));
+          dummy.position.set(x + sign * 0.10, y + 0.32, z); dummy.rotation.z = 0;
+          dummy.updateMatrix(); legs.setMatrixAt(index * 2 + sideIndex, dummy.matrix);
+        }
+        index++;
+      }
+    }
+  });
+  bodies.frustumCulled = heads.frustumCulled = false;
+  limbs.frustumCulled = legs.frustumCulled = false;
+  scenery.add(bodies, heads, limbs, legs);
+  /* wieża sędziowska przy punkcie K */
+  const judgeMat = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(0x3f4a58), roughness: 0.8, metalness: 0.2
+  });
+  hillParts.mats.push(judgeMat);
+  const jz = HILL.k, jx = HILL.halfW(jz) + 15;
+  const tower = new THREE.Mesh(new THREE.BoxGeometry(3.4, 5.0, 3.4), judgeMat);
+  tower.position.set(jx, HILL.hillY(jz) + 2.5 - 0.4, jz);
+  tower.castShadow = true;
+  scenery.add(tower);
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(3.7, 1.5, 3.7),
+    new THREE.MeshStandardMaterial({
+      color: H3D.srgb(0x8fc6e0), roughness: 0.12, metalness: 0.5,
+      emissive: H3D.srgb(0xffd23f), emissiveIntensity: 0.16
+    }));
+  glass.position.set(jx, HILL.hillY(jz) + 4.9, jz);
+  scenery.add(glass);
+  const roofJ = new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.25, 4.3), judgeMat);
+  roofJ.position.set(jx, HILL.hillY(jz) + 5.8, jz);
+  scenery.add(roofJ);
+}
+
+function buildTerrain(world) {
+  /* Polana pod skocznią: duża, płaska płyta śnieżna ustawiona PONIŻEJ
+     najniższego punktu zeskoku, żeby nigdy nie przecinała band i wybiegu.
+     Pofałdowanie dopiero daleko od skoczni — blisko musi być równo. */
+  const geo = new THREE.PlaneGeometry(2600, 2600, 36, 36);
+  const p = geo.attributes.position;
+  const baseY = HILL.endY - 3.0;                 /* pod wybiegiem */
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i);
+    const dd = Math.sqrt(x * x + y * y);
+    const k = clamp((dd - 300) / 700, 0, 1);     /* 0 = płasko przy skoczni */
+    p.setZ(i, (Math.sin(x * 0.004) * Math.cos(y * 0.003) * 70 +
+      Math.sin(x * 0.009) * 18) * k);
+  }
+  geo.computeVertexNormals();
+  const m = new THREE.MeshStandardMaterial({
+    color: H3D.srgb(0xf6faff), roughness: 0.94, metalness: 0.01,
+    map: H3D.textures.snow().clone()
+  });
+  m.map.repeat.set(70, 70);
+  hillParts.mats.push(m);
+  const ground = new THREE.Mesh(geo, m);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.set(0, baseY, HILL.endD * 0.5);
+  ground.receiveShadow = true;
+  scenery.add(ground);
+  hillParts.ground = ground;
+  hillParts.groundY = baseY;
+}
+
+function disposeGroup(g) {
+  const geos = new Set(), mats = new Set(), maps = new Set();
+  g.traverse(o => {
+    if (o.isInstancedMesh && o.dispose) o.dispose();
+    if (o.geometry) geos.add(o.geometry);
+    if (o.material) mats.add(o.material);
+  });
+  geos.forEach(geo => geo.dispose());
+  mats.forEach(mat => { if (mat.map && mat.map !== H3D.textures.snow()) maps.add(mat.map); mat.dispose(); });
+  maps.forEach(map => map.dispose());
+  while (g.children.length) g.remove(g.children[g.children.length - 1]);
+}
+function clearScenery() { disposeGroup(scenery); }
+function clearHill() {
+  disposeGroup(hill);
+  hillParts.inrun = null; hillParts.landing = null; hillParts.lines = null;
+  hillParts.trees = null; hillParts.ground = null; hillParts.outrun = null;
+}
+
+/* ============================================================================
+   SKOCZEK — postać z modułu hopla3d (dorosła sylwetka, kask, narty, numer)
+   ============================================================================ */
+const jumper = H3D.makeHumanoid({
+  kit: 0x2aa3d6, kitAlt: 0x14123a, helmet: 0x22242c, boot: 0x1a1e26, glove: 0x22242c,
+  skin: H3D.PAL.skin, bib: 21, bibBg: '#f6efdf', bibFg: '#14123a',
+  skis: { color: 0xff8a3d, length: 2.55, width: 0.105 }
+});
+jumper.grp.castShadow = true;
+S.add(jumper.grp);
+
+/* ============================================================================
+   STAN SKOKU
+   fazy: 'idle' → 'inrun' → 'takeoff' → 'flight' → 'land' → 'out' → 'done'
+   ============================================================================ */
+const J = {
+  phase: 'idle', t: 0,
+  z: 0, y: 0, x: 0,          /* pozycja wzdłuż trasy */
+  v: 0, vz: 0, vy: 0,        /* prędkości */
+  angle: 0,                   /* kąt widoczny nart (rad) */
+  aoa: 0.07,                  /* kąt natarcia — to steruje gracz */
+  crouch: 0,                  /* 0 = stojąco, 1 = pełny tuck */
+  takeWin: 0, takeAcc: 0, takeOfs: 0,
+  speedK: 0,                  /* jakość najazdu (0..1) */
+  dist: 0, style: 0, styleParts: 0, tele: false, crash: false,
+  landedAt: 0, stoppedAt: 0, wind: 0, windDir: 1, landT: 0
+};
+const G = { state: 'menu', t: 0, result: null, camMode: 0 };
+
+/* prędkość maksymalna najazdu zależy od skoczni — duże skocznie = więcej */
+function inrunVmax(n) { return 21.5 + n * 0.85; }
+
+/* ---------- start skoku: ustawienie na belce ---------- */
+function resetJump() {
+  const L = LV();
+  HILL.set(cur);
+  J.phase = 'idle'; J.t = 0; J.teleAt = -1; J.landT = 0;
+  J.x = 0; J.z = -HILL.inLen + 4.0; J.y = HILL.inrunY(J.z) + 0.1;
+  J.v = 0; J.vz = 0; J.vy = 0;
+  J.angle = 0; J.crouch = 0;
+  J.takeWin = 0; J.takeAcc = 0; J.takeOfs = 0; J.speedK = 1;
+  J.dist = 0; J.style = 0; J.styleParts = 0; J.tele = false; J.crash = false;
+  J.landedAt = 0; J.stoppedAt = 0;
+  /* wiatr: zależy od skoczni + losowy, żeby każdy skok był inny */
+  J.wind = (Math.random() * 2 - 1) * L.wind;
+  J.windDir = J.wind >= 0 ? 1 : -1;
+  jumper.grp.visible = true;
+  jumper.grp.position.set(J.x, J.y, J.z);
+  jumper.grp.rotation.set(HILL.inAngle, 0, 0);
+  H3D.poseHumanoid(jumper, 'ski', 0);
+  CHASE.teleport(
+    new THREE.Vector3(J.x + 7.5, J.y + 3.4, J.z - 7),
+    new THREE.Vector3(0, HILL.takeoffY * 0.72, 4)
+  );
+  G.result = null;
+  updateHUD(true);
+  showTakeoff(false);
+  showAngle(false);
+}
+
+/* ---------- najazd ---------- */
+function tickInrun(dt) {
+  /* fizyka: grawitacja po zboczu minus tarcie i opór powietrza.
+     Kucanie (tuck) zmniejsza opór — opłaca się trzymać A. */
+  const g = 9.81;
+  /* najazd ma stały spadek, więc nachylenie = kąt najazdu (dodatnie w dół) */
+  const slope = HILL.inAngle;
+  const crouching = IN.held.action ? 1 : 0;
+  const cd = 0.020 + (1 - crouching) * 0.020;
+  const mu = 0.035 + (1 - crouching) * 0.012;
+  const a = g * Math.sin(slope) - mu * g * Math.cos(slope) - cd * J.v * J.v * 0.06;
+  J.v = clamp(J.v + a * dt, 0, 40);
+  J.z += J.v * dt;
+  J.y = HILL.inrunY(J.z) + 0.02;
+  J.x = damp(J.x, 0, 8, dt);
+  J.angle = 0;
+
+  H3D.poseHumanoid(jumper, crouching ? 'tuck' : 'ski', G.t, { speed: 0.6 });
+  jumper.grp.position.set(J.x, J.y, J.z);
+  jumper.grp.rotation.set(HILL.inAngle, 0, 0);
+
+  /* okno wybicia: ostatnie 26% najazdu */
+  const toGo = -J.z;
+  const win = HILL.inLen * 0.26;
+  if (toGo < win) {
+    J.takeWin = 1 - clamp(toGo / win, 0, 1);
+    showTakeoff(true);
+    setTakeoffMark(J.takeWin);
+  }
+  if (IN.tap('action') && !J.takeAcc && toGo > 0.4) {
+    if (toGo > win) { H.msg('Przygotuj wybicie', 'Zwolnij A i naciśnij ponownie w złotym oknie', 700); return; }
+    const q = J.takeWin;
+    J.takeOfs = q;
+    if (q >= 0.70 && q <= 0.96) {
+      J.speedK = 0.72 + 0.28 * clamp((q - 0.70) / 0.26, 0, 1);
+      H.msg('Dobre wybicie', 'Punkt za wybicie: ' + fmt1(J.speedK * 12) + ' / 12', 900);
+      FX.shake(0.12, 0.18);
+    } else if (q < 0.70) {
+      J.speedK = 0.45;
+      H.msg('Za wcześnie', 'Tracisz wysokość', 900);
+    } else {
+      J.speedK = 0.55;
+      H.msg('Za późno', 'Wybicie na płaskim', 900);
+    }
+    J.takeAcc = 1;
+  }
+  if (J.z >= 0) {                       /* minięcie progu bez wybicia */
+    if (!J.takeAcc) { J.speedK = 0.40; H.msg('Bez wybicia', 'Leć — trzymaj kąt', 900); }
+    launch();
+  }
+}
+
+function launch() {
+  const ang = 0.17 + (J.speedK - 0.6) * 0.12;   /* kąt wybicia ~9–12° */
+  const v0 = J.v * (0.92 + J.speedK * 0.12);
+  J.vz = v0 * Math.cos(ang) * 0.94;
+  J.vy = v0 * Math.sin(ang) + 0.7 * J.speedK;
+  J.z = 0;
+  J.y = HILL.takeoffY + 0.45;
+  J.aoa = FLIGHT.AOA_OPT;
+  J.angle = ang;
+  J.phase = 'flight'; J.t = 0;
+  showTakeoff(false);
+  showAngle(true);
+  FX.shake(0.2, 0.25);
+  H3D.poseHumanoid(jumper, 'air', 0, { lean: 0 });
+}
+
+/* ---------- lot: siła nośna od kąta natarcia (AOA) ----------
+   J.aoa = kąt natarcia nart względem strumienia (0 = narty w osi lotu).
+   Gracz reguluje go ◀ ▶; optimum to lekkie "na brzuchu" (AOA_OPT).
+   Kąt widoczny nart = kierunek lotu + AOA, więc wizualnie zawsze wygląda dobrze. */
+const FLIGHT = { g: 9.81, drag0: 0.0042, liftK: 0.005, AOA_OPT: 0.07 };
+function tickFlight(dt) {
+  const steer = IN.ax.x;
+  if (IN.tap('action')) J.teleAt = G.t;
+  J.aoa = clamp(J.aoa + steer * 0.9 * dt, -0.28, 0.80);
+  if (!steer) J.aoa = damp(J.aoa, FLIGHT.AOA_OPT, 1.3, dt);
+
+  const v = Math.sqrt(J.vz * J.vz + J.vy * J.vy) || 0.001;
+  const dA = J.aoa - FLIGHT.AOA_OPT;
+  /* nośność: maksimum przy optymalnym AOA, ostro spada przy przesadzie */
+  const liftQ = Math.max(0.04, 1 - 3.4 * dA * dA);
+  const lift = Math.min(FLIGHT.g * 0.85, FLIGHT.liftK * v * v * liftQ);
+  /* opór: rośnie z AOA (płaski, "tarcza" nart = dużo oporu) */
+  const drag = FLIGHT.drag0 * v * v * (1 + 3.2 * dA * dA);
+  const ux = J.vz / v, uy = J.vy / v;
+  J.vz -= drag * ux * dt;
+  J.vz += -uy * lift * dt;   /* nośność prostopadła do toru */
+  J.vy += (-drag * uy - FLIGHT.g) * dt + ux * lift * dt;
+  /* wiatr: dodatni (pod narty) wydłuża lot */
+  J.vz += J.wind * 0.14 * dt;
+  J.vy += J.wind * 0.035 * dt;
+
+  J.z += J.vz * dt;
+  J.y += J.vy * dt;
+  J.t += dt;
+
+  /* kąt widoczny nart: kierunek lotu + AOA (narty "na krawędzi") */
+  const pathAng = Math.atan2(J.vy, Math.max(0.001, J.vz));  /* ujemny = w dół */
+  J.angle = pathAng + J.aoa;
+  const lean = clamp(-dA * 1.5, -1, 1);
+  H3D.poseHumanoid(jumper, 'air', G.t, { lean: lean });
+  jumper.grp.position.set(J.x, J.y, J.z);
+  jumper.grp.rotation.set(-J.angle, 0, 0);
+
+  /* lądowanie: dotknięcie zeskoku */
+  const ground = J.z > 0 ? HILL.hillY(Math.min(J.z, HILL.endD)) : HILL.takeoffY;
+  if (J.z > 0.8 && J.y <= ground + 0.06 && J.vy < 0) landing();
+  updateAngleHUD();
+}
+
+/* ---------- lądowanie ---------- */
+function landing() {
+  J.dist = clamp(J.z, 0, HILL.endD);
+  /* Jakość lądowania zależy od:
+     · kąta natarcia (narty płasko do zeskoku = dobrze),
+     · kąta toru lotu względem zeskoku (zbyt stromo = upadek),
+     · telemarku (A przy przyziemieniu).                              */
+  const slope = HILL.slopeAt(J.dist);              /* dodatnie = w dół */
+  const pathAng = Math.atan2(J.vy, Math.max(0.001, J.vz));  /* ujemny = w dół */
+  const dPath = Math.abs(pathAng + slope);          /* 0 = lot po zboczu */
+  const dAoa = Math.abs(J.aoa - FLIGHT.AOA_OPT);
+  const pathQ = clamp(1 - dPath / 0.5, 0, 1);
+  const aoaQ = clamp(1 - dAoa / 0.45, 0, 1);
+  J.tele = J.teleAt > 0 && G.t - J.teleAt <= 0.35;
+  const teleQ = J.tele ? 1 : 0.45;
+  const styleQ = clamp(pathQ * 0.45 + aoaQ * 0.25 + teleQ * 0.30, 0, 1);
+  J.styleParts = 20 * styleQ;
+  /* upadek tylko przy naprawdę twardym przyziemieniu */
+  /* Liczy się prędkość uderzenia prostopadła do śniegu, a nie samo opadanie. */
+  const impact = Math.abs(J.vy * Math.cos(slope) + J.vz * Math.sin(slope));
+  J.crash = impact > 17 || dPath > 0.68;
+  J.y = HILL.hillY(J.dist) + 0.02;
+  J.style = J.crash ? 0 : J.styleParts;
+  J.landedAt = G.t;
+
+  if (J.crash) {
+    H3D.poseHumanoid(jumper, 'fall', G.t);
+    H.msg('Upadek', 'Ocena stylu: 0 punktów', 1500);
+    FX.shake(1.4, 0.8);
+    J.phase = 'out'; J.vz = Math.max(3, J.vz * 0.35); J.vy = 0;
+    snowSpray.burst(new THREE.Vector3(J.x, J.y, J.z), 34, { speed: 8, life: 0.9, size: 0.14 });
+  } else {
+    H3D.poseHumanoid(jumper, J.tele ? 'telemark' : 'land', 0);
+    H.msg(J.tele ? 'Telemark' : 'Lądowanie', 'Styl: ' + fmt1(J.styleParts) + ' / 20', 1100);
+    FX.shake(0.42, 0.34);
+    FX.hitstop(0.05);
+    J.phase = 'out'; J.vz = Math.max(10, J.vz); J.vy = 0;
+    snowSpray.burst(new THREE.Vector3(J.x, J.y, J.z), 22, { speed: 6, life: 0.7, size: 0.11 });
+  }
+  jumper.grp.rotation.set(slope, 0, 0);
+  showAngle(false);
+  J.landT = 0;
+}
+
+/* ---------- wybieg: jazda po zeskoku do zatrzymania ---------- */
+function tickOut(dt) {
+  J.landT += dt;
+  const slope = HILL.slopeAt(Math.min(J.z, HILL.endD));
+  J.vz = Math.max(0, J.vz - (J.crash ? 14 : 5.2) * dt);
+  J.z += J.vz * dt;
+  J.y = HILL.hillY(Math.min(J.z, HILL.endD)) + (J.crash ? 0.35 : 0.02);
+  H3D.poseHumanoid(jumper, J.crash ? 'fall' : (J.landT > 1.1 ? 'ski' : (J.tele ? 'telemark' : 'land')), G.t);
+  jumper.grp.position.set(J.x, J.y, J.z);
+  jumper.grp.rotation.set(slope, 0, 0);
+
+  /* śnieg spod nart przy hamowaniu */
+  if (!J.crash && J.vz > 3 && Math.random() < dt * 26) {
+    snowSpray.spawn(J.x + rand(-0.3, 0.3), J.y + 0.15, J.z + rand(-0.4, 0.4),
+      rand(-2.2, 2.2), rand(1.6, 4), rand(-1, 1) - J.vz * 0.15, rand(0.4, 0.8), rand(0.08, 0.16));
+  }
+  /* koniec: zatrzymanie albo wypadnięcie z trasy */
+  if (J.vz < 1.4 || J.landT > 7 || J.z > HILL.endD + 40) finishJump();
+}
+
+function finishJump() {
+  if (J.phase === 'done') return;
+  J.phase = 'done';
+  jumper.grp.rotation.set(0, 0, 0);
+  H3D.poseHumanoid(jumper, J.crash ? 'fall' : 'cheer', 0);
+  if (!J.crash) { FX.slowmo(0.5, 1.2); }
+  showResultJump();
+}
+
+/* ============================================================================
+   HUD
+   ============================================================================ */
+const E_dist = $('dist'), E_styl = $('styl'), E_spd = $('spdv'), E_spdbar = $('spdbar').firstElementChild,
+  E_mkb = $('mkb'), E_wind = $('windv'), E_state = $('state'),
+  E_to = $('takeoff'), E_tog = $('tog'), E_tok = $('tok'),
+  E_ang = $('angle'), E_angz = $('angz'), E_angm = $('angm'), E_angv = $('angv');
+const hudC = { d: -1, s: -1, sp: -1, w: -1, st: '' };
+
+function updateHUD(force) {
+  const L = LV();
+  if (force) {
+    $('evn').textContent = L.name;
+    $('evl').textContent = 'Poziom ' + cur + ' · Świat ' + (L.w + 1) + ' · HS ' + L.hs + ' · K ' + L.k;
+    hudC.d = -1; hudC.s = -1; hudC.sp = -1; hudC.w = -1; hudC.st = '';
+  }
+  const d = J.phase === 'flight' ? Math.max(0, J.z) : J.dist;
+  const dv = Math.round(d * 10) / 10;
+  if (hudC.d !== dv) {
+    hudC.d = dv;
+    E_dist.textContent = fmt1(d) + ' m';
+    E_dist.style.color = d >= L.k * 1.02 ? '#8fe6ff' : '#ffd23f';
+  }
+  const sv = Math.round(J.style * 10) / 10;
+  if (hudC.s !== sv) { hudC.s = sv; E_styl.textContent = 'Styl ' + fmt1(J.style) + ' / 20'; }
+  const speed = J.phase === 'flight' ? Math.hypot(J.vz, J.vy) : (J.phase === 'out' || J.phase === 'done' ? J.vz : J.v);
+  const kmh = Math.round(speed * 3.6);
+  if (hudC.sp !== kmh) {
+    hudC.sp = kmh;
+    E_spd.textContent = kmh + ' km/h';
+    E_spdbar.style.width = clamp(speed / 34, 0, 1) * 100 + '%';
+  }
+  const wv = Math.round(J.wind * 10) / 10;
+  if (hudC.w !== wv) {
+    hudC.w = wv;
+    E_wind.textContent = (J.wind >= 0 ? '+' : '') + fmt1(J.wind) + ' m/s ' +
+      (J.wind >= 0 ? '(wznoszący)' : '(spadający)');
+    E_wind.style.color = J.wind >= 0 ? '#9be36b' : '#ff9d7a';
+  }
+  /* stan / podpowiedź fazy */
+  let st = '', hi = false;
+  if (G.state === 'play') {
+    if (J.phase === 'idle') st = 'Naciśnij A, aby ruszyć z belki';
+    else if (J.phase === 'inrun') {
+      st = IN.held.action ? 'Kucaj — mniejszy opór' : 'Trzymaj A (kucki) i szykuj wybicie';
+      hi = true;
+    } else if (J.phase === 'flight') {
+      st = '◀ ▶ kąt nart · A tuż przed śniegiem = telemark';
+      hi = true;
+    } else if (J.phase === 'out') st = 'A przy przyziemieniu = telemark';
+  }
+  if (hudC.st !== st) { hudC.st = st; E_state.textContent = st; }
+  E_state.classList.toggle('hi', hi);
+}
+
+function showTakeoff(on) { E_to.classList.toggle('on', !!on); }
+function setTakeoffMark(q) {
+  E_tok.style.left = clamp(q, 0, 1) * 100 + '%';
+  /* złote okno 70–96% */
+  E_tog.style.left = '70%'; E_tog.style.width = '26%';
+}
+function showAngle(on) { E_ang.classList.toggle('on', !!on); }
+function updateAngleHUD() {
+  /* pasek pokazuje kąt natarcia (AOA) w stopniach; optimum zaznaczone */
+  const deg = J.aoa / DEG;
+  const p = clamp((deg + 18) / 62, 0, 1);
+  E_angm.style.left = p * 100 + '%';
+  E_angv.textContent = (deg > 0 ? '+' : '') + Math.round(deg) + '°';
+  const dz = clamp((FLIGHT.AOA_OPT / DEG + 18) / 62, 0, 1);
+  E_angz.style.left = (dz - 0.07) * 100 + '%';
+  E_angz.style.width = '14%';
+}
+
+/* ============================================================================
+   WYNIK SKOKU — punkty jak w prawdziwych skokach: odległość + styl + wiatr
+   ============================================================================ */
+function showResultJump() {
+  const L = LV();
+  const distPts = 60 + (J.dist - L.k) * (L.hs > 170 ? 1.2 : L.hs >= 100 ? 1.8 : 2.4);
+  const windPts = -J.wind * 3.4;                 /* rekompensata: wiatr pod narty odejmuje punkty */
+  const total = Math.max(0, distPts + J.style + windPts);
+  const need = L.hs * L.need;
+  const ok = !J.crash && J.dist >= need;
+  let medal = 0;
+  if (ok) {
+    const r = J.dist / L.hs;
+    medal = r >= 0.99 ? 3 : (r >= 0.88 ? 2 : 1);
+  }
+  let rec = false;
+  if (ok) rec = PROG.setBest(cur, Math.round(J.dist * 10) / 10);
+  if (ok && cur < 9) PROG.unlock(cur + 1);
+  const mName = ['Brak medalu', 'Brąz', 'Srebro', 'Złoto'][medal];
+
+  G.result = { dist: J.dist, style: J.style, wind: J.wind, total: total, ok: ok, medal: medal };
+  H.msg(ok ? fmt1(J.dist) + ' m' : 'Skok niezaliczony',
+    ok ? mName + ' · ' + Math.round(total) + ' pkt' : 'Potrzeba ' + fmt1(need) + ' m', 0);
+
+  const lines = [];
+  lines.push('Odległość: <b>' + fmt1(J.dist) + ' m</b> (K ' + L.k + ' · HS ' + L.hs + ')');
+  lines.push('Styl: <b>' + fmt1(J.style) + '</b> / 20' + (J.crash ? ' — upadek' : (J.tele ? ' — telemark' : '')));
+  lines.push('Wiatr: <b>' + (J.wind >= 0 ? '+' : '') + fmt1(J.wind) + ' m/s</b> → ' +
+    (windPts >= 0 ? '+' : '') + fmt1(windPts) + ' pkt');
+  lines.push('Razem: <b>' + Math.round(total) + ' pkt</b> — ' + mName);
+  if (rec) lines.push('Nowy rekord skoczni!');
+  if (ok && cur < 9) lines.push('Odblokowano skocznię ' + (cur + 1) + '.');
+  if (!ok) lines.push('Wymagane min. ' + fmt1(need) + ' m — popraw wybicie i kąt lotu.');
+  showResult(lines.join('\n'), ok);
+  if (ok) PART.confetti(jumper.grp.position, 50, { speed: 8, life: 1.6 });
+}
+
+/* ============================================================================
+   BUDOWA POZIOMU
+   ============================================================================ */
+function buildLevel(n) {
+  const L = LEVELS[n - 1], W = WORLDS[L.w];
+  cur = n;
+  clearHill(); clearScenery(); hillParts.mats.length = 0;
+  HILL.set(n);
+  sky.apply(W.sky);
+  sky.fog.near = W.fogNear; sky.fog.far = W.fogFar;
+  sky.setSunDir(new THREE.Vector3().fromArray(W.sunDir));
+  LGT.apply(W.lights);
+  LGT.dir.fromArray(W.sunDir).normalize();
+  R.toneMappingExposure = W.exposure;
+  buildMountains(W); buildTerrain(W); buildForest(W); buildCrowd(W);
+  /* skocznia budowana PO terenie — wieża zna wtedy poziom gruntu */
+  buildLanding(); buildWalls(); buildInrun(); buildTakeoffAndOutrun();
+  /* śnieg w powietrzu: gęstość zależna od świata */
+  snowFall.mat.opacity = 0.35 + W.snow * 0.42;
+  snowFall.mat.size = 0.36 + W.snow * 0.30;
+  resetJump();
+}
+
+/* ============================================================================
+   MENU
+   ============================================================================ */
+function buildMenu() {
+  const wrap = $('worlds');
+  wrap.innerHTML = '';
+  for (let w = 0; w < WORLDS.length; w++) {
+    const d = document.createElement('div');
+    d.className = 'world';
+    const h = document.createElement('h2');
+    h.innerHTML = 'Świat ' + (w + 1) + ' · ' + WORLDS[w].name + '<i></i>';
+    d.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    for (let k = 0; k < 3; k++) {
+      const n = w * 3 + k + 1;
+      const L = LEVELS[n - 1];
+      const b = document.createElement('button');
+      b.className = 'lv';
+      const best = PROG.best(n);
+      const locked = !PROG.isUnlocked(n);
+      if (locked) b.classList.add('lock');
+      if (best != null && best >= L.hs * L.need) b.classList.add('done');
+      if (n === sel) b.classList.add('sel');
+      b.innerHTML = '<b>' + n + '. ' + L.name + '</b>' +
+        '<small>HS ' + L.hs + ' · K ' + L.k + ' m</small>' +
+        (best != null ? '<span class="bs">' + fmt1(best) + '</span>' : '');
+      b.setAttribute('aria-label', 'Skocznia ' + n + ': ' + L.name + (locked ? ' (zablokowana)' : ''));
+      b.addEventListener('click', () => {
+        if (locked) { H.msg('Skocznia zablokowana', 'Ukończ poprzednią skocznię', 1100); return; }
+        sel = n; buildMenu(); buildLevel(n); previewCam();
+      });
+      grid.appendChild(b);
+    }
+    d.appendChild(grid);
+    wrap.appendChild(d);
+  }
+}
+
+let ctls = { cam: ['auto','side','follow'].includes(PROG.cfg('camera')) ? PROG.cfg('camera') : 'auto' };
+function buildOpts() {
+  const row = $('ocam');
+  row.querySelectorAll('.opt,.lbl').forEach(e => e.remove());
+  [['auto', 'Auto'], ['side', 'Z boku'], ['follow', 'Za skoczkiem']].forEach(pair => {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.textContent = pair[1];
+    b.setAttribute('aria-pressed', ctls.cam === pair[0] ? 'true' : 'false');
+    b.addEventListener('click', () => { ctls.cam = pair[0]; PROG.cfg('camera', ctls.cam); buildOpts(); });
+    row.appendChild(b);
+  });
+  const ctlRow = $('octl');
+  ctlRow.querySelectorAll('.opt,.lbl').forEach(e => e.remove());
+  const s = document.createElement('span');
+  s.className = 'lbl';
+  s.style.cssText = 'font-size:12px;opacity:.7;font-weight:600';
+  s.textContent = TOUCH ? 'Przyciski ekranowe · A = akcja' : 'Klawiatura · pad USB/Bluetooth';
+  ctlRow.appendChild(s);
+}
+
+/* ---------- ekran wyniku / menu ---------- */
+function showResult(html, ok) {
+  $('menu').classList.add('summary');
+  $('bnext').hidden = !(ok && cur < 9);
+  buildMenu();
+  H.clear();
+  const r = $('res');
+  r.hidden = false; r.innerHTML = html;
+  $('bstart').hidden = true;
+  $('brest').hidden = false;
+  $('bmenu').hidden = false;
+  $('menu').hidden = false;
+  $('hud').style.display = 'none';
+  $('menu').querySelector('h1').innerHTML = ok
+    ? 'SKOK <em>ZALICZONY</em>' : 'SKOK <em>NIEZALICZONY</em>';
+  G.state = 'done';
+}
+function hideResult() {
+  $('menu').classList.remove('summary');
+  $('bnext').hidden = true;
+  $('res').hidden = true;
+  $('bstart').hidden = false;
+  $('brest').hidden = true;
+  $('bmenu').hidden = true;
+  $('brest').textContent = 'Jeszcze raz';
+  $('menu').querySelector('h1').innerHTML = 'HOPLA <em>SKOCZEK</em> 3D';
+}
+function previewCam() {
+  G.state = 'menu';
+  $('menu').hidden = false;
+  $('hud').style.display = 'none';
+  hideResult();
+  buildMenu();
+  H.clear();
+  showTakeoff(false); showAngle(false);
+  /* kadr prezentacyjny: skocznia z boku, góry w tle */
+  const lookZ = HILL.hs * 0.55;
+  CHASE.teleport(
+    new THREE.Vector3(HILL.hs * 0.85, HILL.hillY(lookZ) + HILL.hs * 0.42, lookZ - HILL.hs * 0.75),
+    new THREE.Vector3(0, HILL.hillY(lookZ) + 4, lookZ)
+  );
+}
+function startJump() {
+  $('menu').hidden = true;
+  $('hud').style.display = '';
+  $('res').hidden = true;
+  G.state = 'play';
+  FX.reset(); PART.clear();
+  G.t = 0;
+  resetJump();
+  J.phase = 'idle';
+  IN.reset();
+  H.clear();
+  H.msg('Gotów?', 'Naciśnij A, aby ruszyć z belki', 1500);
+  H.hint(TOUCH
+    ? 'A = start · trzymaj A (kucki) · A w złotym oknie = wybicie · ◀ ▶ = kąt · A przy lądowaniu = telemark'
+    : 'A / Spacja = start · trzymaj A (kucki) · A w złotym oknie = wybicie · ← → = kąt · A przy lądowaniu = telemark · Esc pauza · R restart');
+}
+function togglePause() {
+  if (G.state === 'play') {
+    G.state = 'pause';
+    $('menu').hidden = false;
+    hideResult();
+    $('menu').classList.add('summary');
+    $('bstart').hidden = true;
+    $('brest').hidden = false;
+    $('bmenu').hidden = false;
+    $('res').hidden = false;
+    $('res').innerHTML = 'Pauza\nOdległość: <b>' + fmt1(J.dist) + ' m</b> · Styl: <b>' +
+      fmt1(J.style) + '</b>\nSkocznia: <b>' + LV().name + '</b>';
+    $('brest').textContent = 'Wróć do skoku';
+    $('menu').querySelector('h1').innerHTML = 'PAUZA';
+    $('hud').style.display = 'none';
+    showTakeoff(false); showAngle(false);
+  } else if (G.state === 'pause') {
+    G.state = 'play';
+    $('menu').hidden = true;
+    $('hud').style.display = '';
+    $('brest').textContent = 'Jeszcze raz';
+    IN.reset();
+    showAngle(J.phase === 'flight');
+    showTakeoff(J.phase === 'inrun' && J.takeWin > 0);
+  }
+}
+
+$('bstart').addEventListener('click', startJump);
+$('brest').addEventListener('click', () => {
+  if (G.state === 'pause') { togglePause(); return; }
+  startJump();
+});
+$('bmenu').addEventListener('click', previewCam);
+$('pause').addEventListener('click', togglePause);
+$('bnext').addEventListener('click', () => {
+  if (cur < 9 && PROG.isUnlocked(cur + 1)) { sel = cur + 1; buildLevel(sel); startJump(); }
+});
+addEventListener('blur', () => { if (G.state === 'play') togglePause(); });
+addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'play') togglePause(); });
+function menuInput() {
+  if (IN.tap('pause')) { togglePause(); return; }
+  if (G.state === 'pause') { if (IN.tap('action')) togglePause(); return; }
+  if (G.state === 'play') {
+    if (IN.tap('restart')) { startJump(); return; }
+    if (IN.tap('camera')) {
+      const modes = ['auto','side','follow'];
+      ctls.cam = modes[(modes.indexOf(ctls.cam) + 1) % modes.length];
+      PROG.cfg('camera', ctls.cam); buildOpts();
+    }
+    return;
+  }
+  if (IN.tap('action')) {
+    if (G.state === 'done') {
+      if (!$('bnext').hidden) { $('bnext').click(); return; }
+    }
+    startJump(); return;
+  }
+  if (G.state !== 'menu') return;
+  let n = sel;
+  if (IN.tap('right') && n % 3 !== 0) n++;
+  if (IN.tap('left') && n % 3 !== 1) n--;
+  if (IN.tap('down') && n <= 6) n += 3;
+  if (IN.tap('up') && n > 3) n -= 3;
+  n = clamp(n, 1, PROG.data.unlocked);
+  if (n !== sel) { sel = n; buildLevel(sel); previewCam(); }
+}
+
+
+/* ============================================================================
+   KAMERA — trzy warianty: auto (przełącza się z fazą), z boku, za skoczkiem
+   ============================================================================ */
+const camTarget = new THREE.Vector3(), camPos = new THREE.Vector3();
+let camSmoothZ = 0;
+function updateCam(dt) {
+  const jp = jumper.grp.position;
+  let mode = ctls.cam;
+  if (mode === 'auto') {
+    if (J.phase === 'idle' || J.phase === 'inrun') mode = 'follow';
+    else if (J.phase === 'flight') mode = 'side';
+    else mode = 'side';
+  }
+  const L = LV();
+  if (mode === 'follow') {
+    camSmoothZ = damp(camSmoothZ, jp.z, 9, dt);
+    camPos.set(jp.x + 3.8, jp.y + 3.4, jp.z - 9 - J.v * 0.06);
+    camTarget.set(jp.x, jp.y + 0.6, jp.z + 13);
+    CHASE.place(camPos, camTarget, dt);
+    CHASE.setFov(56 + clamp(J.v * 0.45, 0, 10), dt);
+  } else {
+    /* kamera z boku, prowadzi skoczka jak w transmisji TV */
+    const dzz = clamp(jp.z, 0, HILL.endD);
+    const side = 26 + L.hs * 0.16;
+    if (J.phase === 'flight' || J.phase === 'out') {
+      /* w locie kamera cofa się i patrzy z boku, żeby złapać cały łuk lotu */
+      camPos.set(side, HILL.hillY(dzz) + 16 + L.hs * 0.12, dzz - 12);
+      camTarget.set(jp.x, jp.y + 1.0, jp.z + 6);
+    } else {
+      camPos.set(side * 0.9, jp.y + 8.0, jp.z - L.hs * 0.20);
+      camTarget.set(jp.x, jp.y + 0.7, jp.z + 6);
+    }
+    CHASE.place(camPos, camTarget, dt);
+    CHASE.setFov(58 + clamp(J.v * 0.45, 0, 10), dt);
+  }
+}
+
+/* ============================================================================
+   PĘTLA GRY
+   ============================================================================ */
+let last = performance.now(), menuT = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const rdt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dt = FX.update(rdt);
+  menuT += rdt;
+  IN.poll();
+  menuInput();
+  document.body.classList.toggle('is-menu', G.state !== 'play');
+  $('pause').hidden = G.state !== 'play';
+  $('pad').hidden = !TOUCH || G.state !== 'play';
+
+  if (G.state === 'play') {
+    G.t += dt;
+    if (dt > 0) {
+      if (J.phase === 'idle') {
+        if (IN.tap('action')) {
+          J.phase = 'inrun';
+          H.msg('', '', 0);
+          H3D.poseHumanoid(jumper, 'ski', 0);
+        }
+      } else if (J.phase === 'inrun') tickInrun(dt);
+      else if (J.phase === 'flight') tickFlight(dt);
+      else if (J.phase === 'out') tickOut(dt);
+    }
+    updateCam(rdt);
+    LGT.follow(jumper.grp.position.x, jumper.grp.position.y, jumper.grp.position.z);
+    updateHUD(false);
+  } else if (G.state === 'menu') {
+    /* wolny obrót kamery wokół skoczni — prezentacja bryły góry */
+    const lookZ = HILL.hs * 0.55;
+    const r = HILL.hs * 1.15;
+    const a = Math.sin(menuT * 0.14) * 0.55 + 0.6;
+    CAM.position.set(Math.cos(a) * r, HILL.hillY(lookZ) + HILL.hs * 0.5, lookZ - Math.sin(a) * r * 0.75);
+    CAM.lookAt(0, HILL.hillY(lookZ) + 5, lookZ);
+    CHASE.setFov(52, rdt);
+    /* skoczek w gotowości na belce */
+    if (J.phase === 'idle') H3D.poseHumanoid(jumper, 'idle', menuT);
+  } else if (G.state === 'done' || G.state === 'pause') {
+    const jp = jumper.grp.position;
+    camPos.set(jp.x + 8, jp.y + 4, jp.z - 7);
+    camTarget.set(jp.x, jp.y + 1, jp.z);
+    CHASE.place(camPos, camTarget, rdt);
+  }
+
+  /* śnieg w powietrzu podąża za kamerą/skoczkiem; cząstki aktualizują się zawsze */
+  PART.update(rdt, jumper.grp.position);
+  H.tick(rdt);
+
+  sky.mesh.position.copy(CAM.position);
+  FX.apply(CAM);
+  POST.render(rdt);
+  if (POST.mode !== 'composer') R.render(S, CAM);
+  FX.restore(CAM);
+}
+
+/* ============================================================================
+   START
+   ============================================================================ */
+addEventListener('resize', () => {
+  R.setSize(innerWidth, innerHeight, false);
+  CAM.aspect = innerWidth / innerHeight;
+  CAM.updateProjectionMatrix();
+  if (POST.setSize) POST.setSize(innerWidth, innerHeight);
+});
+buildMenu();
+buildOpts();
+buildLevel(sel);
+previewCam();
+H.hint(TOUCH ? 'Wybierz skocznię i dotknij Start' : 'Wybierz skocznię (klik lub strzałki) i naciśnij Enter');
+requestAnimationFrame(frame);
+
+/* TODO-KIMI: seria 3 skoków z ocenami sędziów, tryb "na czas", drabinka
+   turniejowa, więcej skoczni, zapis rekordu życiowego, widownia reagująca
+   na odległość. */
+/* TODO-CODEX: dopracować śnieżne bandy (siatka), tekstury zeskoku, opad
+   śniegu zależny od pogody, dźwięk wiatru/trybuny/nart, powtórka TV z dwóch
+   kamer, dopieszczenie wieży najazdowej. */
+</script>
+</body></html>
