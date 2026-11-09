@@ -447,9 +447,12 @@ if(!room||SOLO){
   let AC=null,mus=null;
   function audioOn(){try{AC=AC||new AudioContext();AC.resume();$('snd').style.visibility='hidden'}catch(e){}}
   function beep(f,d,t,vol){if(!AC||AC.state!=='running')return;d=d||.12;const o=AC.createOscillator(),g=AC.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(vol||.22,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+d+.02)}
-  const SONGS=[[0,4,7,12,7,4,9,7, 5,9,12,9,7,4,2,4],[0,7,12,7,5,9,12,9, 4,7,11,7,2,7,11,14],[12,11,9,7,9,7,4,2, 0,2,4,7,9,12,9,7]];
-  function musicStart(n){musicStop();let i=0;const song=SONGS[n%SONGS.length],base=262*(n%2?1.12:1);
-    mus=setInterval(()=>{if(!AC||AC.state!=='running')return;const s=song[i%song.length];beep(base*2**(s/12),.22,'triangle',.05);if(i%4===0)beep(base/2*2**((song[(i>>2)*4%song.length])/12),.4,'sine',.07);i++},210)}
+  /* ambient: wolne pady (sinus + filtr), pentatonika, bez rytmu */
+  const CH=[[0,7,16],[-3,4,12],[-5,2,9],[-7,0,7]];
+  function pad(f,d,v){if(!AC)return;const t=AC.currentTime,o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),fl=AC.createBiquadFilter();fl.type='lowpass';fl.frequency.value=900;o.type='sine';o2.type='triangle';o.frequency.value=f;o2.frequency.value=f*1.004;g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(v,t+d*.4);g.gain.linearRampToValueAtTime(0.0001,t+d);o.connect(fl);o2.connect(fl);fl.connect(g).connect(AC.destination);o.start(t);o2.start(t);o.stop(t+d+.1);o2.stop(t+d+.1)}
+  function musicStart(n){musicStop();let i=0;const base=196*(n%2?1.12:1);
+    const step=()=>{if(!AC||AC.state!=='running')return;const c=CH[i%CH.length];c.forEach((s,k)=>pad(base*2**(s/12),7,.012-k*.002));if(i%2===1)pad(base*4*2**(c[2]/12),4,.006);i++};
+    step();mus=setInterval(step,5000)}
   function musicStop(){clearInterval(mus);mus=null}
   /* ---------- rysowanie: zestaw kreskówkowy ---------- */
   let OUT='#14123a';const SKIN='#ffd2a8',TAU=6.2832;
