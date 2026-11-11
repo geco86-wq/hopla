@@ -2142,7 +2142,7 @@ if(!room||SOLO){
     init(s){Object.assign(s,{cur:null,opts:[],ph:'wait',t0:0,wr:[],last:[],turn:0,sel:0,dw:[],tries:0,wasL:0,wasR:0,wasA:0,wasU:0,wasD:0,fb:0,err:''});window.__heard=null},
     step(s,dt,t,on){
       const d=Math.min(.05,dt/1000),k=padBits(),tl=LANGS[cur.o.tl|0],ui=LANG;
-      skyG('#2b2f6b','#3d8fb0',H);x.fillStyle='rgba(255,255,255,.06)';for(let i=0;i<7;i++){const r=H*(.15+i*.1);x.beginPath();x.arc(W*.5,H*1.1,r*2.2,0,TAU);x.fill()}
+      eduBg();
       if(!VOC){txt('Ładuję słówka…',W/2,H*.5,H*.07,'#fff');return}
       if(s.err){txt(s.err,W/2,H*.5,H*.06,'#ffd23f');return}
       if(!s.cur&&on)wAsk(s,kind);
@@ -2187,7 +2187,11 @@ if(!room||SOLO){
   GAMES.push(wGame('pick'));GAMES.push(wGame('pick'));GAMES.push(wGame('say'));
   /* ===== EDU 2: Memory (słówka), Złap literę, Przeliteruj, Matma ===== */
   const EDUO=[{n:'Język nauki',v:LANGS.map(l=>l[1]),k:'tl'},{n:'Kategoria',v:WCATN,k:'cat'},{n:'Wymowa (lektor)',v:['Włączona','Wyłączona'],k:'snd'}];
-  const eduBg=()=>{skyG('#2b2f6b','#3d8fb0',H);x.fillStyle='rgba(255,255,255,.06)';for(let i=0;i<7;i++){const r=H*(.15+i*.1);x.beginPath();x.arc(W*.5,H*1.1,r*2.2,0,TAU);x.fill()}};
+  const eduBg=()=>{const T=performance.now()/1000,g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1a1748');g.addColorStop(.55,'#3b2f7d');g.addColorStop(.86,'#b0568f');g.addColorStop(1,'#ffb37a');x.fillStyle=g;x.fillRect(0,0,W,H);
+    const gl=x.createRadialGradient(W*.5,H*1.02,0,W*.5,H*1.02,H*.9);gl.addColorStop(0,'rgba(255,214,150,.38)');gl.addColorStop(1,'rgba(255,214,150,0)');x.fillStyle=gl;x.fillRect(0,0,W,H);
+    for(let i=0;i<(LOW?18:46);i++){const a=.25+.55*Math.abs(Math.sin(T*.8+i*2.3));x.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';const r=1+hsh(i+5)*1.8;x.fillRect(hsh(i)*W,hsh(i+77)*H*.62,r,r)}
+    if(!LOW){x.font='700 '+Math.round(H*.07)+'px Saira,system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';const SY='ABC123?+★';for(let i=0;i<9;i++){const q=(T*.018*(1+hsh(i)*.8)+hsh(i+3))%1;x.fillStyle='rgba(255,255,255,'+(.07*Math.sin(q*Math.PI)).toFixed(3)+')';x.save();x.translate(W*(.06+i*.11)+Math.sin(T*.3+i)*W*.01,H*(1-q*1.05));x.rotate(Math.sin(T*.2+i)*.25);x.fillText(SY[i],0,0);x.restore()}}
+    for(let l=0;l<2;l++){x.fillStyle=l?'#241c58':'#2f2470';x.beginPath();x.moveTo(0,H);for(let i=0;i<=20;i++)x.lineTo(i*W/20,H*(l?.93:.885)-Math.sin(i*.9+l*2)*H*.022-Math.sin(i*.37+l)*H*.03);x.lineTo(W,H);x.fill()}};
   const eduEdge=(s,k)=>{const e={L:!!(k&1)&&!s.eL,R:!!(k&2)&&!s.eR,U:!!(k&4)&&!s.eU,D:!!(k&8)&&!s.eD,A:!!(k&16)&&!s.eA,B:!!(k&32)&&!s.eB};s.eL=!!(k&1);s.eR=!!(k&2);s.eU=!!(k&4);s.eD=!!(k&8);s.eA=!!(k&16);s.eB=!!(k&32);return e};
   const eduWords=s=>{const pool=wPool(s);return pool.flatMap(c=>c.words.map(wd=>({wd,c})))};
   /* 31. MEMORY */
