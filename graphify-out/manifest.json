@@ -1,0 +1,128 @@
+{
+  "hopla3d.js": {
+    "mtime": 1794203501.1726568,
+    "seen": 1794410850.74982,
+    "ast_hash": "ee41581e6023c5df7af66800d3c7cd00",
+    "semantic_hash": ""
+  },
+  "i18n/de.json": {
+    "mtime": 1794873900.5478926,
+    "seen": 1794873901.659544,
+    "ast_hash": "54e0d4dc6295929cf6726003da21667b",
+    "semantic_hash": ""
+  },
+  "i18n/en.json": {
+    "mtime": 1794873900.5481017,
+    "seen": 1794873901.6595461,
+    "ast_hash": "981d49e257def2279ddcb7d9335cc52e",
+    "semantic_hash": ""
+  },
+  "i18n/es.json": {
+    "mtime": 1794873900.5482771,
+    "seen": 1794873901.6595469,
+    "ast_hash": "cfa1b7aa3ca38b161357d30d2593ac74",
+    "semantic_hash": ""
+  },
+  "i18n/fr.json": {
+    "mtime": 1794873900.548458,
+    "seen": 1794873901.6595478,
+    "ast_hash": "cb35f83e4a0cf43a896f6ca6026522c0",
+    "semantic_hash": ""
+  },
+  "i18n/it.json": {
+    "mtime": 1794873900.548627,
+    "seen": 1794873901.659549,
+    "ast_hash": "f44ac025331a2eb7a73d405b85972e7d",
+    "semantic_hash": ""
+  },
+  "i18n/ja.json": {
+    "mtime": 1794873900.5488038,
+    "seen": 1794873901.65955,
+    "ast_hash": "a72e71a7bfe3bdeccb359d21bfcff599",
+    "semantic_hash": ""
+  },
+  "i18n/nl.json": {
+    "mtime": 1794873900.5489664,
+    "seen": 1794873901.659551,
+    "ast_hash": "0ea9a7e929f6b7ca57bbdbb2611d202b",
+    "semantic_hash": ""
+  },
+  "i18n/pt.json": {
+    "mtime": 1794873900.5491314,
+    "seen": 1794873901.659552,
+    "ast_hash": "f4c8dd844931097aab789b11e9300df9",
+    "semantic_hash": ""
+  },
+  "i18n/tr.json": {
+    "mtime": 1794873900.5492923,
+    "seen": 1794873901.659553,
+    "ast_hash": "0f4118a883f0e6c2fb180bfe3f58c2ad",
+    "semantic_hash": ""
+  },
+  "manifest.json": {
+    "mtime": 1793061014.0281541,
+    "seen": 1794410850.749836,
+    "ast_hash": "4b012cb61edecb1e897fff429fd88d53",
+    "semantic_hash": ""
+  },
+  "sw.js": {
+    "mtime": 1794903837.3522644,
+    "seen": 1794903837.849022,
+    "ast_hash": "1dba7e3f3a8ad1820eed30bcc0365a34",
+    "semantic_hash": ""
+  },
+  "vocab.json": {
+    "mtime": 1793061014.028843,
+    "seen": 1794410850.749838,
+    "ast_hash": "6191ddecc9c46f4159e0afa56b836b0e",
+    "semantic_hash": ""
+  },
+  "dzungla.html": {
+    "mtime": 1793061014.0243812,
+    "seen": 1794410850.749839,
+    "ast_hash": "80a3ef880de882c757ad1d7b416db4a8",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1794875918.4420204,
+    "seen": 1794903837.849026,
+    "ast_hash": "51f9c3c8363f14ead7855f84c1f5b387",
+    "semantic_hash": ""
+  },
+  "kart3d.html": {
+    "mtime": 1794197479.5925431,
+    "seen": 1794410850.749841,
+    "ast_hash": "52c784039adc34bfd57a6f7227f5d56c",
+    "semantic_hash": ""
+  },
+  "kosmos3d.html": {
+    "mtime": 1794203652.7914524,
+    "seen": 1794410850.749842,
+    "ast_hash": "761406a13e669490d0a8f0670e4b818d",
+    "semantic_hash": ""
+  },
+  "odcinek.html": {
+    "mtime": 1793061014.02854,
+    "seen": 1794410850.749843,
+    "ast_hash": "eeeb395cd1f2b47f81c2bc82ffffecef",
+    "semantic_hash": ""
+  },
+  "olimpiada3d.html": {
+    "mtime": 1794197479.593321,
+    "seen": 1794410850.749844,
+    "ast_hash": "6f5db26970a21b1aefd38c491ab40191",
+    "semantic_hash": ""
+  },
+  "skoczek3d.html": {
+    "mtime": 1794873900.5509598,
+    "seen": 1794873901.6595662,
+    "ast_hash": "f4eaa501c85b16faeb27d648e3576a86",
+    "semantic_hash": ""
+  },
+  "icon.png": {
+    "mtime": 1793061014.026797,
+    "seen": 1794410850.749846,
+    "ast_hash": "1a4c930fea03258e402ac2ee8cecd850",
+    "semantic_hash": ""
+  }
+}
