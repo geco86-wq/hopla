@@ -908,39 +908,182 @@ if(!room||SOLO){
     x.restore();
     plane(W/2,H*.72,H*.22,s.bank,t);if(Math.random()<.4)puff(W/2+(Math.random()-.5)*H*.3,H*.75,H*.015);
     if(on&&cur.el<7000)txt('Rozłóż ręce jak skrzydła! Pochyl = skręt, w górę = wznoś',W/2,H*.08,H*.04,'#fff');if(on&&pose&&G.hands.length<2)txt('Rozłóż obie ręce!',W/2,H*.2,H*.05,'#ffd23f');miniMe(t,{hat:'pilot'})}});
-  // 10. SPACER Z PUPILAMI
-  GAMES.push({dur:80,goals:[15,30,50],init(s){Object.assign(s,{q:0,v:0,ph:0,it:[],next:10,dog:{q:4,st:'walk',tq:0,ph:0,happy:0},cat:{q:-3,ph:0,pet:0},ball:null,hop:0,splash:0})},step(s,dt,t,on){
-    const k=H*.022,PX=W*.35,gy=H*.85;s.v+=((on?G.walk*8:0)-s.v)*Math.min(1,dt/250);const dq=s.v*dt/1000;s.q+=dq;s.ph+=dq*1.8;
-    skyG('#8fd8ff','#f0fbff',H);sunF(W*.15,H*.13,H*.06,t);for(let i=0;i<4;i++){const w=H*.15,sp=W+w*2;cloud(((i*W*.31-s.q*k*.08+t*.01)%sp+sp)%sp-w,H*(.08+i%2*.07),w)}
-    hill(H*.6,'#a7e889',.004,H*.05,-s.q*k*.0008);const sp=H*.36,off=(s.q*k*.5)%sp;for(let i=-1;i<W/sp+2;i++){const id=Math.floor(s.q*k*.5/sp)+i;tree(i*sp-off,H*.7,H*.3*(.8+hsh(id)*.4),Math.floor(hsh(id+4)*5)*3%5)}
-    x.fillStyle='#8fd16a';x.fillRect(0,H*.7,W,H);x.fillStyle='#e8d2a6';x.fillRect(0,gy-H*.03,W,H*.07);
-    const fs=H*.12,fo=(s.q*k)%fs;for(let i=-1;i<W/fs+1;i++)box(i*fs-fo,H*.62,H*.025,H*.12,4,'#fff');box(0,H*.65,W,H*.02,0,'#fff',false);
-    if(on&&s.q>s.next){s.next+=8+Math.random()*5;const r=Math.random();s.it.push({q:s.q+W/k,tp:r<.3?'ball':r<.55?'puddle':r<.8?'tree':'catspot',done:0})}
-    for(const o of s.it){const sx=PX+(o.q-s.q)*k;if(sx<-200||sx>W+200)continue;const d=o.q-s.q;
-      if(o.tp==='puddle')ell(sx,gy+H*.01,H*.12,H*.025,0,'#5fb8ff',true);
-      if(o.tp==='ball'&&!o.done)oc(sx,gy-H*.02,H*.025,'#9be36b');
-      if(o.tp==='tree'){limb([{x:sx,y:gy-H*.03},{x:sx,y:gy-H*.35}],'#8a5a2b',H*.05);oc(sx,gy-H*.45,H*.14,'#4cc463');if(!o.done)for(let i=0;i<3;i++)oc(sx-H*.07+i*H*.07,gy-H*.42+Math.sin(i)*H*.04,H*.02,'#ff4d5e')}
-      if(o.tp==='catspot'&&!o.done){box(sx-H*.08,gy-H*.18,H*.16,H*.15,8,'#c98b4a');cat(sx,gy-H*.18,H*.13,0,{run:0,t,col:'#9aa0b5'})}
-      if(!o.done&&d<14&&d>-3)txt(o.tp==='ball'?'🤾 Rzuć piłkę pieskowi!':o.tp==='puddle'?'⬆ Przeskocz kałużę!':o.tp==='tree'?'✋ Sięgnij po jabłko!':'⬇ Kucnij i pogłaszcz kotka',sx,H*.2,H*.04,'#fff');
-      if(!on||o.done)continue;
-      if(o.tp==='ball'&&Math.abs(d)<4&&G.thr){o.done=1;s.ball={q:s.q,tq:s.q+18,k:0};s.dog.st='fetch';beep(500,.15,'triangle')}
-      if(o.tp==='puddle'&&Math.abs(d)<1.6){if(G.air){o.done=1;s.hop=500;add(1,PX,H*.45)}else if(d<-1){o.done=2;s.splash=600;miss('Plusk!');for(let i=0;i<10;i++)parts.push({x:PX,y:gy,vx:(Math.random()-.5)*10,vy:-Math.random()*8,l:1,col:'#5fb8ff',g:.4})}}
-      if(o.tp==='tree'&&Math.abs(d)<4&&G.handUp){o.done=1;add(2,sx,H*.4);burst(sx,gy-H*.45,'#ff4d5e',12);s.dog.happy=1500}
-      if(o.tp==='catspot'&&Math.abs(d)<3.5&&G.crouch){o.done=1;add(3,sx,H*.45);hearts(sx,gy-H*.25,8);say('Mrrr… kotek mruczy',1200)}
-      if(d<-4&&!o.done){o.done=2;cur.combo=0}}
-    s.it=s.it.filter(o=>o.q-s.q>-W/k);
-    const D=s.dog;D.happy=Math.max(0,D.happy-dt);
-    if(s.ball){const b=s.ball;b.k+=dt/900;if(b.k<1){const bq=b.q+(b.tq-b.q)*b.k;oc(PX+(bq-s.q)*k,gy-H*.03-Math.sin(b.k*Math.PI)*H*.35,H*.025,'#9be36b')}
-      if(D.st==='fetch'){D.q+=(b.tq-D.q)*Math.min(1,dt/500);D.ph+=dt/60;if(b.k>=1&&Math.abs(D.q-b.tq)<1)D.st='back'}
-      else if(D.st==='back'){D.q+=((s.q+3)-D.q)*Math.min(1,dt/600);D.ph+=dt/60;if(Math.abs(D.q-(s.q+3))<1){D.st='walk';s.ball=null;add(3,PX+H*.2,H*.45);hearts(PX+3*k,gy-H*.2,8);D.happy=2000;say('Hau hau! Piesek przyniósł piłkę',1300)}}}
-    else{D.q+=((s.q+4+Math.sin(t/1500)*1.5)-D.q)*Math.min(1,dt/400);D.ph+=dq*2.4+(D.happy?dt/150:0)}
-    const C=s.cat;C.q+=((s.q-3.5)-C.q)*Math.min(1,dt/700);C.ph+=dq*2.6;
-    cat(PX+(C.q-s.q)*k,gy+H*.02,H*.14,C.ph,{t,run:Math.min(1,s.v/3)});
-    s.hop=Math.max(0,s.hop-dt);s.splash=Math.max(0,s.splash-dt);
-    kid(PX,gy+H*.03-Math.sin(s.hop/500*Math.PI)*H*.15,H*.38,s.ph,{swing:Math.min(1,s.v/4),t,open:mouth>0||s.splash>0,arms:G.handUp?'up':0,shirt:'#3ccf7a',stripe:'#fff'});
-    limb([{x:PX+H*.06,y:gy-H*.16},{x:PX+(D.q-s.q)*k+H*.06,y:gy-H*.11}],'#ff3d6e',3);
-    dog(PX+(D.q-s.q)*k,gy+H*.03,H*.2,D.ph,{t,run:D.st!=='walk'?1:Math.min(1,s.v/3)+(D.happy?.5:0),dir:D.st==='back'?-1:1,happy:D.happy>0||D.st!=='walk',ball:D.st==='back'});
-    if(on&&s.v<.5&&pose)txt('Maszeruj w miejscu, piesek chce na spacer! 🐶',W/2,H*.1,H*.045,'#ffd23f');miniMe(t,{shirt:'#3ccf7a',stripe:'#fff'})}});
+  // 10. SPACER Z PUPILAMI — przebudowa oprawy: maskotka, świat z bajki, nagrody
+  // TODO-KIMI: dodać kolejne typy zbieractwa (motylek, balonik) i pory dnia per poziom
+  // TODO-CODEX: dopieścić sprite pieska/kotka (uszy, sierść), cienie i tło wieczorowe dla światów 2-3
+
+  /* ===== pomocnicze gry „Spacer” (prefiks spacer_) ===== */
+  const SPACER_PENT=[523.25,587.33,659.25,783.99,880];
+  const SPACER_ACC='#ff5fa2';
+  // elastyczne wyjście 0→1 z przestrzeleniem (elastic out)
+  function spacer_elastic(e){return e<=0?0:e>=1?1:Math.pow(2,-10*e)*Math.sin((e*10-.75)*(TAU/3))+1}
+  // statyczne niebo (gradient + poświata słońca) — jedyne gradienty w tej grze
+  function spacer_sky(){return pcCache('spSpacerSky:'+LOW+':'+AR+':'+HI,W,H,(g,w,h)=>{
+    g.fillStyle='#cdeeff';g.fillRect(0,0,w,h);
+    if(!AR){const sky=g.createLinearGradient(0,0,0,h*.7);sky.addColorStop(0,'#8ed1ff');sky.addColorStop(.5,'#bfe9ff');sky.addColorStop(1,'#ecfbff');g.fillStyle=sky;g.fillRect(0,0,w,h*.7);
+      const gl=g.createRadialGradient(w*.16,h*.15,0,w*.16,h*.15,h*.4);gl.addColorStop(0,'rgba(255,247,201,.95)');gl.addColorStop(.22,'rgba(255,227,152,.4)');gl.addColorStop(1,'rgba(255,214,120,0)');g.fillStyle=gl;g.fillRect(0,0,w,h)}
+    if(AR){g.fillStyle='#ffe27a';g.beginPath();g.arc(w*.16,h*.15,h*.075,0,TAU);g.fill()}
+  })}
+  // miękki cień pod obiektem
+  function spacer_shadow(a,b,rx,k){x.fillStyle='rgba(40,96,50,'+(k==null?.18:k)+')';x.beginPath();x.ellipse(a,b,rx,Math.max(3,rx*.18),0,0,TAU);x.fill()}
+  // iskierka (4-ramienna gwiazdka)
+  function spacer_spark(cx,cy,r,col,rot){x.save();x.translate(cx,cy);x.rotate(rot||0);x.fillStyle=col;x.beginPath();for(let i=0;i<4;i++){const a=i*Math.PI/2;x.lineTo(Math.cos(a)*r,Math.sin(a)*r);x.lineTo(Math.cos(a+.785)*r*.32,Math.sin(a+.785)*r*.32)}x.closePath();x.fill();x.restore()}
+  // buźka przedmiotu: oczy (mrugają) + uśmiech
+  function spacer_face(cx,cy,r,t,ph){x.fillStyle='#fff';circle(cx-r*.5,cy-r*.16,r*.3);circle(cx+r*.5,cy-r*.16,r*.3);x.fillStyle=OUT;if(((t+ph*997)%3400)>150){circle(cx-r*.46,cy-r*.13,r*.16);circle(cx+r*.54,cy-r*.13,r*.16)}x.strokeStyle=OUT;x.lineWidth=Math.max(2,r*.11);x.lineCap='round';x.beginPath();x.arc(cx,cy+r*.14,r*.5,.2*Math.PI,.8*Math.PI);x.stroke()}
+  // pierścień „zaproszenia” (pomijany w LOW/AR)
+  function spacer_ring(cx,cy,r,t,ph,col){if(LOW)return;x.save();if(!AR)x.globalCompositeOperation='lighter';x.globalAlpha=.2+.18*Math.sin(t/300+ph);x.strokeStyle=col;x.lineWidth=Math.max(2,H*.006);x.beginPath();x.arc(cx,cy,r,0,TAU);x.stroke();x.restore();x.globalAlpha=1}
+  // akord w górę pentatoniki — im wyższe combo, tym weselszy
+  function spacer_chime(combo){const i=Math.min(2,Math.max(0,(combo|0)-1));pgChord([SPACER_PENT[i],SPACER_PENT[i+1],SPACER_PENT[i+2]],.32,'triangle',.07,.055)}
+  // wesoły okrzyk przy gwiazdce
+  function spacer_cheer(){pgS(784,1319,.3,'triangle',.09);pgS(1175,1760,.24,'triangle',.07,.1)}
+  // miękkie „ups” zamiast kary (combo zerowane bez zmian → wynik bez zmian)
+  function spacer_ups(s,msg){cur.combo=0;s.ups=1000;if(s.dog)s.dog.headRot=.55;shake=Math.max(shake,4);if(msg)say(msg,900);beep(300,.2,'triangle',.09)}
+  // nagroda za przedmiot: pierścień + gwiazdki + akord
+  function spacer_win(s,px,py,col,n){const c=LOW?Math.max(3,(n||8)>>1):(n||8);pgBoom(s,px,py,col,c,H*.45,H*.06);pgBoom(s,px,py,'#fff7c4',Math.max(2,c>>1),H*.3,0);spacer_chime(cur.combo);HS=Math.max(HS,50);scP=1}
+  // piesek-maskotka: duże oczy, mimika, squash&stretch, merdanie ogona, mruganie
+  function spacer_dog(a,b,s,ph,o){o=o||{};const t=o.t||0,dir=o.dir==null?1:o.dir,run=o.run==null?1:o.run,mood=o.mood||'idle';
+    const body='#e5ac70',dark='#b57c3f',belly='#fae1bd',L=s*.32;
+    x.save();x.translate(a,b);x.scale(dir,1);
+    const sq=o.squash||0;x.scale(1+sq*.6,1-sq*.6);
+    const wag=Math.sin(t/(mood==='happy'?95:175))+(mood==='happy'?.8:0);
+    limb([{x:-s*.34,y:-s*.5},{x:-s*.34-Math.cos(.95+wag*.45)*s*.3,y:-s*.5-Math.sin(.95+wag*.45)*s*.36}],body,s*.07);
+    for(const p of[[-s*.24,ph+.7],[s*.22,ph]])limb([{x:p[0],y:-s*.34},{x:p[0]+Math.sin(p[1])*L*.5*run,y:-s*.02}],dark,s*.085);
+    ell(0,-s*.52,s*.45,s*.25,0,body,true);ell(-s*.03,-s*.44,s*.25,s*.11,0,belly,false);
+    for(const p of[[-s*.18,ph+Math.PI+.7],[s*.3,ph+Math.PI]])limb([{x:p[0],y:-s*.34},{x:p[0]+Math.sin(p[1])*L*.5*run,y:-s*.02}],body,s*.085);
+    ell(s*.26,-s*.92,s*.13,s*.05,-.5,SPACER_ACC,true);oc(s*.3,-s*.84,s*.032,'#ffe27a');
+    const hx=s*.42,hy=-s*.82-Math.abs(Math.sin(ph))*s*.03*run;
+    x.save();x.translate(hx,hy);x.rotate(o.headRot||0);
+    ell(-s*.17,s*.03,s*.09,s*.21,-.55,dark,true);ell(s*.17,s*.03,s*.09,s*.21,.55,dark,true);
+    oc(0,0,s*.29,body);ell(s*.17,s*.11,s*.17,s*.13,0,belly,true);
+    x.fillStyle=OUT;x.beginPath();x.ellipse(s*.35,-s*.02,s*.07,s*.055,0,0,TAU);x.fill();
+    if(mood==='happy'){x.strokeStyle=OUT;x.lineWidth=Math.max(2,s*.035);x.lineCap='round';for(const e of[-1,1]){x.beginPath();x.arc(e*s*.1,-s*.07,s*.065,Math.PI*1.12,Math.PI*1.88);x.stroke()}
+      ell(s*.2,s*.2,s*.065,s*.11,0,'#ff6b8b',true);x.fillStyle='rgba(255,120,150,.4)';circle(-s*.15,s*.14,s*.06);circle(s*.17,s*.14,s*.06)}
+    else if(mood==='sad'){eyes(-s*.1,-s*.07,s*.055,t,s*.11,.3);eyes(s*.1,-s*.07,s*.055,t+40,s*.11,-.3);x.strokeStyle=OUT;x.lineWidth=Math.max(2,s*.03);x.lineCap='round';x.beginPath();x.arc(s*.2,s*.22,s*.08,Math.PI*1.12,Math.PI*1.88);x.stroke()}
+    else{eyes(s*.02,-s*.05,s*.06,t,s*.12,.4);x.fillStyle='#ff6b8b';circle(s*.17,s*.15,s*.035)}
+    x.restore();x.restore()}
+  // maskotka-dziecko z oddechem (squash&stretch w pionie)
+  function spacer_kid(a,b,s,ph,o){o=o||{};const br=1+(o.breathe||0);x.save();x.translate(a,b);x.scale(1,br);x.translate(-a,-b);kid(a,b,s,ph,o);x.restore()}
+  // piłka z buźką
+  function spacer_ball(cx,cy,r,t,sc){x.save();x.translate(cx,cy);x.scale(sc,sc);
+    x.fillStyle=OUT;circle(0,0,r+Math.max(2,r*.09));x.fillStyle='#ffd23f';circle(0,0,r);
+    x.fillStyle='#ff8f5e';x.beginPath();x.arc(0,0,r,-Math.PI/2,Math.PI/2);x.fill();
+    x.fillStyle='rgba(255,255,255,.55)';x.beginPath();x.ellipse(-r*.34,-r*.42,r*.28,r*.16,-.6,0,TAU);x.fill();
+    spacer_face(0,r*.08,r*.6,t,0);x.restore()}
+  // rysowanie wielkiego przedmiotu do zebrania (typ: ball/puddle/tree/catspot)
+  function spacer_item(o,sx,gy,t,s,puls){
+    const R=W*.058;
+    if(o.tp==='ball'){if(o.done)return;const cy=gy-H*.05-H*.02*Math.abs(Math.sin(t/520+o.ph));
+      spacer_shadow(sx,gy+H*.005,R*.78,.16);spacer_ball(sx,cy,R*puls,t,1);
+      if(!LOW)spacer_spark(sx+R*.8,cy-R*.75,R*.22,'rgba(255,255,255,.95)',t/500);
+      if(!LOW)spacer_ring(sx,cy,R*1.25,t,o.ph,'#ffffff');return}
+    if(o.tp==='puddle'){const rw=R*1.15,rh=R*.32;
+      x.fillStyle='rgba(95,184,255,.92)';x.beginPath();x.ellipse(sx,gy+H*.01,rw*puls,rh*puls,0,0,TAU);x.fill();
+      x.fillStyle='rgba(190,232,255,.85)';x.beginPath();x.ellipse(sx-rw*.25,gy-rh*.1,rw*.42,rh*.44,0,0,TAU);x.fill();
+      if(!o.done){const bob=Math.sin(t/260)*H*.014;x.strokeStyle='#fff';x.lineWidth=Math.max(3,H*.008);x.lineCap='round';
+        for(let i=0;i<2;i++){const yy=gy-H*.15-i*H*.055+bob;x.beginPath();x.moveTo(sx-H*.028,yy+H*.022);x.lineTo(sx,yy);x.lineTo(sx+H*.028,yy+H*.022);x.stroke()}
+        if(!LOW)spacer_spark(sx+rw*.6,gy-rh*.9,R*.2,'rgba(255,255,255,.9)',t/600)}return}
+    if(o.tp==='tree'){spacer_shadow(sx,gy+H*.005,R*1.1,.15);
+      limb([{x:sx,y:gy},{x:sx,y:gy-H*.32}],'#b57c3f',H*.032);
+      oc(sx,gy-H*.52,R*1.2,'#4cc463');oc(sx-R*.8,gy-H*.36,R*.7,'#57d06e');oc(sx+R*.8,gy-H*.36,R*.7,'#57d06e');
+      for(let i=0;i<3;i++){const ax=sx+(i-1)*R*.62,ay=gy-H*.55+(i===1?R*.44:R*.1);
+        oc(ax,ay,R*.27,o.done?'#ffc2c2':'#ff5b5b');
+        if(!o.done&&!LOW)spacer_spark(ax-R*.15,ay-R*.15,R*.22,'rgba(255,255,255,.9)',t/500+i)}return}
+    if(o.tp==='catspot'){const fy=gy-H*.02;spacer_shadow(sx,gy+H*.005,R*1.1,.15);
+      box(sx-R*1.05,fy-H*.34,R*2.1,H*.14,16,'#f2b76a');box(sx-R*1.05,fy-H*.36,R*2.1,H*.05,14,'#ffd79a',false);
+      if(!o.done){cat(sx,fy-H*.34,R,0,{t,col:'#a8aec6',run:0});
+        if(!LOW){x.globalAlpha=.5+.4*Math.sin(t/300+o.ph);pgHeart(sx,fy-H*.72,R*.3,'#ff7aa8');x.globalAlpha=1}}return}
+  }
+  // pasek gwiazdek 1-2-3 do celów poziomu (z animacją elastic)
+  function spacer_stars(s,t){
+    const need=cur.lvl?(lvNeed()||cur.g.goals[2]):cur.g.goals[2],base=cur.lvl?cur.lv0:0,prog=cl((cur.score-base)/Math.max(1,need),0,1);
+    const cx=W/2,cy=H*.062,gap=H*.078,r=H*.033;
+    pgGlass(cx-gap*1.5,cy-r*1.6,gap*3,r*3.2,r*1.5);
+    x.fillStyle='rgba(255,255,255,.22)';x.beginPath();x.roundRect(cx-gap,r*.8,gap*2,r*.3,r*.15);x.fill();
+    x.fillStyle='rgba(255,214,110,.9)';x.beginPath();x.roundRect(cx-gap,r*.8,gap*2*prog,r*.3,r*.15);x.fill();
+    for(let i=0;i<3;i++){const lit=s.stg[i]>0,age=s.stAge[i];const sc=lit&&age>=0?Math.max(.18,spacer_elastic(cl(age/620,0,1))):1;
+      star5(cx+(i-1)*gap+(lit?Math.sin(t/700+i)*r*.05:0),cy,r*sc,0,lit?'#ffd23f':'rgba(255,255,255,.35)',lit,t)}
+  }
+  GAMES.push({dur:80,goals:[15,30,50],init(s){Object.assign(s,{q:0,v:0,ph:0,it:[],next:1,moodT:0,ups:0,hop:0,splash:0,dogSq:0,stg:[0,0,0],stAge:[-1,-1,-1],amb:0,fstep:0,hspark:0,ball:null,
+      dog:{q:4,st:'walk',tq:0,ph:0,happy:0,headRot:0},cat:{q:-3,ph:0,pet:0}})},
+    step(s,dt,t,on){
+      const K=H*.03,PX=W*.35,gy=H*.855,dts=Math.min(.05,dt/1000),easy=cur.el<15000;
+      // --- ruch świata (sterowanie z kamery bez zmian) ---
+      s.v+=((on?G.walk*8:0)-s.v)*Math.min(1,dt/250);
+      const dq=s.v*dts;s.q+=dq;s.ph+=dq*1.8;
+      s.moodT=Math.max(0,s.moodT-dt);s.ups=Math.max(0,s.ups-dt);
+      const mood=s.moodT>0?'happy':(s.ups>0?'sad':'idle');
+
+      /* ============ ŚWIAT Z BAJKI: 4 warstwy z paralaksą ============ */
+      x.drawImage(spacer_sky(),0,0);
+      {const sr=H*.072;x.save();x.translate(W*.16,H*.15);x.rotate(t/4200);x.fillStyle='#ffe27a';for(let i=0;i<10;i++){x.rotate(TAU/10);x.beginPath();x.moveTo(sr,0);x.lineTo(sr*1.42,H*.016);x.lineTo(sr*1.42,-H*.016);x.fill()}x.restore();
+        oc(W*.16,H*.15,sr,'#ffe27a');eyes(W*.16,H*.145,sr*.22,t,H*.03);smile(W*.16,H*.175,sr*.3);blush(W*.16,H*.2,sr*.14,H*.035)}
+      for(let i=0;i<5;i++){const w=H*(.13+.05*(i%3)),sp=W+w*2.4,px=((i*W*.29-s.q*K*.06+t*.012)%sp+sp)%sp-w;cloud(px,H*(.07+(i%3)*.07)+Math.sin(t/1700+i)*H*.008,w,'rgba(255,255,255,.95)')}
+      {const o=s.q*K*.15;x.fillStyle='#bfe0f5';x.beginPath();x.moveTo(0,H);for(let i=0;i<=W+30;i+=30)x.lineTo(i,H*.63-Math.sin((i+o)*.0035)*H*.05-Math.sin((i+o)*.0011+2)*H*.02);x.lineTo(W,H);x.fill()}
+      {const o=s.q*K*.38;x.fillStyle='#a4dd8b';x.beginPath();x.moveTo(0,H);for(let i=0;i<=W+30;i+=30)x.lineTo(i,H*.72-Math.sin((i+o)*.006+1)*H*.05);x.lineTo(W,H);x.fill();
+        const gap=H*.34;for(let i=Math.floor(o/gap)-1;i<(o+W)/gap+1;i++){if(hsh(i+3)<.42)continue;const px=i*gap-o+hsh(i)*gap*.5,by=H*.72-Math.sin((px+o)*.006+1)*H*.05+H*.02;tree(px,by,H*(.12+hsh(i+5)*.06),i)}}
+      x.fillStyle='#8ed470';x.beginPath();x.moveTo(0,H);for(let i=0;i<=W+20;i+=20)x.lineTo(i,H*.79-Math.sin((i+s.q*K)*.02)*H*.012);x.lineTo(W,H);x.fill();
+      x.fillStyle='#f2dcae';x.fillRect(0,gy-H*.035,W,H*.075);x.fillStyle='#ffeec9';x.fillRect(0,gy-H*.03,W,H*.014);
+      {const o=s.q*K,gap=H*.17;for(let i=Math.floor(o/gap)-1;i<(o+W)/gap+1;i++){const px=i*gap-o+hsh(i)*gap*.6;x.fillStyle='rgba(206,176,126,.5)';circle(px,gy+H*.008+(hsh(i+2)-.5)*H*.03,H*(.006+hsh(i+7)*.006))}}
+
+      /* ============ ZBIERACTWO: wielkie, pulsujące przedmioty ============ */
+      if(on&&s.q>s.next){s.next+=(easy?14:9)+Math.random()*(easy?8:5);
+        const rr=Math.random(),tp=rr<.3?'ball':rr<.55?'puddle':rr<.8?'tree':'catspot';s.it.push({q:s.q+(W/K)*.5,tp,done:0,ph:Math.random()*6})}
+      let hnear=null;
+      for(const o of s.it){const sx=PX+(o.q-s.q)*K,dd=o.q-s.q;if(sx<-W*.35||sx>W+W*.35)continue;
+        const puls=1+.05*Math.sin(t/320+o.ph);x.globalAlpha=cl((W-sx)/(W*.22),0,1);
+        spacer_item(o,sx,gy,t,s,puls);x.globalAlpha=1;
+        if(o.done)continue;
+        if(dd>-3&&dd<26&&(!hnear||dd<hnear.d))hnear={o,d:dd};
+        if(!on)continue;
+        if(o.tp==='ball'&&Math.abs(dd)<4&&G.thr){o.done=1;s.ball={q:s.q,tq:s.q+18,k:0};s.dog.st='fetch';beep(500,.15,'triangle')}
+        if(o.tp==='puddle'&&Math.abs(dd)<1.6){if(G.air){o.done=1;s.hop=500;add(1,PX,H*.45);spacer_win(s,sx,gy-H*.05,'#7ad3ff',6);s.moodT=1200}
+          else if(dd<-1){o.done=2;s.splash=600;spacer_ups(s,'Plusk! Nie szkodzi 😊');for(let i=0;i<10;i++)parts.push({x:PX,y:gy,vx:(Math.random()-.5)*10,vy:-Math.random()*8,l:1,col:'#8ed4ff',g:.4})}}
+        if(o.tp==='tree'&&Math.abs(dd)<4&&G.handUp){o.done=1;add(2,sx,H*.4);spacer_win(s,sx,gy-H*.5,'#ff6b6b',7);s.dog.happy=1500;s.moodT=1400}
+        if(o.tp==='catspot'&&Math.abs(dd)<3.5&&G.crouch){o.done=1;add(3,sx,H*.45);hearts(sx,gy-H*.3,8);s.dog.happy=1500;s.moodT=1400;say('Mrrr… kotek mruczy',1200)}
+        if(dd<-4&&!o.done){o.done=2;cur.combo=0}}
+      s.it=s.it.filter(o=>o.q-s.q>-W/K);
+
+      /* ============ MASKOTKI: piesek, kotek, dziecko ============ */
+      const D=s.dog;D.happy=Math.max(0,D.happy-dt);D.headRot*=Math.pow(.86,dt/16.7);
+      if(s.ball){const b=s.ball;b.k+=dt/900;
+        if(b.k<1){const bq=b.q+(b.tq-b.q)*b.k;spacer_ball(PX+(bq-s.q)*K,gy-H*.06-Math.sin(b.k*Math.PI)*H*.34,H*.05,t,1)}
+        if(D.st==='fetch'){D.q+=(b.tq-D.q)*Math.min(1,dt/500);D.ph+=dt/60;if(b.k>=1&&Math.abs(D.q-b.tq)<1)D.st='back'}
+        else if(D.st==='back'){D.q+=((s.q+3)-D.q)*Math.min(1,dt/600);D.ph+=dt/60;if(Math.abs(D.q-(s.q+3))<1){D.st='walk';s.ball=null;add(3,PX+H*.2,H*.45);hearts(PX+3*K,gy-H*.2,8);D.happy=2000;s.moodT=2000;say('Hau hau! Piesek przyniósł piłkę',1300)}}}
+      else{D.q+=((s.q+4+Math.sin(t/1500)*1.5)-D.q)*Math.min(1,dt/400);D.ph+=dq*2.4+(D.happy?dt/150:0)}
+      const C=s.cat;C.q+=((s.q-3.5)-C.q)*Math.min(1,dt/700);C.ph+=dq*2.6;
+      s.hop=Math.max(0,s.hop-dt);s.splash=Math.max(0,s.splash-dt);
+      const kick=Math.min(1,s.v/4),hopY=-Math.sin(s.hop/500*Math.PI)*H*.15,kidY=gy+H*.03+hopY;
+      const CX=PX+(C.q-s.q)*K;spacer_shadow(CX,gy+H*.025,H*.08,.15);
+      cat(CX,gy+H*.02,H*.15,C.ph,{t,run:Math.min(1,s.v/3),col:'#a8aec6'});
+      s.fstep-=dt;if(on&&s.v>1.2&&s.fstep<=0){s.fstep=easy?280:200;pgFx(s,{k:'dot',x:PX-H*.05,y:gy+H*.005,vx:-H*.12,vy:-H*.05,g:H*.2,col:'#e9dcb6',r:H*.012,dl:.7,dr:1.6})}
+      if(on&&G.handUp){s.hspark-=dt;if(s.hspark<=0){s.hspark=150;if(!LOW){const hn=(AR?1:2);for(let i=0;i<hn;i++)pgFx(s,{k:'sp',x:PX+H*.12+(Math.random()-.5)*H*.05,y:kidY-H*.52,vx:(Math.random()-.5)*H*.1,vy:-H*.12,g:H*.3,col:'#fff7c4',r:H*.008,dl:.8})}}}
+      spacer_shadow(PX,gy+H*.006,H*.1,.17);
+      spacer_kid(PX,kidY,H*.38,s.ph,{t,swing:kick,open:mouth>0||s.splash>0,arms:G.handUp?'up':0,shirt:'#3ccf7a',stripe:'#fff',rot:Math.sin(t/900)*(kick*.02+.01),breathe:Math.sin(t/700)*.02});
+      const DX=PX+(D.q-s.q)*K;
+      limb([{x:PX+H*.03,y:gy-H*.2+hopY*.5},{x:DX+H*.03,y:gy-H*.12}],'#ff6b9a',3);
+      s.dogSq=Math.sin(D.ph*2)*.05*(D.st==='walk'?Math.max(.35,kick):1)+(D.happy?Math.sin(t/120)*.05:0);
+      spacer_shadow(DX,gy+H*.012,H*.09,.15);
+      spacer_dog(DX,gy+H*.02,H*.21,D.ph,{t,dir:D.st==='back'?-1:1,run:D.st==='walk'?Math.max(.35,kick):1,mood,squash:s.dogSq,headRot:D.headRot});
+
+      /* ============ BLISKI PLAN (najszybsza paralaksa) ============ */
+      {const o=s.q*K*1.35,gap=H*.12;
+        for(let i=Math.floor(o/gap)-1;i<(o+W)/gap+1;i++){const px=i*gap-o+hsh(i)*gap*.6,hh=H*(.05+hsh(i+3)*.08);
+          x.fillStyle=i%2?'#57b849':'#63c654';x.beginPath();x.moveTo(px,H);x.quadraticCurveTo(px+hh*(hsh(i+5)-.5),H-hh*.55,px+hh*(hsh(i+5)-.5)*.6,H-hh);x.quadraticCurveTo(px+hh*.4,H-hh*.5,px+hh*.45,H);x.fill()}
+        const g2=H*.24;for(let i=Math.floor(o/g2)-1;i<(o+W)/g2+1;i++){const px=i*g2-o+hsh(i+9)*g2,fy=H*(.93+hsh(i+11)*.06);x.fillStyle=['#ff9ec7','#ffe066','#b8a3ff'][i%3];circle(px,fy,H*.013);x.fillStyle='#ffd23f';circle(px,fy,H*.005)}}
+
+      /* ============ EFEKTY I NAGRODY ============ */
+      pgFxDraw(s,dts);
+      {const need=cur.lvl?(lvNeed()||cur.g.goals[2]):cur.g.goals[2],base=cur.lvl?cur.lv0:0,prog=cl((cur.score-base)/Math.max(1,need),0,1);
+        for(let i=0;i<3;i++){if(prog>=(i+1)/3-1e-6&&!s.stg[i]){s.stg[i]=1;s.stAge[i]=0;confetti(46);spacer_cheer();pgBoom(s,W/2+(i-1)*H*.075,H*.055,'#ffd23f',9,H*.4,H*.04);say(i===2?'Wszystkie gwiazdki! ⭐⭐':i===1?'Druga gwiazdka! ⭐':'Pierwsza gwiazdka!',1200)}
+          if(s.stAge[i]>=0){s.stAge[i]+=dt;if(s.stAge[i]>680)s.stAge[i]=-1}}}
+      spacer_stars(s,t);
+      if(on&&hnear){const msg={ball:'🤾 Rzuć piłkę pieskowi!',puddle:'⬆ Przeskocz kałużę!',tree:'✋ Sięgnij po jabłko!',catspot:'⬇ Kucnij i pogłaszcz kotka'}[hnear.o.tp];pgPill(msg,cl(PX+hnear.d*K,H*.2,W*.8),gy-H*.64,'#fff',H*.04)}
+      if(on&&s.v<.5&&pose&&cur.el>2500)txt('Maszeruj w miejscu — piesek chce na spacer! 🐶',W/2,H*.9,H*.042,'#ffd23f');
+      if(cur.el<7000)pgHint('Maszeruj w miejscu. Podnieś rękę, kucnij, skacz albo rzuć!');
+      miniMe(t,{shirt:'#3ccf7a',stripe:'#fff'});
+      // ciche, ciepłe otoczenie (pentatonika)
+      s.amb-=dt;if(s.amb<=0){s.amb=2400+Math.random()*2800;const b=SPACER_PENT[Math.floor(Math.random()*5)];pgS(b,b*1.5,.55,'sine',.025);pgS(b*1.25,b*1.9,.5,'sine',.018,.18);if(Math.random()<.35)pgN(.5,.018,1100)}
+    }});
 
   // 11. RAJD PRO — widok z góry, drift jak w rajdach arcade
   const TRK=[];for(let i=0;i<72;i++){const a=i/72*TAU,r=1+.32*Math.sin(a*3+.5)+.18*Math.cos(a*2);TRK.push([Math.cos(a)*r*30,Math.sin(a)*r*19])}
